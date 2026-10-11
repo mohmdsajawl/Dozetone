@@ -1,9 +1,12 @@
-# Miscellaneous
+# Miscellaneous and OS-specific files
 *.class
 *.log
 *.pyc
 *.swp
 .DS_Store
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
 .atom/
 .build/
 .buildlog/
@@ -12,18 +15,14 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
+# IDE and editor files
 *.iml
 *.ipr
 *.iws
 .idea/
+.vscode/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
+# Flutter, Dart and Pub build artifacts and caches
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
@@ -33,13 +32,34 @@ migrate_working_dir/
 /build/
 /coverage/
 
-# Symbolication related
+# Symbolication and Obfuscation outputs
 app.*.symbols
-
-# Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
+# Android Studio and Gradle build outputs
 /android/app/debug
 /android/app/profile
 /android/app/release
+.gradle/
+**/android/.gradle/
+android/local.properties
+
+# Android Release Signing and Security
+# Keystores and private signing properties must never be committed to GitHub
+key.properties
+*.keystore
+*.jks
+*.p12
+*.pem
+
+# Environment variables and private secrets
+.env
+.env.*
+*.env
+
+# Google Services and Firebase credentials
+google-services.json
+GoogleService-Info.plist
+
+# Internal requirements and specifications
+/documents/
