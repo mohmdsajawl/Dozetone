@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.dozetone"
+    namespace = "com.velcruxlab.dozetone"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,11 +15,10 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.dozetone"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // Application ID for Dozetone production release
+        applicationId = "com.velcruxlab.dozetone"
+        // Minimum Android version supported: Android 8.0 Oreo (API 26)
+        minSdk = 26
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
