@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dozetone/app/app.dart';
+import 'package:dozetone/view/splash/splash_view.dart';
 
 void main() {
-  testWidgets('DozetoneApp boots and displays initial themed screen',
+  testWidgets('DozetoneApp boots and mounts initial SplashView',
       (WidgetTester tester) async {
     // Build Dozetone inside Riverpod ProviderScope
     await tester.pumpWidget(
@@ -11,10 +12,9 @@ void main() {
         child: DozetoneApp(),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
 
-    // Verify brand title and foundation status text are displayed
-    expect(find.text('Dozetone'), findsOneWidget);
-    expect(find.text('Phase 0: Foundation Ready'), findsOneWidget);
+    // Verify SplashView is mounted on initial boot
+    expect(find.byType(SplashView), findsOneWidget);
   });
 }

@@ -39,7 +39,7 @@
         android:icon="@mipmap/ic_launcher">
         <!-- Main Flutter Activity with portrait-only orientation -->
         <activity
-            android:name=".MainActivity"
+            android:name="com.ryanheise.audioservice.AudioServiceActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""

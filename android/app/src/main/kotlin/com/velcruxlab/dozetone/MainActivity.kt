@@ -1,10 +1,9 @@
 package com.velcruxlab.dozetone
 
-import com.ryanheise.audioservice.AudioServiceActivity
+import io.flutter.embedding.android.FlutterActivity
 
 /**
  * MainActivity for Dozetone.
- * Inherits from AudioServiceActivity to properly bridge background
- * media controls, notification actions, and lock screen callbacks.
+ * Standard FlutterActivity embedding.
  */
-class MainActivity : AudioServiceActivity()
+class MainActivity : FlutterActivity()
