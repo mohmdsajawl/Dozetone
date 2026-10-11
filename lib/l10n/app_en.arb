@@ -1,0 +1,213 @@
+{
+  "@@locale": "en",
+  "appTitle": "Dozetone",
+  "@appTitle": {
+    "description": "Application display name"
+  },
+
+  "libraryTitle": "Library",
+  "@libraryTitle": {
+    "description": "Library view header title"
+  },
+  "searchPlaceholder": "Search by title or artist...",
+  "@searchPlaceholder": {
+    "description": "Search field hint text"
+  },
+  "scanningMusic": "Scanning your music...",
+  "@scanningMusic": {
+    "description": "Loading state label while searching for audio files"
+  },
+  "noSongsFound": "No songs found",
+  "@noSongsFound": {
+    "description": "Empty library headline"
+  },
+  "shortSongsHiddenHint": "Songs shorter than 30 seconds are hidden",
+  "@shortSongsHiddenHint": {
+    "description": "Empty library explanatory caption"
+  },
+  "noSearchResults": "No results for \"{query}\"",
+  "@noSearchResults": {
+    "description": "No search results label",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "permissionRequired": "Audio permission is required to play local songs",
+  "@permissionRequired": {
+    "description": "Explanation when audio storage permission is not granted"
+  },
+  "grantPermission": "Grant permission",
+  "@grantPermission": {
+    "description": "Button to request audio permissions"
+  },
+  "openSettings": "Open settings",
+  "@openSettings": {
+    "description": "Button to open device application settings"
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Generic retry button"
+  },
+  "unknownTitle": "Unknown Title",
+  "@unknownTitle": {
+    "description": "Fallback when audio track has no title"
+  },
+  "unknownArtist": "Unknown Artist",
+  "@unknownArtist": {
+    "description": "Fallback when audio track has no artist"
+  },
+
+  "nowPlayingTitle": "Now playing",
+  "@nowPlayingTitle": {
+    "description": "Top bar title on the player screen"
+  },
+  "sleepTimer": "Sleep timer",
+  "@sleepTimer": {
+    "description": "Sleep timer button and header label"
+  },
+
+  "timerPreset5Min": "5 minutes",
+  "@timerPreset5Min": {
+    "description": "5 minutes preset"
+  },
+  "timerPreset10Min": "10 minutes",
+  "@timerPreset10Min": {
+    "description": "10 minutes preset"
+  },
+  "timerPreset15Min": "15 minutes",
+  "@timerPreset15Min": {
+    "description": "15 minutes preset"
+  },
+  "timerPreset30Min": "30 minutes",
+  "@timerPreset30Min": {
+    "description": "30 minutes preset"
+  },
+  "timerPreset45Min": "45 minutes",
+  "@timerPreset45Min": {
+    "description": "45 minutes preset"
+  },
+  "timerPreset60Min": "60 minutes",
+  "@timerPreset60Min": {
+    "description": "60 minutes preset"
+  },
+  "timerCustom": "Custom",
+  "@timerCustom": {
+    "description": "Custom timer duration picker option"
+  },
+  "timerEndOfSong": "End of current song",
+  "@timerEndOfSong": {
+    "description": "Option to pause after current track completes"
+  },
+  "lastUsed": "Last used",
+  "@lastUsed": {
+    "description": "Badge indicator on last used timer choice"
+  },
+  "timerSetSnackbar": "Sleep timer set for {duration}",
+  "@timerSetSnackbar": {
+    "description": "Snackbar message when a sleep timer is activated",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "add5Min": "Add 5 min",
+  "@add5Min": {
+    "description": "Action button to extend sleep timer by five minutes"
+  },
+  "cancelTimer": "Cancel timer",
+  "@cancelTimer": {
+    "description": "Action button to cancel active sleep timer"
+  },
+  "fadingOut": "Fading out",
+  "@fadingOut": {
+    "description": "Status text while audio volume fade-out is active"
+  },
+
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Settings view title"
+  },
+  "sleepTimerSection": "Sleep timer",
+  "@sleepTimerSection": {
+    "description": "Settings section header for sleep timer options"
+  },
+  "fadeLength": "Fade length",
+  "@fadeLength": {
+    "description": "Fade duration setting title"
+  },
+  "secondsUnit": "{seconds} seconds",
+  "@secondsUnit": {
+    "description": "Formatted seconds",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "slowVolumeDeclineTitle": "Slow volume decline",
+  "@slowVolumeDeclineTitle": {
+    "description": "Setting title for gradual volume lowering"
+  },
+  "slowVolumeDeclineHint": "Volume lowers gently to 60% before the fade",
+  "@slowVolumeDeclineHint": {
+    "description": "Setting explanation for gradual volume lowering"
+  },
+  "shakeToExtendTitle": "Shake to extend",
+  "@shakeToExtendTitle": {
+    "description": "Setting title for accelerometer shake extension"
+  },
+  "shakeToExtendHint": "Shake your phone during the fade to add 5 minutes",
+  "@shakeToExtendHint": {
+    "description": "Setting explanation for accelerometer shake extension"
+  },
+  "bedtimeAutoTimerTitle": "Bedtime auto-timer",
+  "@bedtimeAutoTimerTitle": {
+    "description": "Setting title for automatic night timer"
+  },
+  "bedtimeStartTime": "Start time",
+  "@bedtimeStartTime": {
+    "description": "Bedtime schedule start time"
+  },
+  "bedtimeDuration": "Duration",
+  "@bedtimeDuration": {
+    "description": "Bedtime timer default duration"
+  },
+  "bedtimeStartedSnackbar": "Bedtime timer started: {duration}",
+  "@bedtimeStartedSnackbar": {
+    "description": "Snackbar alert when bedtime auto timer starts",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Generic cancel button"
+  },
+
+  "aboutSection": "About",
+  "@aboutSection": {
+    "description": "Settings section header for about info"
+  },
+  "appVersion": "Version {version}",
+  "@appVersion": {
+    "description": "App version display",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "privacyNotice": "Dozetone works offline and collects no data",
+  "@privacyNotice": {
+    "description": "Privacy promise text in settings"
+  },
+  "openSourceLicenses": "Open source licenses",
+  "@openSourceLicenses": {
+    "description": "Button to view third party open source licenses"
+  }
+}
