@@ -1,14 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dozetone/model/song.dart';
 import 'package:dozetone/view_model/library/filtered_songs_provider.dart';
 import 'package:dozetone/view_model/library/library_search_query_provider.dart';
 import 'package:dozetone/view_model/library/library_sort_provider.dart';
 import 'package:dozetone/view_model/library/library_state.dart';
 import 'package:dozetone/view_model/library/library_view_model.dart';
+import 'package:dozetone/view_model/playlist/favorites_provider.dart';
 
 void main() {
   group('Filtered Songs Provider Tests', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+    });
+
     const testSongs = <Song>[
       Song(
         id: 1,
@@ -144,7 +150,34 @@ void main() {
       expect(songs.first.id, equals(3));
       expect(songs.last.id, equals(1));
     });
+
+    test('filters songs by favorites when favorites tab is active', () {
+      final container = ProviderContainer(
+        overrides: [
+          libraryViewModelProvider.overrideWith(
+            (ref) => _FakeLibraryViewModel(const LibraryLoaded(testSongs)),
+          ),
+          libraryQueryProvider.overrideWith((ref) => ''),
+          libraryTabProvider.overrideWith((ref) => LibraryTab.favorites),
+          favoritesProvider.overrideWith((ref) => _FakeFavoritesNotifier(<int>{2})),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final songs = container.read(filteredSongsProvider);
+      expect(songs.length, equals(1));
+      expect(songs.first.id, equals(2));
+      expect(songs.first.title, equals('Blinding Lights'));
+    });
   });
+}
+
+class _FakeFavoritesNotifier extends StateNotifier<Set<int>>
+    implements FavoritesNotifier {
+  _FakeFavoritesNotifier(super.state);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FakeLibraryViewModel extends StateNotifier<LibraryState>

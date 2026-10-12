@@ -23,8 +23,8 @@ class MusicWaveBars extends StatefulWidget {
     super.key,
     this.isPlaying = true,
     this.color = AppColors.accent,
-    this.width = 18.0,
-    this.height = 16.0,
+    this.width = 22.0,
+    this.height = 18.0,
   });
 
   @override
@@ -68,12 +68,12 @@ class _MusicWaveBarsState extends State<MusicWaveBars>
 
   @override
   Widget build(BuildContext context) {
-    const barCount = 4;
-    const barWidth = 2.5;
+    const barCount = 5;
+    const barWidth = 2.4;
     const minHeight = 3.5;
+    const gap = 1.8;
 
     return SizedBox(
-      width: widget.width,
       height: widget.height,
       child: AnimatedBuilder(
         animation: _controller,
@@ -81,14 +81,15 @@ class _MusicWaveBarsState extends State<MusicWaveBars>
           final progress = _controller.value;
 
           return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: List.generate(barCount, (index) {
               double barHeight;
 
               if (widget.isPlaying) {
-                // Stagger each bar's phase so they bounce independently like live audio
-                final phase = (index * 0.28) * 2 * math.pi;
+                // Stagger each bar's phase so all 5 bounce independently
+                final phase = (index * 0.22) * 2 * math.pi;
                 final wave = (math.sin(progress * 2 * math.pi + phase) + 1.0) / 2.0;
                 barHeight = minHeight + wave * (widget.height - minHeight);
               } else {
@@ -96,25 +97,31 @@ class _MusicWaveBarsState extends State<MusicWaveBars>
                 barHeight = switch (index) {
                   0 => 4.0,
                   1 => 7.0,
-                  2 => 5.0,
-                  _ => 3.5,
+                  2 => 9.0,
+                  3 => 6.0,
+                  _ => 4.0,
                 };
               }
 
-              return Container(
-                width: barWidth,
-                height: barHeight,
-                decoration: BoxDecoration(
-                  color: widget.color,
-                  borderRadius: BorderRadius.circular(1.5),
-                  boxShadow: widget.isPlaying
-                      ? <BoxShadow>[
-                          BoxShadow(
-                            color: widget.color.withValues(alpha: 0.35),
-                            blurRadius: 3.0,
-                          ),
-                        ]
-                      : null,
+              return Padding(
+                padding: EdgeInsets.only(
+                  right: index < barCount - 1 ? gap : 0.0,
+                ),
+                child: Container(
+                  width: barWidth,
+                  height: barHeight,
+                  decoration: BoxDecoration(
+                    color: widget.color,
+                    borderRadius: BorderRadius.circular(1.5),
+                    boxShadow: widget.isPlaying
+                        ? <BoxShadow>[
+                            BoxShadow(
+                              color: widget.color.withValues(alpha: 0.35),
+                              blurRadius: 3.0,
+                            ),
+                          ]
+                        : null,
+                  ),
                 ),
               );
             }),
@@ -158,14 +165,14 @@ class MusicArtworkOverlay extends StatelessWidget {
             width: size,
             height: size,
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.52),
+              color: Colors.black.withValues(alpha: 0.70),
               borderRadius: borderRadius,
             ),
             child: const Center(
               child: MusicWaveBars(
                 isPlaying: true,
                 color: AppColors.accent,
-                width: 20.0,
+                width: 22.0,
                 height: 18.0,
               ),
             ),

@@ -3,12 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/player_repository.dart';
 import '../../model/player_state.dart';
 import '../../model/song.dart';
+import '../library/library_state.dart';
+import '../library/library_view_model.dart';
 
 /// Provider exposing the reactive PlayerViewModel state and actions.
 final playerViewModelProvider =
     StateNotifierProvider<PlayerViewModel, PlayerState>((ref) {
   final repository = ref.watch(playerRepositoryProvider);
-  return PlayerViewModel(repository);
+  final viewModel = PlayerViewModel(repository);
+
+  // Automatically restore saved playback session as soon as audio library is loaded
+  ref.listen<LibraryState>(libraryViewModelProvider, (previous, next) {
+    if (next is LibraryLoaded) {
+      viewModel.restoreSavedSession(next.songs);
+    }
+  }, fireImmediately: true);
+
+  return viewModel;
 });
 
 /// ViewModel managing playback state transitions and user controls.
@@ -17,7 +28,7 @@ final playerViewModelProvider =
 class PlayerViewModel extends StateNotifier<PlayerState> {
   final PlayerRepository _repository;
   StreamSubscription<PlayerState>? _subscription;
-  Timer? _persistenceTimer;
+  DateTime _lastPersistTime = DateTime.fromMillisecondsSinceEpoch(0);
 
   PlayerViewModel(this._repository) : super(const PlayerState()) {
     _listenToPlaybackState();
@@ -26,28 +37,41 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
   void _listenToPlaybackState() {
     _subscription = _repository.playerStateStream.listen((newState) {
       state = newState;
-      _schedulePersistence(newState);
+      _handleStatePersistence(newState);
     });
   }
 
-  void _schedulePersistence(PlayerState currentState) {
-    if (currentState.currentSong == null) return;
+  void _handleStatePersistence(PlayerState currentState) {
+    final song = currentState.currentSong;
+    if (song == null) return;
 
-    _persistenceTimer?.cancel();
-    _persistenceTimer = Timer(const Duration(seconds: 3), () {
-      final song = currentState.currentSong;
-      if (song != null) {
-        _repository.saveLastPlaybackSession(
-          song.id,
-          currentState.position.inMilliseconds,
-        );
-      }
-    });
+    final now = DateTime.now();
+
+    // If playback is paused/stopped or more than 2 seconds elapsed since last write, persist immediately
+    if (!currentState.isPlaying || now.difference(_lastPersistTime).inSeconds >= 2) {
+      _lastPersistTime = now;
+      _repository.saveLastPlaybackSession(
+        song.id,
+        currentState.position.inMilliseconds,
+      );
+    }
+  }
+
+  void _persistImmediately() {
+    final song = state.currentSong;
+    if (song != null) {
+      _lastPersistTime = DateTime.now();
+      _repository.saveLastPlaybackSession(
+        song.id,
+        state.position.inMilliseconds,
+      );
+    }
   }
 
   /// Starts playback for a song within the active queue.
   Future<void> playSong(Song song, List<Song> queue) async {
     await _repository.playSong(song, queue);
+    _persistImmediately();
   }
 
   /// Toggles between playing and paused states.
@@ -57,21 +81,25 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
     } else {
       await _repository.play();
     }
+    _persistImmediately();
   }
 
   /// Resumes playback.
   Future<void> play() async {
     await _repository.play();
+    _persistImmediately();
   }
 
   /// Pauses playback.
   Future<void> pause() async {
     await _repository.pause();
+    _persistImmediately();
   }
 
   /// Seeks to a specific [position].
   Future<void> seek(Duration position) async {
     await _repository.seek(position);
+    _persistImmediately();
   }
 
   /// Skips to the next song in the queue.
@@ -133,7 +161,7 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
 
   @override
   void dispose() {
-    _persistenceTimer?.cancel();
+    _persistImmediately();
     _subscription?.cancel();
     super.dispose();
   }

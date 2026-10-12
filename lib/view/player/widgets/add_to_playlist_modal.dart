@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../data/repositories/playlist_repository.dart';
 import '../../../model/song.dart';
 import '../../../view_model/player/player_view_model.dart';
+import '../../../view_model/playlist/favorites_provider.dart';
 
 /// Modal bottom sheet allowing users to add a track to Favorites,
 /// Queue (Play Next / End / New Queue), or Playlists & Albums.
@@ -35,31 +35,8 @@ class AddToPlaylistModal extends ConsumerStatefulWidget {
 }
 
 class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
-  bool _isFavorite = false;
   bool _isQueueExpanded = false;
   bool _isPlaylistsExpanded = false;
-  Map<String, List<int>> _playlists = <String, List<int>>{};
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    final repo = ref.read(playlistRepositoryProvider);
-    final fav = await repo.isFavorite(widget.song.id);
-    final playlists = await repo.getPlaylists();
-
-    if (mounted) {
-      setState(() {
-        _isFavorite = fav;
-        _playlists = playlists;
-        _isLoading = false;
-      });
-    }
-  }
 
   void _showFeedback(String message, IconData icon) {
     if (!mounted) return;
@@ -90,11 +67,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
   }
 
   Future<void> _toggleFavorite() async {
-    final repo = ref.read(playlistRepositoryProvider);
-    final nowFav = await repo.toggleFavorite(widget.song.id);
-    setState(() {
-      _isFavorite = nowFav;
-    });
+    final nowFav = await ref.read(favoritesProvider.notifier).toggleFavorite(widget.song.id);
 
     if (mounted) {
       Navigator.pop(context);
@@ -135,8 +108,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
   }
 
   Future<void> _onAddToPlaylist(String playlistName) async {
-    final repo = ref.read(playlistRepositoryProvider);
-    final added = await repo.addSongToPlaylist(playlistName, widget.song.id);
+    final added = await ref.read(playlistsProvider.notifier).addSongToPlaylist(playlistName, widget.song.id);
     if (!mounted) return;
     Navigator.pop(context);
     _showFeedback(
@@ -201,9 +173,8 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
     );
 
     if (name != null && name.isNotEmpty) {
-      final repo = ref.read(playlistRepositoryProvider);
-      await repo.createPlaylist(name);
-      await repo.addSongToPlaylist(name, widget.song.id);
+      await ref.read(playlistsProvider.notifier).createPlaylist(name);
+      await ref.read(playlistsProvider.notifier).addSongToPlaylist(name, widget.song.id);
       if (!mounted) return;
       Navigator.pop(context);
       _showFeedback(
@@ -215,6 +186,10 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
 
   @override
   Widget build(BuildContext context) {
+    final favorites = ref.watch(favoritesProvider);
+    final playlists = ref.watch(playlistsProvider);
+    final isFavorite = favorites.contains(widget.song.id);
+
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
@@ -289,88 +264,80 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
               const Divider(color: AppColors.outline, height: 1.0),
               const SizedBox(height: AppDimensions.space12),
 
-              if (_isLoading)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(AppDimensions.space24),
-                    child: CircularProgressIndicator(color: AppColors.accent),
-                  ),
-                )
-              else ...<Widget>[
-                // 1. Favorites row
-                _buildOptionTile(
-                  icon: _isFavorite
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
-                  iconColor: _isFavorite ? Colors.redAccent : AppColors.accent,
-                  title: 'Favorites',
-                  subtitle: _isFavorite
-                      ? 'Already in Favorites (tap to remove)'
-                      : 'Save to favorite tracks',
-                  trailing: Icon(
-                    _isFavorite ? Icons.check_circle_rounded : Icons.add_rounded,
-                    color: _isFavorite ? Colors.redAccent : AppColors.accent,
-                    size: 24.0,
-                  ),
-                  onTap: _toggleFavorite,
+              // 1. Favorites row
+              _buildOptionTile(
+                icon: isFavorite
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+                iconColor: isFavorite ? Colors.redAccent : AppColors.accent,
+                title: 'Favorites',
+                subtitle: isFavorite
+                    ? 'Already in Favorites (tap to remove)'
+                    : 'Save to favorite tracks',
+                trailing: Icon(
+                  isFavorite ? Icons.check_circle_rounded : Icons.add_rounded,
+                  color: isFavorite ? Colors.redAccent : AppColors.accent,
+                  size: 24.0,
                 ),
+                onTap: _toggleFavorite,
+              ),
 
-                const SizedBox(height: AppDimensions.space8),
+              const SizedBox(height: AppDimensions.space8),
 
-                // 2. Queue expandable accordion
-                _buildExpandableTile(
-                  icon: Icons.queue_music_rounded,
-                  title: 'Queue',
-                  subtitle: 'Play next, add to end, or start new queue',
-                  isExpanded: _isQueueExpanded,
-                  onHeaderTap: () {
-                    setState(() {
-                      _isQueueExpanded = !_isQueueExpanded;
-                    });
-                  },
-                  children: <Widget>[
+              // 2. Queue expandable accordion
+              _buildExpandableTile(
+                icon: Icons.queue_music_rounded,
+                title: 'Queue',
+                subtitle: 'Play next, add to end, or start new queue',
+                isExpanded: _isQueueExpanded,
+                onHeaderTap: () {
+                  setState(() {
+                    _isQueueExpanded = !_isQueueExpanded;
+                  });
+                },
+                children: <Widget>[
+                  _buildSubOption(
+                    icon: Icons.playlist_play_rounded,
+                    title: 'Play Next',
+                    subtitle: 'Insert immediately after current track',
+                    onTap: _onPlayNext,
+                  ),
+                  _buildSubOption(
+                    icon: Icons.low_priority_rounded,
+                    title: 'Add to End of Queue',
+                    subtitle: 'Append to the bottom of the active queue',
+                    onTap: _onAddToQueue,
+                  ),
+                  _buildSubOption(
+                    icon: Icons.add_circle_outline_rounded,
+                    title: 'New Queue',
+                    subtitle: 'Clear and start new queue with this song',
+                    onTap: _onCreateNewQueue,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: AppDimensions.space8),
+
+              // 3. Playlists & Albums expandable accordion
+              _buildExpandableTile(
+                icon: Icons.playlist_add_rounded,
+                title: 'Playlists & Albums',
+                subtitle: '${playlists.length} playlists available',
+                isExpanded: _isPlaylistsExpanded,
+                onHeaderTap: () {
+                  setState(() {
+                    _isPlaylistsExpanded = !_isPlaylistsExpanded;
+                  });
+                },
+                children: <Widget>[
+                  for (final entry in playlists.entries)
                     _buildSubOption(
-                      icon: Icons.playlist_play_rounded,
-                      title: 'Play Next',
-                      subtitle: 'Insert immediately after current track',
-                      onTap: _onPlayNext,
+                      icon: Icons.album_rounded,
+                      title: entry.key,
+                      subtitle: '${entry.value.length} tracks',
+                      onTap: () => _onAddToPlaylist(entry.key),
                     ),
-                    _buildSubOption(
-                      icon: Icons.low_priority_rounded,
-                      title: 'Add to End of Queue',
-                      subtitle: 'Append to the bottom of the active queue',
-                      onTap: _onAddToQueue,
-                    ),
-                    _buildSubOption(
-                      icon: Icons.add_circle_outline_rounded,
-                      title: 'New Queue',
-                      subtitle: 'Clear and start new queue with this song',
-                      onTap: _onCreateNewQueue,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: AppDimensions.space8),
-
-                // 3. Playlists & Albums expandable accordion
-                _buildExpandableTile(
-                  icon: Icons.playlist_add_rounded,
-                  title: 'Playlists & Albums',
-                  subtitle: '${_playlists.length} playlists available',
-                  isExpanded: _isPlaylistsExpanded,
-                  onHeaderTap: () {
-                    setState(() {
-                      _isPlaylistsExpanded = !_isPlaylistsExpanded;
-                    });
-                  },
-                  children: <Widget>[
-                    for (final entry in _playlists.entries)
-                      _buildSubOption(
-                        icon: Icons.album_rounded,
-                        title: entry.key,
-                        subtitle: '${entry.value.length} tracks',
-                        onTap: () => _onAddToPlaylist(entry.key),
-                      ),
                     const SizedBox(height: AppDimensions.space8),
                     // + Create New Playlist button
                     InkWell(
@@ -412,9 +379,8 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                     ),
                   ],
                 ),
+                const SizedBox(height: AppDimensions.space16),
               ],
-              const SizedBox(height: AppDimensions.space16),
-            ],
           ),
         ),
       ),

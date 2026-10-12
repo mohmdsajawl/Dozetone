@@ -1,14 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../playlist/favorites_provider.dart';
 import '../../model/song.dart';
 import 'library_search_query_provider.dart';
 import 'library_sort_provider.dart';
 import 'library_state.dart';
 import 'library_view_model.dart';
 
-/// Provider returning songs filtered by the active search query and sorted
-/// according to the active [SongSortOrder].
+/// Provider returning songs filtered by active tab, search query, and sort order.
 final filteredSongsProvider = Provider<List<Song>>((ref) {
   final libraryState = ref.watch(libraryViewModelProvider);
+  final activeTab = ref.watch(libraryTabProvider);
+  final favorites = ref.watch(favoritesProvider);
   final searchQuery = ref.watch(libraryQueryProvider).trim().toLowerCase();
   final sortOrder = ref.watch(songSortOrderProvider);
 
@@ -16,11 +18,16 @@ final filteredSongsProvider = Provider<List<Song>>((ref) {
     return const <Song>[];
   }
 
-  final allSongs = libraryState.songs;
+  var baseSongs = libraryState.songs;
+
+  // Filter by active tab (Favorites vs All Songs)
+  if (activeTab == LibraryTab.favorites) {
+    baseSongs = baseSongs.where((song) => favorites.contains(song.id)).toList();
+  }
 
   final filtered = (searchQuery.isEmpty)
-      ? List<Song>.from(allSongs)
-      : allSongs.where((song) {
+      ? List<Song>.from(baseSongs)
+      : baseSongs.where((song) {
           final titleMatch = song.title.toLowerCase().contains(searchQuery);
           final artistMatch = song.artist.toLowerCase().contains(searchQuery);
           return titleMatch || artistMatch;

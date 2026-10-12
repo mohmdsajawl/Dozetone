@@ -218,3 +218,47 @@ class ErrorLibraryView extends StatelessWidget {
     );
   }
 }
+
+/// State View: No songs in user's favorites list.
+class NoFavoritesView extends StatelessWidget {
+  const NoFavoritesView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.space24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Container(
+              width: 80.0,
+              height: 80.0,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.outline),
+              ),
+              child: const Icon(
+                Icons.favorite_border_rounded,
+                size: 36.0,
+                color: AppColors.accent,
+              ),
+            ),
+            const SizedBox(height: AppDimensions.space24),
+            const Text(
+              'No Favorites Yet',
+              style: AppTextStyles.screenTitle,
+            ),
+            const SizedBox(height: AppDimensions.space8),
+            const Text(
+              'Tap the + button on any song or in the player to add it to your favorites.',
+              style: AppTextStyles.caption,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

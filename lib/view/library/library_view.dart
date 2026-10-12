@@ -12,10 +12,13 @@ import '../../view_model/library/library_search_query_provider.dart';
 import '../../view_model/library/library_state.dart';
 import '../../view_model/library/library_view_model.dart';
 import '../../view_model/player/player_view_model.dart';
+import '../../view_model/playlist/favorites_provider.dart';
 import '../player/widgets/mini_player.dart';
 import 'widgets/library_action_bar.dart';
 import 'widgets/library_header.dart';
 import 'widgets/library_states.dart';
+import 'widgets/library_tab_pills.dart';
+import 'widgets/playlists_tab_view.dart';
 import 'widgets/song_list_tile.dart';
 import 'widgets/song_options_modal.dart';
 import 'widgets/song_sort_modal.dart';
@@ -32,6 +35,13 @@ class LibraryView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(libraryViewModelProvider);
     final viewModel = ref.read(libraryViewModelProvider.notifier);
+
+    // If already loaded when build executes, ensure session is restored
+    if (state is LibraryLoaded) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(playerViewModelProvider.notifier).restoreSavedSession(state.songs);
+      });
+    }
 
     ref.listen<LibraryState>(libraryViewModelProvider, (previous, next) {
       if (next is LibraryLoaded) {
@@ -96,72 +106,79 @@ class LibraryView extends ConsumerWidget {
     WidgetRef ref,
     LibraryViewModel viewModel,
   ) {
+    final activeTab = ref.watch(libraryTabProvider);
     final filteredSongs = ref.watch(filteredSongsProvider);
     final activeQuery = ref.watch(libraryQueryProvider).trim();
     final playerState = ref.watch(playerViewModelProvider);
 
-    // If a search query is active and yields no results, show search empty state
-    if (activeQuery.isNotEmpty && filteredSongs.isEmpty) {
-      return NoSearchResultsView(query: activeQuery);
-    }
-
     return Column(
       children: <Widget>[
-        // Quick Action Bar with Track Count, Sort, and Shuffle Pill
-        LibraryActionBar(
-          songCount: filteredSongs.length,
-          onShuffleTap: () => _onShuffleTap(context, ref, filteredSongs),
-          onSortTap: () => SongSortModal.show(context),
-        ),
+        // Top filter pills: All Songs, Favorites, Playlists
+        const LibraryTabPills(),
 
-        // Scrollable song list with interactive scrollbar
-        Expanded(
-          child: RefreshIndicator(
-            color: AppColors.accent,
-            backgroundColor: AppColors.surface,
-            onRefresh: viewModel.rescan,
-            child: ScrollConfiguration(
-              behavior: const ScrollBehavior().copyWith(
-                physics: const ClampingScrollPhysics(),
-                overscroll: false,
-              ),
-              child: Scrollbar(
-                interactive: true,
-                thickness: 3.5,
-                radius: const Radius.circular(2.0),
-                child: ListView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: ClampingScrollPhysics(),
-                  ),
-                  padding: const EdgeInsets.only(
-                    top: AppDimensions.space4,
-                    bottom: AppDimensions.space16,
-                  ),
-                  itemCount: filteredSongs.length,
-                  itemExtent: AppDimensions.listRowHeight,
-                  itemBuilder: (context, index) {
-                    final song = filteredSongs[index];
-                    final isCurrentSong = playerState.currentSong?.id == song.id;
+        if (activeTab == LibraryTab.playlists)
+          const Expanded(child: PlaylistsTabView())
+        else if (activeQuery.isNotEmpty && filteredSongs.isEmpty)
+          Expanded(child: NoSearchResultsView(query: activeQuery))
+        else if (activeTab == LibraryTab.favorites && filteredSongs.isEmpty)
+          const Expanded(child: NoFavoritesView())
+        else ...<Widget>[
+          // Quick Action Bar with Track Count, Sort, and Shuffle Pill
+          LibraryActionBar(
+            songCount: filteredSongs.length,
+            onShuffleTap: () => _onShuffleTap(context, ref, filteredSongs),
+            onSortTap: () => SongSortModal.show(context),
+          ),
 
-                    return SongListTile(
-                      key: ValueKey<int>(song.id),
-                      song: song,
-                      isPlaying: isCurrentSong && playerState.isPlaying,
-                      onTap: () => _onSongTap(context, ref, song, filteredSongs),
-                      onMoreTap: () => SongOptionsModal.show(
-                        context: context,
+          // Scrollable song list with interactive scrollbar
+          Expanded(
+            child: RefreshIndicator(
+              color: AppColors.accent,
+              backgroundColor: AppColors.surface,
+              onRefresh: viewModel.rescan,
+              child: ScrollConfiguration(
+                behavior: const ScrollBehavior().copyWith(
+                  physics: const ClampingScrollPhysics(),
+                  overscroll: false,
+                ),
+                child: Scrollbar(
+                  interactive: true,
+                  thickness: 3.5,
+                  radius: const Radius.circular(2.0),
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: ClampingScrollPhysics(),
+                    ),
+                    padding: const EdgeInsets.only(
+                      top: AppDimensions.space4,
+                      bottom: AppDimensions.space16,
+                    ),
+                    itemCount: filteredSongs.length,
+                    itemExtent: AppDimensions.listRowHeight,
+                    itemBuilder: (context, index) {
+                      final song = filteredSongs[index];
+                      final isCurrentSong = playerState.currentSong?.id == song.id;
+
+                      return SongListTile(
+                        key: ValueKey<int>(song.id),
                         song: song,
-                        onPlayNext: () => _onPlayNext(context, ref, song),
-                        onDeleteTap: () =>
-                            _onDeleteSong(context, ref, viewModel, song),
-                      ),
-                    );
-                  },
+                        isPlaying: isCurrentSong && playerState.isPlaying,
+                        onTap: () => _onSongTap(context, ref, song, filteredSongs),
+                        onMoreTap: () => SongOptionsModal.show(
+                          context: context,
+                          song: song,
+                          onPlayNext: () => _onPlayNext(context, ref, song),
+                          onDeleteTap: () =>
+                              _onDeleteSong(context, ref, viewModel, song),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }

@@ -371,6 +371,20 @@ class DozetoneAudioHandler extends BaseAudioHandler
     );
     mediaItem.add(item);
 
+    // Immediately emit restored state so UI (MiniPlayer) renders without waiting for file I/O
+    final restoredState = PlayerState(
+      currentSong: song,
+      isPlaying: false,
+      position: position,
+      duration: Duration(milliseconds: song.durationMs),
+      queue: List<Song>.unmodifiable(_activeQueue),
+      currentIndex: _currentIndex,
+      isShuffleEnabled: _isShuffle,
+      repeatMode: _repeatMode,
+    );
+    _playerStateController.add(restoredState);
+    _broadcastPlaybackState();
+
     try {
       await _player.setFilePath(song.dataUri);
       await _player.seek(position);
