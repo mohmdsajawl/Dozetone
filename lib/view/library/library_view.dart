@@ -153,7 +153,7 @@ class LibraryView extends ConsumerWidget {
                         song: song,
                         onPlayNext: () => _onPlayNext(context, ref, song),
                         onDeleteTap: () =>
-                            _onDeleteSong(context, viewModel, song),
+                            _onDeleteSong(context, ref, viewModel, song),
                       ),
                     );
                   },
@@ -219,11 +219,16 @@ class LibraryView extends ConsumerWidget {
 
   Future<void> _onDeleteSong(
     BuildContext context,
+    WidgetRef ref,
     LibraryViewModel viewModel,
     Song song,
   ) async {
     final l10n = AppLocalizations.of(context)!;
     final deleted = await viewModel.deleteSong(song);
+
+    if (deleted) {
+      ref.read(playerViewModelProvider.notifier).removeSongFromPlayback(song.id);
+    }
 
     if (!context.mounted) return;
 

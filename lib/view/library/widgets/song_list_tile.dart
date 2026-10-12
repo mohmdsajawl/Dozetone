@@ -3,6 +3,7 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../model/song.dart';
+import '../../widgets/music_wave_bars.dart';
 import 'song_artwork.dart';
 
 /// Single item tile for displaying an audio track in the Library.
@@ -33,12 +34,17 @@ class SongListTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppDimensions.space16),
         child: Row(
           children: <Widget>[
-            // Album artwork with cached thumbnail and vibrant fallback
-            SongArtwork(
-              songId: song.id,
-              albumId: song.albumId,
+            // Album artwork with cached thumbnail and animated equalizer overlay
+            MusicArtworkOverlay(
+              isPlaying: isPlaying,
               size: AppDimensions.listArtSize,
               borderRadius: AppDimensions.borderRadiusArtworkSmall,
+              child: SongArtwork(
+                songId: song.id,
+                albumId: song.albumId,
+                size: AppDimensions.listArtSize,
+                borderRadius: AppDimensions.borderRadiusArtworkSmall,
+              ),
             ),
             const SizedBox(width: AppDimensions.space16),
 

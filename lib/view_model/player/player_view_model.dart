@@ -104,6 +104,16 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
     _repository.insertNext(song);
   }
 
+  /// Appends [song] to the end of the current playback queue.
+  void addToQueue(Song song) {
+    _repository.addToQueue(song);
+  }
+
+  /// Removes a deleted track from playback and updates the active queue.
+  Future<void> removeSongFromPlayback(int songId) async {
+    await _repository.removeSongFromPlayback(songId);
+  }
+
   /// Restores previous playback session if available and no song is playing.
   Future<void> restoreSavedSession(List<Song> librarySongs) async {
     if (state.currentSong != null || librarySongs.isEmpty) return;

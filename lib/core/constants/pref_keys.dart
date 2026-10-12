@@ -35,6 +35,12 @@ abstract final class PrefKeys {
   /// Repeat mode value ('off', 'all', 'one').
   static const String repeatMode = 'repeat_mode';
 
+  /// List of favorite song IDs stored as string list.
+  static const String favoriteSongIds = 'favorite_song_ids';
+
+  /// Map of custom user playlists and song IDs serialized as JSON.
+  static const String customPlaylists = 'custom_playlists';
+
   /// Timestamp of the last bedtime auto-start to prevent re-trigger within 60 minutes.
   static const String lastBedtimeAutoStartTimestamp = 'last_bedtime_auto_start_timestamp';
 }

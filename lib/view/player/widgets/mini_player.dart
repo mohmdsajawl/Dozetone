@@ -5,13 +5,16 @@ import '../../../app/router/route_names.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../widgets/marquee_text.dart';
+import '../../widgets/music_wave_bars.dart';
+import 'add_to_playlist_modal.dart';
 import '../../library/widgets/song_artwork.dart';
 import '../../../view_model/player/player_view_model.dart';
 
 /// Docked bottom mini player bar (64 dp) in the Library screen.
 ///
 /// Features top progress indicator line, artwork thumbnail, track details,
-/// and instant play/pause control. Tapping anywhere navigates to Now Playing.
+/// marquee title animation, and instant play/pause control. Tapping anywhere navigates to Now Playing.
 class MiniPlayer extends ConsumerWidget {
   const MiniPlayer({super.key});
 
@@ -70,26 +73,29 @@ class MiniPlayer extends ConsumerWidget {
                     ),
                     child: Row(
                       children: <Widget>[
-                        // Album art thumbnail
-                        SongArtwork(
-                          songId: song.id,
-                          albumId: song.albumId,
+                        // Album art thumbnail with animated music equalizer overlay
+                        MusicArtworkOverlay(
+                          isPlaying: playerState.isPlaying,
                           size: 44.0,
                           borderRadius: BorderRadius.circular(8.0),
+                          child: SongArtwork(
+                            songId: song.id,
+                            albumId: song.albumId,
+                            size: 44.0,
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
                         ),
                         const SizedBox(width: AppDimensions.space12),
 
-                        // Title and artist
+                        // Title with smooth Marquee effect and artist
                         Expanded(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              Text(
-                                song.title,
+                              MarqueeText(
+                                text: song.title,
                                 style: AppTextStyles.songTitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 2.0),
                               Text(
@@ -101,7 +107,21 @@ class MiniPlayer extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(width: AppDimensions.space8),
+                        const SizedBox(width: AppDimensions.space4),
+
+                        // Add to favorites/queue/playlist button
+                        IconButton(
+                          icon: const Icon(
+                            Icons.add_circle_outline_rounded,
+                            size: 24.0,
+                            color: AppColors.textSecondary,
+                          ),
+                          tooltip: 'Add track',
+                          onPressed: () => AddToPlaylistModal.show(
+                            context: context,
+                            song: song,
+                          ),
+                        ),
 
                         // Play/Pause button
                         IconButton(

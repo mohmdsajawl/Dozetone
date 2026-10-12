@@ -49,6 +49,12 @@ abstract class PlayerRepository {
   /// Inserts [song] to play immediately next in the queue.
   void insertNext(Song song);
 
+  /// Appends [song] to the end of the queue.
+  void addToQueue(Song song);
+
+  /// Removes a song from playback and queue when deleted from device storage.
+  Future<void> removeSongFromPlayback(int songId);
+
   /// Preloads a saved song and position without starting playback.
   Future<void> restoreLastSession({
     required Song song,
@@ -106,6 +112,13 @@ class PlayerRepositoryImpl implements PlayerRepository {
 
   @override
   void insertNext(Song song) => _audioHandler.insertNext(song);
+
+  @override
+  void addToQueue(Song song) => _audioHandler.addToQueue(song);
+
+  @override
+  Future<void> removeSongFromPlayback(int songId) =>
+      _audioHandler.removeSongFromPlayback(songId);
 
   @override
   Future<void> restoreLastSession({

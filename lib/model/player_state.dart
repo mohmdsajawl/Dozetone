@@ -76,6 +76,7 @@ class PlayerState {
   /// Returns a copy of this state with specified fields replaced.
   PlayerState copyWith({
     Song? currentSong,
+    bool clearCurrentSong = false,
     bool? isPlaying,
     bool? isBuffering,
     Duration? position,
@@ -86,7 +87,7 @@ class PlayerState {
     int? currentIndex,
   }) {
     return PlayerState(
-      currentSong: currentSong ?? this.currentSong,
+      currentSong: clearCurrentSong ? null : (currentSong ?? this.currentSong),
       isPlaying: isPlaying ?? this.isPlaying,
       isBuffering: isBuffering ?? this.isBuffering,
       position: position ?? this.position,

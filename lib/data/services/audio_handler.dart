@@ -381,6 +381,51 @@ class DozetoneAudioHandler extends BaseAudioHandler
     _emitCurrentState();
   }
 
+  /// Adds [song] to the end of the active playback queue.
+  void addToQueue(Song song) {
+    if (_activeQueue.isEmpty) {
+      playSong(song, <Song>[song]);
+      return;
+    }
+    _rawQueue.add(song);
+    _activeQueue.add(song);
+    _emitCurrentState();
+  }
+
+  /// Removes a song from playback and queue when deleted from device storage.
+  Future<void> removeSongFromPlayback(int songId) async {
+    final wasCurrentlyPlaying = (_currentIndex >= 0 &&
+        _currentIndex < _activeQueue.length &&
+        _activeQueue[_currentIndex].id == songId);
+
+    _rawQueue.removeWhere((s) => s.id == songId);
+    final removedIndex = _activeQueue.indexWhere((s) => s.id == songId);
+    if (removedIndex != -1) {
+      _activeQueue.removeAt(removedIndex);
+    }
+
+    if (_activeQueue.isEmpty) {
+      _currentIndex = -1;
+      await _player.stop();
+      mediaItem.add(null);
+      _broadcastPlaybackState();
+      _emitCurrentState();
+      return;
+    }
+
+    if (wasCurrentlyPlaying) {
+      if (_currentIndex >= _activeQueue.length) {
+        _currentIndex = 0;
+      }
+      await _playIndex(_currentIndex);
+    } else {
+      if (removedIndex != -1 && removedIndex < _currentIndex) {
+        _currentIndex--;
+      }
+      _emitCurrentState();
+    }
+  }
+
   /// Disposes internal resources when app terminates.
   Future<void> dispose() async {
     await _playerStateController.close();

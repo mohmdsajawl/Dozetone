@@ -109,6 +109,22 @@ class FakePlayerRepository implements PlayerRepository {
     lastInsertedSong = song;
   }
 
+  Song? lastAddedToQueueSong;
+  int? lastRemovedSongId;
+
+  @override
+  void addToQueue(Song song) {
+    lastAddedToQueueSong = song;
+  }
+
+  @override
+  Future<void> removeSongFromPlayback(int songId) async {
+    lastRemovedSongId = songId;
+    if (_currentState.currentSong?.id == songId) {
+      emitState(_currentState.copyWith(clearCurrentSong: true, isPlaying: false));
+    }
+  }
+
   @override
   Future<void> restoreLastSession({
     required Song song,
@@ -232,6 +248,21 @@ void main() {
     test('insertNext forwards song to repository', () {
       viewModel.insertNext(testSong2);
       expect(repository.lastInsertedSong, equals(testSong2));
+    });
+
+    test('addToQueue forwards song to repository', () {
+      viewModel.addToQueue(testSong2);
+      expect(repository.lastAddedToQueueSong, equals(testSong2));
+    });
+
+    test('removeSongFromPlayback clears song if playing', () async {
+      await viewModel.playSong(testSong1, testQueue);
+      expect(viewModel.state.currentSong, equals(testSong1));
+
+      await viewModel.removeSongFromPlayback(testSong1.id);
+      expect(repository.lastRemovedSongId, equals(testSong1.id));
+      expect(viewModel.state.currentSong, isNull);
+      expect(viewModel.state.isPlaying, isFalse);
     });
 
     test('restoreSavedSession restores track when saved data exists', () async {
