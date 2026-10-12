@@ -12,6 +12,9 @@ final songRepositoryProvider = Provider<SongRepository>((ref) {
 abstract class SongRepository {
   /// Fetches the list of all playable music tracks from device storage.
   Future<List<Song>> fetchSongs();
+
+  /// Deletes a song from device storage and updates MediaStore.
+  Future<bool> deleteSong(Song song);
 }
 
 /// Implementation of SongRepository that talks to MediaLibraryService.
@@ -23,5 +26,10 @@ class SongRepositoryImpl implements SongRepository {
   @override
   Future<List<Song>> fetchSongs() async {
     return _mediaLibraryService.queryDeviceSongs();
+  }
+
+  @override
+  Future<bool> deleteSong(Song song) async {
+    return _mediaLibraryService.deleteSong(song.id, song.dataUri);
   }
 }

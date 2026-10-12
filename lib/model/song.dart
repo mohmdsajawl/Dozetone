@@ -30,6 +30,9 @@ class Song {
   /// File size in bytes.
   final int? sizeBytes;
 
+  /// Timestamp in seconds when audio was added to MediaStore.
+  final int? dateAdded;
+
   const Song({
     required this.id,
     required this.title,
@@ -39,6 +42,7 @@ class Song {
     required this.durationMs,
     required this.dataUri,
     this.sizeBytes,
+    this.dateAdded,
   });
 
   /// Formatted duration string in "mm:ss" (or "h:mm:ss" if 60+ minutes).
@@ -67,6 +71,7 @@ class Song {
     int? durationMs,
     String? dataUri,
     int? sizeBytes,
+    int? dateAdded,
   }) {
     return Song(
       id: id ?? this.id,
@@ -77,6 +82,7 @@ class Song {
       durationMs: durationMs ?? this.durationMs,
       dataUri: dataUri ?? this.dataUri,
       sizeBytes: sizeBytes ?? this.sizeBytes,
+      dateAdded: dateAdded ?? this.dateAdded,
     );
   }
 

@@ -77,8 +77,8 @@ class ScanningSongsView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          // Expanding Sound Wave ripple rings around brand mark
-          const SoundWavePulseLoader(size: 72.0),
+          // Expanding acoustic rings pulse spinner (spinner size 48dp)
+          const SoundWavePulseLoader(size: 48.0),
           const SizedBox(height: AppDimensions.space24),
 
           // Scanning indicator text

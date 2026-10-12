@@ -21,6 +21,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanningMusic => 'Scanning your music...';
 
   @override
+  String get shuffle => 'Shuffle';
+
+  @override
+  String songsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tracks',
+      one: '1 Track',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sortBy => 'Sort by';
+
+  @override
+  String get sortTitle => 'Title';
+
+  @override
+  String get sortArtist => 'Artist';
+
+  @override
+  String get sortDuration => 'Duration';
+
+  @override
+  String get sortDateAdded => 'Date added (Newest first)';
+
+  @override
+  String get songDetails => 'Track Details';
+
+  @override
+  String get playNext => 'Play next';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get deleteSongTitle => 'Delete song?';
+
+  @override
+  String deleteSongMessage(String title) {
+    return 'Are you sure you want to delete \"$title\" from your device? This cannot be undone.';
+  }
+
+  @override
+  String songDeleted(String title) {
+    return 'Deleted \"$title\"';
+  }
+
+  @override
+  String songDeleteFailed(String title) {
+    return 'Could not delete \"$title\"';
+  }
+
+  @override
+  String get dateAdded => 'Date Added';
+
+  @override
   String get noSongsFound => 'No songs found';
 
   @override

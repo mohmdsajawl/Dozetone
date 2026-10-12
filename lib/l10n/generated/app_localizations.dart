@@ -118,6 +118,96 @@ abstract class AppLocalizations {
   /// **'Scanning your music...'**
   String get scanningMusic;
 
+  /// Button to shuffle all songs
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle'**
+  String get shuffle;
+
+  /// Pluralized count of songs in the library
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 Track} other{{count} Tracks}}'**
+  String songsCount(int count);
+
+  /// Label for sorting dialog or sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get sortBy;
+
+  /// Sort by track title
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get sortTitle;
+
+  /// Sort by artist name
+  ///
+  /// In en, this message translates to:
+  /// **'Artist'**
+  String get sortArtist;
+
+  /// Sort by track length
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get sortDuration;
+
+  /// Sort by date added newest first
+  ///
+  /// In en, this message translates to:
+  /// **'Date added (Newest first)'**
+  String get sortDateAdded;
+
+  /// Header for track details sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Track Details'**
+  String get songDetails;
+
+  /// Queue song next option
+  ///
+  /// In en, this message translates to:
+  /// **'Play next'**
+  String get playNext;
+
+  /// Generic delete button label
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// Dialog title for deleting a song
+  ///
+  /// In en, this message translates to:
+  /// **'Delete song?'**
+  String get deleteSongTitle;
+
+  /// Confirmation message before deleting audio file
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{title}\" from your device? This cannot be undone.'**
+  String deleteSongMessage(String title);
+
+  /// Snackbar message after song deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted \"{title}\"'**
+  String songDeleted(String title);
+
+  /// Snackbar message if song deletion fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete \"{title}\"'**
+  String songDeleteFailed(String title);
+
+  /// Label for date added field in track details
+  ///
+  /// In en, this message translates to:
+  /// **'Date Added'**
+  String get dateAdded;
+
   /// Empty library headline
   ///
   /// In en, this message translates to:

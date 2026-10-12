@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dozetone/model/song.dart';
 import 'package:dozetone/view_model/library/filtered_songs_provider.dart';
 import 'package:dozetone/view_model/library/library_search_query_provider.dart';
+import 'package:dozetone/view_model/library/library_sort_provider.dart';
 import 'package:dozetone/view_model/library/library_state.dart';
 import 'package:dozetone/view_model/library/library_view_model.dart';
 
@@ -92,6 +93,56 @@ void main() {
 
       final songs = container.read(filteredSongsProvider);
       expect(songs, isEmpty);
+    });
+
+    test('sorts songs by artist ascending when artistAsc is selected', () {
+      final container = ProviderContainer(
+        overrides: [
+          libraryViewModelProvider.overrideWith(
+            (ref) => _FakeLibraryViewModel(const LibraryLoaded(testSongs)),
+          ),
+          libraryQueryProvider.overrideWith((ref) => ''),
+          songSortOrderProvider.overrideWith((ref) => SongSortOrder.artistAsc),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final songs = container.read(filteredSongsProvider);
+      expect(songs.first.artist, equals('Coldplay'));
+    });
+
+    test('sorts songs by duration descending when durationDesc is selected', () {
+      final container = ProviderContainer(
+        overrides: [
+          libraryViewModelProvider.overrideWith(
+            (ref) => _FakeLibraryViewModel(const LibraryLoaded(testSongs)),
+          ),
+          libraryQueryProvider.overrideWith((ref) => ''),
+          songSortOrderProvider.overrideWith((ref) => SongSortOrder.durationDesc),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final songs = container.read(filteredSongsProvider);
+      expect(songs.first.durationMs, equals(260000));
+      expect(songs.last.durationMs, equals(200000));
+    });
+
+    test('sorts songs by date added descending when dateAddedDesc is selected', () {
+      final container = ProviderContainer(
+        overrides: [
+          libraryViewModelProvider.overrideWith(
+            (ref) => _FakeLibraryViewModel(const LibraryLoaded(testSongs)),
+          ),
+          libraryQueryProvider.overrideWith((ref) => ''),
+          songSortOrderProvider.overrideWith((ref) => SongSortOrder.dateAddedDesc),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final songs = container.read(filteredSongsProvider);
+      expect(songs.first.id, equals(3));
+      expect(songs.last.id, equals(1));
     });
   });
 }

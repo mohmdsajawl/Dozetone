@@ -20,13 +20,13 @@ abstract final class AppDimensions {
   static const double radiusPill = 999.0;
 
   // Border radius helpers
-  static final BorderRadius borderRadiusCard = BorderRadius.circular(radiusCard);
-  static final BorderRadius borderRadiusArtworkSmall = BorderRadius.circular(radiusArtworkSmall);
-  static final BorderRadius borderRadiusArtworkLarge = BorderRadius.circular(radiusArtworkLarge);
+  static const BorderRadius borderRadiusCard = BorderRadius.all(Radius.circular(radiusCard));
+  static const BorderRadius borderRadiusArtworkSmall = BorderRadius.all(Radius.circular(radiusArtworkSmall));
+  static const BorderRadius borderRadiusArtworkLarge = BorderRadius.all(Radius.circular(radiusArtworkLarge));
   static const BorderRadius borderRadiusBottomSheet = BorderRadius.vertical(
     top: Radius.circular(radiusBottomSheetTop),
   );
-  static final BorderRadius borderRadiusPill = BorderRadius.circular(radiusPill);
+  static const BorderRadius borderRadiusPill = BorderRadius.all(Radius.circular(radiusPill));
 
   // Component heights and touch target sizes
   static const double minTouchTarget = 48.0;
@@ -35,6 +35,6 @@ abstract final class AppDimensions {
   static const double miniPlayerHeight = 64.0;
   static const double mainPlayButtonSize = 72.0;
   static const double miniPlayProgressHeight = 2.0;
-  static const double logoHeaderHeight = 24.0;
+  static const double logoHeaderHeight = 20.0;
   static const double splashMarkWidth = 96.0;
 }

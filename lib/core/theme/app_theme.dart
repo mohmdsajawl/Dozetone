@@ -109,6 +109,20 @@ abstract final class AppTheme {
         trackHeight: 4.0,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
       ),
+
+      // SnackBar theme
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.surface,
+        contentTextStyle: AppTextStyles.body.copyWith(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w500,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          side: const BorderSide(color: AppColors.outline),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 }

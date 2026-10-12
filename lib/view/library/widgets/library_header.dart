@@ -79,17 +79,28 @@ class _LibraryHeaderState extends ConsumerState<LibraryHeader> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return SafeArea(
-      bottom: false,
-      child: Container(
-        height: widget.preferredSize.height,
-        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.space16),
-        alignment: Alignment.center,
-        child: AnimatedSwitcher(
-          duration: AppDurations.uiChange,
-          child: _isSearching
-              ? _buildSearchField(l10n)
-              : _buildStandardHeader(l10n),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface.withValues(alpha: 0.95),
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.outline.withValues(alpha: 0.8),
+            width: 1.0,
+          ),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Container(
+          height: widget.preferredSize.height,
+          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.space16),
+          alignment: Alignment.center,
+          child: AnimatedSwitcher(
+            duration: AppDurations.uiChange,
+            child: _isSearching
+                ? _buildSearchField(l10n)
+                : _buildStandardHeader(l10n),
+          ),
         ),
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../data/repositories/song_repository.dart';
 import '../../data/services/permission_service.dart';
+import '../../model/song.dart';
 import 'library_state.dart';
 
 /// Provider exposing the LibraryViewModel and its state.
@@ -81,5 +82,20 @@ class LibraryViewModel extends StateNotifier<LibraryState> {
     }
 
     await scanSongs();
+  }
+
+  /// Deletes a song from device storage and updates library state immediately.
+  Future<bool> deleteSong(Song song) async {
+    final deleted = await _repository.deleteSong(song);
+    if (deleted && state is LibraryLoaded) {
+      final currentSongs = (state as LibraryLoaded).songs;
+      final updatedList = currentSongs.where((s) => s.id != song.id).toList();
+      if (updatedList.isEmpty) {
+        state = const LibraryEmpty();
+      } else {
+        state = LibraryLoaded(updatedList);
+      }
+    }
+    return deleted;
   }
 }

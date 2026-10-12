@@ -40,9 +40,6 @@ dependencies:
   # Audio focus and interruption management (calls, navigation alerts)
   audio_session: ^0.2.4
 
-  # Local media library scanner to query on-device songs and metadata
-  on_audio_query_pluse: ^3.0.7
-
   # Runtime Android permission handling (READ_MEDIA_AUDIO, POST_NOTIFICATIONS)
   permission_handler: ^11.4.0
 

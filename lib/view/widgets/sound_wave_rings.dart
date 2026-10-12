@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import '../../core/constants/app_assets.dart';
-import '../../core/constants/app_dimensions.dart';
 import '../../core/theme/app_colors.dart';
 
-/// Custom painter that draws expanding sound wave outline rings.
+/// Custom painter that draws expanding sound wave outline rings for the SplashView.
 ///
 /// Draws three concentric rings expanding outwards and fading opacity,
 /// perfectly matching the Dozetone acoustic ripple signature.
@@ -71,16 +68,76 @@ class SoundWaveRingsPainter extends CustomPainter {
   }
 }
 
+/// Painter for the spinner-sized acoustic expanding rings loader.
+/// Draws concentric acoustic rings expanding from the center dot outwards and fading.
+class AcousticRingsSpinnerPainter extends CustomPainter {
+  final double progress1;
+  final double progress2;
+  final double progress3;
+  final Color ringColor;
+
+  AcousticRingsSpinnerPainter({
+    required this.progress1,
+    required this.progress2,
+    required this.progress3,
+    this.ringColor = AppColors.accent,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxRadius = size.width / 2;
+
+    _drawRing(canvas, center, progress1, maxRadius);
+    _drawRing(canvas, center, progress2, maxRadius);
+    _drawRing(canvas, center, progress3, maxRadius);
+
+    // Subtle small center acoustic origin dot
+    final dotPaint = Paint()
+      ..color = ringColor.withValues(alpha: 0.85)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, 2.5, dotPaint);
+  }
+
+  void _drawRing(Canvas canvas, Offset center, double progress, double maxRadius) {
+    if (progress <= 0.0 || progress > 1.0) {
+      return;
+    }
+
+    final curved = Curves.easeOut.transform(progress);
+    // Radius expands from center dot to outer boundary of the spinner
+    final radius = 3.0 + (curved * (maxRadius - 3.0));
+
+    // Opacity fades smoothly from 0.85 down to 0.0
+    final opacity = (0.85 * (1.0 - curved)).clamp(0.0, 1.0);
+
+    final paint = Paint()
+      ..color = ringColor.withValues(alpha: opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    canvas.drawCircle(center, radius, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant AcousticRingsSpinnerPainter oldDelegate) {
+    return oldDelegate.progress1 != progress1 ||
+        oldDelegate.progress2 != progress2 ||
+        oldDelegate.progress3 != progress3 ||
+        oldDelegate.ringColor != ringColor;
+  }
+}
+
 /// Continuous pulsing Sound Wave Loader widget for the Scanning state.
 ///
 /// Replaces standard circular progress indicators with the signature
-/// expanding acoustic rings emanating from the Dozetone brand mark.
+/// expanding acoustic rings (spinner-sized, pure expanding/fading rings).
 class SoundWavePulseLoader extends StatefulWidget {
   final double size;
 
   const SoundWavePulseLoader({
     super.key,
-    this.size = 80.0,
+    this.size = 48.0,
   });
 
   @override
@@ -94,10 +151,10 @@ class _SoundWavePulseLoaderState extends State<SoundWavePulseLoader>
   @override
   void initState() {
     super.initState();
-    // Continuous 2.4s cycle for seamless looping pulse
+    // Continuous 1.6s cycle for smooth looping pulse
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2400),
+      duration: const Duration(milliseconds: 1600),
     )..repeat();
   }
 
@@ -109,68 +166,30 @@ class _SoundWavePulseLoaderState extends State<SoundWavePulseLoader>
 
   @override
   Widget build(BuildContext context) {
-    final baseDiameter = widget.size * 1.1;
+    return SizedBox(
+      width: widget.size,
+      height: widget.size,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final t = _controller.value;
 
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final t = _controller.value;
+          // Three staggered concentric rings
+          final p1 = t;
+          final p2 = (t + 0.33) % 1.0;
+          final p3 = (t + 0.67) % 1.0;
 
-        // Three staggered rings (spaced by 0.28 normalized progress)
-        final p1 = t;
-        final p2 = (t - 0.28) < 0 ? (t - 0.28 + 1.0) : (t - 0.28);
-        final p3 = (t - 0.56) < 0 ? (t - 0.56 + 1.0) : (t - 0.56);
-
-        return SizedBox(
-          width: widget.size * 2.8,
-          height: widget.size * 2.8,
-          child: Stack(
-            alignment: Alignment.center,
-            children: <Widget>[
-              // Ripple rings in the background
-              CustomPaint(
-                size: Size(widget.size * 2.8, widget.size * 2.8),
-                painter: SoundWaveRingsPainter(
-                  progress1: p1,
-                  progress2: p2,
-                  progress3: p3,
-                  baseDiameter: baseDiameter,
-                  ringColor: AppColors.accent,
-                ),
-              ),
-
-              // Central brand mark container
-              Container(
-                width: widget.size,
-                height: widget.size,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.accent.withValues(alpha: 0.3),
-                    width: 1.5,
-                  ),
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(
-                      color: AppColors.accent.withValues(alpha: 0.15),
-                      blurRadius: 16.0,
-                      spreadRadius: 2.0,
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(AppDimensions.space16),
-                child: SvgPicture.asset(
-                  AppAssets.markSvg,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.accent,
-                    BlendMode.srcIn,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+          return CustomPaint(
+            size: Size(widget.size, widget.size),
+            painter: AcousticRingsSpinnerPainter(
+              progress1: p1,
+              progress2: p2,
+              progress3: p3,
+              ringColor: AppColors.accent,
+            ),
+          );
+        },
+      ),
     );
   }
 }

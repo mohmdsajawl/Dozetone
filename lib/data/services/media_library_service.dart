@@ -1,79 +1,110 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:on_audio_query_pluse/on_audio_query.dart';
 import '../../model/song.dart';
-
-/// Provider for accessing the underlying OnAudioQuery instance.
-final onAudioQueryProvider = Provider<OnAudioQuery>((ref) {
-  return OnAudioQuery();
-});
 
 /// Provider for MediaLibraryService.
 final mediaLibraryServiceProvider = Provider<MediaLibraryService>((ref) {
-  final audioQuery = ref.watch(onAudioQueryProvider);
-  return MediaLibraryService(audioQuery);
+  return const MediaLibraryService();
 });
 
-/// Service responsible for scanning and querying on-device audio tracks.
+/// Service responsible for querying on-device audio tracks and artwork
+/// via native Android MediaStore platform channel.
 class MediaLibraryService {
-  final OnAudioQuery _audioQuery;
+  static const MethodChannel _channel =
+      MethodChannel('com.velcruxlab.dozetone/media_store');
 
   /// Minimum song duration in milliseconds (30 seconds) per requirements.
   static const int minSongDurationMs = 30000;
 
-  const MediaLibraryService(this._audioQuery);
+  const MediaLibraryService();
 
-  /// Queries all device songs, filters out short clips and non-music files,
+  /// Queries all device songs via native MediaStore ContentResolver,
+  /// filters out short clips and non-music files,
   /// and returns an immutable list of [Song] models sorted A to Z by title.
   Future<List<Song>> queryDeviceSongs() async {
-    final rawSongs = await _audioQuery.querySongs(
-      sortType: SongSortType.TITLE,
-      orderType: OrderType.ASC_OR_SMALLER,
-      uriType: UriType.EXTERNAL,
-      ignoreCase: true,
-    );
+    final List<dynamic>? rawList =
+        await _channel.invokeMethod<List<dynamic>>('querySongs');
 
-    final filteredSongs = <Song>[];
+    if (rawList == null || rawList.isEmpty) {
+      return <Song>[];
+    }
 
-    for (final raw in rawSongs) {
-      // Rule 1: Exclude audio shorter than 30 seconds (voice notes, UI sounds)
-      final duration = raw.duration ?? 0;
-      if (duration < minSongDurationMs) {
+    final songs = <Song>[];
+
+    for (final item in rawList) {
+      if (item is! Map) continue;
+      final map = Map<String, dynamic>.from(item);
+
+      final id = (map['id'] as num?)?.toInt() ?? 0;
+      final duration = (map['duration'] as num?)?.toInt() ?? 0;
+      final dataUri = (map['dataUri'] as String?) ?? '';
+
+      // Skip files shorter than 30s or invalid paths
+      if (duration < minSongDurationMs || dataUri.isEmpty) {
         continue;
       }
 
-      // Rule 2: Exclude ringtones, notifications, and alarms
-      final isRingtone = raw.isRingtone ?? false;
-      final isNotification = raw.isNotification ?? false;
-      final isAlarm = raw.isAlarm ?? false;
-      if (isRingtone || isNotification || isAlarm) {
-        continue;
-      }
+      final rawTitle = (map['title'] as String?)?.trim() ?? '';
+      final rawArtist = (map['artist'] as String?)?.trim() ?? '';
+      final album = map['album'] as String?;
+      final albumId = (map['albumId'] as num?)?.toInt();
+      final size = (map['size'] as num?)?.toInt();
+      final dateAdded = (map['dateAdded'] as num?)?.toInt();
 
-      // Rule 3: Ensure valid file path
-      final dataPath = raw.data;
-      if (dataPath.isEmpty) {
-        continue;
-      }
+      final title = rawTitle.isNotEmpty ? rawTitle : 'Unknown Title';
+      final artist =
+          (rawArtist.isNotEmpty && rawArtist != '<unknown>')
+              ? rawArtist
+              : 'Unknown Artist';
 
-      final song = Song(
-        id: raw.id,
-        title: raw.title.trim().isNotEmpty ? raw.title.trim() : 'Unknown Title',
-        artist: (raw.artist != null && raw.artist!.trim().isNotEmpty && raw.artist != '<unknown>')
-            ? raw.artist!.trim()
-            : 'Unknown Artist',
-        album: raw.album,
-        albumId: raw.albumId,
-        durationMs: duration,
-        dataUri: dataPath,
-        sizeBytes: raw.size,
+      songs.add(
+        Song(
+          id: id,
+          title: title,
+          artist: artist,
+          album: album,
+          albumId: albumId,
+          durationMs: duration,
+          dataUri: dataUri,
+          sizeBytes: size,
+          dateAdded: dateAdded,
+        ),
       );
-
-      filteredSongs.add(song);
     }
 
     // Ensure strict alphabetical sorting by title (case-insensitive)
-    filteredSongs.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+    songs.sort(
+      (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+    );
 
-    return filteredSongs;
+    return songs;
+  }
+
+  /// Queries artwork thumbnail bytes for the given song/album.
+  /// Returns null if no artwork is available.
+  Future<Uint8List?> queryArtwork(int songId, int? albumId) async {
+    try {
+      final bytes = await _channel.invokeMethod<Uint8List>('queryArtwork', {
+        'songId': songId,
+        'albumId': albumId ?? 0,
+      });
+      return bytes;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Deletes a song from device storage and MediaStore.
+  /// Returns true if deletion succeeded.
+  Future<bool> deleteSong(int songId, String dataUri) async {
+    try {
+      final success = await _channel.invokeMethod<bool>('deleteSong', {
+        'songId': songId,
+        'dataUri': dataUri,
+      });
+      return success ?? false;
+    } catch (_) {
+      return false;
+    }
   }
 }

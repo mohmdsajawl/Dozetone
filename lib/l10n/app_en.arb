@@ -17,6 +17,86 @@
   "@scanningMusic": {
     "description": "Loading state label while searching for audio files"
   },
+  "shuffle": "Shuffle",
+  "@shuffle": {
+    "description": "Button to shuffle all songs"
+  },
+  "songsCount": "{count, plural, =1{1 Track} other{{count} Tracks}}",
+  "@songsCount": {
+    "description": "Pluralized count of songs in the library",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sortBy": "Sort by",
+  "@sortBy": {
+    "description": "Label for sorting dialog or sheet"
+  },
+  "sortTitle": "Title",
+  "@sortTitle": {
+    "description": "Sort by track title"
+  },
+  "sortArtist": "Artist",
+  "@sortArtist": {
+    "description": "Sort by artist name"
+  },
+  "sortDuration": "Duration",
+  "@sortDuration": {
+    "description": "Sort by track length"
+  },
+  "sortDateAdded": "Date added (Newest first)",
+  "@sortDateAdded": {
+    "description": "Sort by date added newest first"
+  },
+  "songDetails": "Track Details",
+  "@songDetails": {
+    "description": "Header for track details sheet"
+  },
+  "playNext": "Play next",
+  "@playNext": {
+    "description": "Queue song next option"
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "Generic delete button label"
+  },
+  "deleteSongTitle": "Delete song?",
+  "@deleteSongTitle": {
+    "description": "Dialog title for deleting a song"
+  },
+  "deleteSongMessage": "Are you sure you want to delete \"{title}\" from your device? This cannot be undone.",
+  "@deleteSongMessage": {
+    "description": "Confirmation message before deleting audio file",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "songDeleted": "Deleted \"{title}\"",
+  "@songDeleted": {
+    "description": "Snackbar message after song deletion",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "songDeleteFailed": "Could not delete \"{title}\"",
+  "@songDeleteFailed": {
+    "description": "Snackbar message if song deletion fails",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "dateAdded": "Date Added",
+  "@dateAdded": {
+    "description": "Label for date added field in track details"
+  },
   "noSongsFound": "No songs found",
   "@noSongsFound": {
     "description": "Empty library headline"
