@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 ///
 /// Ensures no magic numbers exist in widgets.
 abstract final class AppDimensions {
-  // Spacing scale (4, 8, 12, 16, 24, 32)
+  // Spacing scale (4, 6, 8, 12, 16, 24, 32, 48)
   static const double space4 = 4.0;
+  static const double space6 = 6.0;
   static const double space8 = 8.0;
   static const double space12 = 12.0;
   static const double space16 = 16.0;
   static const double space24 = 24.0;
   static const double space32 = 32.0;
+  static const double space48 = 48.0;
 
   // Corner radii (12, 24, 28, 999)
   static const double radiusCard = 12.0;

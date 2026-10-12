@@ -11,6 +11,8 @@ import '../../view_model/library/filtered_songs_provider.dart';
 import '../../view_model/library/library_search_query_provider.dart';
 import '../../view_model/library/library_state.dart';
 import '../../view_model/library/library_view_model.dart';
+import '../../view_model/player/player_view_model.dart';
+import '../player/widgets/mini_player.dart';
 import 'widgets/library_action_bar.dart';
 import 'widgets/library_header.dart';
 import 'widgets/library_states.dart';
@@ -31,6 +33,12 @@ class LibraryView extends ConsumerWidget {
     final state = ref.watch(libraryViewModelProvider);
     final viewModel = ref.read(libraryViewModelProvider.notifier);
 
+    ref.listen<LibraryState>(libraryViewModelProvider, (previous, next) {
+      if (next is LibraryLoaded) {
+        ref.read(playerViewModelProvider.notifier).restoreSavedSession(next.songs);
+      }
+    });
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -48,7 +56,14 @@ class LibraryView extends ConsumerWidget {
         appBar: LibraryHeader(
           onSettingsTap: () => context.push(RouteNames.settingsPath),
         ),
-        body: _buildBody(context, ref, state, viewModel),
+        body: Column(
+          children: <Widget>[
+            Expanded(
+              child: _buildBody(context, ref, state, viewModel),
+            ),
+            const MiniPlayer(),
+          ],
+        ),
       ),
     );
   }
@@ -83,6 +98,7 @@ class LibraryView extends ConsumerWidget {
   ) {
     final filteredSongs = ref.watch(filteredSongsProvider);
     final activeQuery = ref.watch(libraryQueryProvider).trim();
+    final playerState = ref.watch(playerViewModelProvider);
 
     // If a search query is active and yields no results, show search empty state
     if (activeQuery.isNotEmpty && filteredSongs.isEmpty) {
@@ -119,22 +135,23 @@ class LibraryView extends ConsumerWidget {
                   ),
                   padding: const EdgeInsets.only(
                     top: AppDimensions.space4,
-                    bottom: AppDimensions.space32,
+                    bottom: AppDimensions.space16,
                   ),
                   itemCount: filteredSongs.length,
                   itemExtent: AppDimensions.listRowHeight,
                   itemBuilder: (context, index) {
                     final song = filteredSongs[index];
+                    final isCurrentSong = playerState.currentSong?.id == song.id;
 
                     return SongListTile(
                       key: ValueKey<int>(song.id),
                       song: song,
-                      isPlaying: false,
+                      isPlaying: isCurrentSong && playerState.isPlaying,
                       onTap: () => _onSongTap(context, ref, song, filteredSongs),
                       onMoreTap: () => SongOptionsModal.show(
                         context: context,
                         song: song,
-                        onPlayNext: () => _onPlayNext(context, song),
+                        onPlayNext: () => _onPlayNext(context, ref, song),
                         onDeleteTap: () =>
                             _onDeleteSong(context, viewModel, song),
                       ),
@@ -156,7 +173,7 @@ class LibraryView extends ConsumerWidget {
   ) {
     if (currentQueue.isEmpty) return;
     final shuffled = List<Song>.from(currentQueue)..shuffle();
-    _onSongTap(context, ref, shuffled.first, shuffled);
+    ref.read(playerViewModelProvider.notifier).playSong(shuffled.first, shuffled);
   }
 
   void _onSongTap(
@@ -165,11 +182,11 @@ class LibraryView extends ConsumerWidget {
     Song song,
     List<Song> currentQueue,
   ) {
-    // In Phase 2, this triggers playback through the DozetoneAudioHandler
-    debugPrint('Song tapped: ${song.title} by ${song.artist}');
+    ref.read(playerViewModelProvider.notifier).playSong(song, currentQueue);
   }
 
-  void _onPlayNext(BuildContext context, Song song) {
+  void _onPlayNext(BuildContext context, WidgetRef ref, Song song) {
+    ref.read(playerViewModelProvider.notifier).insertNext(song);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(

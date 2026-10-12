@@ -4,6 +4,7 @@ import '../../core/constants/app_durations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../view/library/library_view.dart';
+import '../../view/player/now_playing_view.dart';
 import '../../view/splash/splash_view.dart';
 import 'route_names.dart';
 
@@ -32,6 +33,32 @@ final GoRouter appRouter = GoRouter(
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: animation,
+              child: child,
+            );
+          },
+        );
+      },
+    ),
+
+    // Full-screen Now Playing modal view with 300ms slide-up transition
+    GoRoute(
+      path: RouteNames.nowPlayingPath,
+      name: RouteNames.nowPlaying,
+      pageBuilder: (BuildContext context, GoRouterState state) {
+        return CustomTransitionPage<void>(
+          key: state.pageKey,
+          child: const NowPlayingView(),
+          transitionDuration: AppDurations.nowPlayingSlide,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            final curve = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            );
+            final tween = Tween(begin: begin, end: end);
+            return SlideTransition(
+              position: tween.animate(curve),
               child: child,
             );
           },
