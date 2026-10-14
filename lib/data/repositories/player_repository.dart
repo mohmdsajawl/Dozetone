@@ -52,6 +52,9 @@ abstract class PlayerRepository {
   /// Appends [song] to the end of the queue.
   void addToQueue(Song song);
 
+  /// Updates playback queue to match new sorting without restarting audio.
+  void updatePlaybackQueue(List<Song> newQueue);
+
   /// Removes a song from playback and queue when deleted from device storage.
   Future<void> removeSongFromPlayback(int songId);
 
@@ -115,6 +118,10 @@ class PlayerRepositoryImpl implements PlayerRepository {
 
   @override
   void addToQueue(Song song) => _audioHandler.addToQueue(song);
+
+  @override
+  void updatePlaybackQueue(List<Song> newQueue) =>
+      _audioHandler.updatePlaybackQueue(newQueue);
 
   @override
   Future<void> removeSongFromPlayback(int songId) =>

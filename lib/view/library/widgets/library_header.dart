@@ -16,10 +16,12 @@ import '../../../view_model/library/library_search_query_provider.dart';
 /// and an interactive search text field with 200 ms debounce.
 class LibraryHeader extends ConsumerStatefulWidget implements PreferredSizeWidget {
   final VoidCallback onSettingsTap;
+  final VoidCallback? onSortTap;
 
   const LibraryHeader({
     super.key,
     required this.onSettingsTap,
+    this.onSortTap,
   });
 
   @override
@@ -128,6 +130,15 @@ class _LibraryHeaderState extends ConsumerState<LibraryHeader> {
           color: AppColors.textPrimary,
           onPressed: _openSearch,
         ),
+
+        // Sort trigger button
+        if (widget.onSortTap != null)
+          IconButton(
+            icon: const Icon(Icons.swap_vert_rounded),
+            tooltip: l10n.sortBy,
+            color: AppColors.textPrimary,
+            onPressed: widget.onSortTap,
+          ),
 
         // Settings trigger button
         IconButton(

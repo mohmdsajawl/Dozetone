@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 ///
 /// Ensures no magic numbers exist in widgets.
 abstract final class AppDimensions {
-  // Spacing scale (4, 6, 8, 12, 16, 24, 32, 48)
+  // Spacing scale (2, 4, 6, 8, 12, 16, 24, 32, 48)
+  static const double space2 = 2.0;
   static const double space4 = 4.0;
   static const double space6 = 6.0;
   static const double space8 = 8.0;

@@ -118,6 +118,12 @@ abstract class AppLocalizations {
   /// **'Scanning your music...'**
   String get scanningMusic;
 
+  /// Button to start playback from the beginning of all songs
+  ///
+  /// In en, this message translates to:
+  /// **'Play All'**
+  String get playAll;
+
   /// Button to shuffle all songs
   ///
   /// In en, this message translates to:

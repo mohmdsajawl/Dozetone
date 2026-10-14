@@ -70,6 +70,10 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
 
   /// Starts playback for a song within the active queue.
   Future<void> playSong(Song song, List<Song> queue) async {
+    // If the song is already current and actively playing, do not restart it
+    if (state.currentSong?.id == song.id && state.isPlaying) {
+      return;
+    }
     await _repository.playSong(song, queue);
     _persistImmediately();
   }
@@ -135,6 +139,11 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
   /// Appends [song] to the end of the current playback queue.
   void addToQueue(Song song) {
     _repository.addToQueue(song);
+  }
+
+  /// Updates the active playback queue to match new sorting or filtering.
+  void updatePlaybackQueue(List<Song> newQueue) {
+    _repository.updatePlaybackQueue(newQueue);
   }
 
   /// Removes a deleted track from playback and updates the active queue.

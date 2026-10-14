@@ -29,6 +29,9 @@ class DozetoneAudioHandler extends BaseAudioHandler
   bool _isShuffle = false;
   PlayerRepeatMode _repeatMode = PlayerRepeatMode.off;
 
+  bool _playOnInterruptionEnded = false;
+  DateTime? _interruptionStartTime;
+
   final StreamController<PlayerState> _playerStateController =
       StreamController<PlayerState>.broadcast();
 
@@ -50,7 +53,7 @@ class DozetoneAudioHandler extends BaseAudioHandler
         pause();
       });
 
-      // Interruption handling (phone calls, alarms)
+      // Interruption handling (phone calls, alarms, other media apps)
       session.interruptionEventStream.listen((event) {
         if (event.begin) {
           switch (event.type) {
@@ -59,7 +62,16 @@ class DozetoneAudioHandler extends BaseAudioHandler
               break;
             case AudioInterruptionType.pause:
             case AudioInterruptionType.unknown:
-              pause();
+              // Only remember to auto-resume if music was actively playing right now
+              if (_player.playing) {
+                _playOnInterruptionEnded = true;
+                _interruptionStartTime = DateTime.now();
+              } else {
+                _playOnInterruptionEnded = false;
+              }
+              _player.pause();
+              _broadcastPlaybackState();
+              _emitCurrentState();
               break;
           }
         } else {
@@ -68,9 +80,19 @@ class DozetoneAudioHandler extends BaseAudioHandler
               _player.setVolume(1.0);
               break;
             case AudioInterruptionType.pause:
-              play();
+              if (_playOnInterruptionEnded) {
+                _playOnInterruptionEnded = false;
+                // Only resume if interruption was transient (under 30s)
+                final elapsed = _interruptionStartTime != null
+                    ? DateTime.now().difference(_interruptionStartTime!)
+                    : Duration.zero;
+                if (elapsed.inSeconds <= 30) {
+                  play();
+                }
+              }
               break;
             case AudioInterruptionType.unknown:
+              _playOnInterruptionEnded = false;
               break;
           }
         }
@@ -249,6 +271,7 @@ class DozetoneAudioHandler extends BaseAudioHandler
 
   @override
   Future<void> pause() async {
+    _playOnInterruptionEnded = false;
     await _player.pause();
     _broadcastPlaybackState();
     _emitCurrentState();
@@ -256,6 +279,7 @@ class DozetoneAudioHandler extends BaseAudioHandler
 
   @override
   Future<void> stop() async {
+    _playOnInterruptionEnded = false;
     await _player.stop();
     _broadcastPlaybackState();
     _emitCurrentState();
@@ -344,6 +368,31 @@ class DozetoneAudioHandler extends BaseAudioHandler
       _activeQueue.removeAt(existingIndex);
     }
     _activeQueue.insert(nextIndex.clamp(0, _activeQueue.length), song);
+    _emitCurrentState();
+  }
+
+  /// Updates the playback queue to match new sorting or filtering without interrupting playback.
+  void updatePlaybackQueue(List<Song> newQueue) {
+    if (newQueue.isEmpty) return;
+
+    _rawQueue = List<Song>.from(newQueue);
+
+    final currentSong = (_currentIndex >= 0 && _currentIndex < _activeQueue.length)
+        ? _activeQueue[_currentIndex]
+        : null;
+
+    if (_isShuffle && currentSong != null) {
+      _buildShuffleQueue(currentSong);
+    } else {
+      _activeQueue = List<Song>.from(_rawQueue);
+      if (currentSong != null) {
+        final newIndex = _activeQueue.indexWhere((s) => s.id == currentSong.id);
+        if (newIndex != -1) {
+          _currentIndex = newIndex;
+        }
+      }
+    }
+
     _emitCurrentState();
   }
 

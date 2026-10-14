@@ -117,6 +117,14 @@ class FakePlayerRepository implements PlayerRepository {
     lastAddedToQueueSong = song;
   }
 
+  List<Song>? lastUpdatedQueue;
+
+  @override
+  void updatePlaybackQueue(List<Song> newQueue) {
+    lastUpdatedQueue = newQueue;
+    emitState(_currentState.copyWith(queue: newQueue));
+  }
+
   @override
   Future<void> removeSongFromPlayback(int songId) async {
     lastRemovedSongId = songId;

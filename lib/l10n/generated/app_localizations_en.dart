@@ -21,6 +21,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanningMusic => 'Scanning your music...';
 
   @override
+  String get playAll => 'Play All';
+
+  @override
   String get shuffle => 'Shuffle';
 
   @override

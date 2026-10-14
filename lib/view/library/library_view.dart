@@ -65,6 +65,7 @@ class LibraryView extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         appBar: LibraryHeader(
           onSettingsTap: () => context.push(RouteNames.settingsPath),
+          onSortTap: () => SongSortModal.show(context),
         ),
         body: Column(
           children: <Widget>[
@@ -111,6 +112,13 @@ class LibraryView extends ConsumerWidget {
     final activeQuery = ref.watch(libraryQueryProvider).trim();
     final playerState = ref.watch(playerViewModelProvider);
 
+    // Sync playback queue dynamically whenever songs are sorted or filtered
+    ref.listen<List<Song>>(filteredSongsProvider, (previous, next) {
+      if (next.isNotEmpty) {
+        ref.read(playerViewModelProvider.notifier).updatePlaybackQueue(next);
+      }
+    });
+
     return Column(
       children: <Widget>[
         // Top filter pills: All Songs, Favorites, Playlists
@@ -123,11 +131,11 @@ class LibraryView extends ConsumerWidget {
         else if (activeTab == LibraryTab.favorites && filteredSongs.isEmpty)
           const Expanded(child: NoFavoritesView())
         else ...<Widget>[
-          // Quick Action Bar with Track Count, Sort, and Shuffle Pill
+          // Hero Action Bar with Play All, Shuffle, and Track Count
           LibraryActionBar(
             songCount: filteredSongs.length,
+            onPlayAllTap: () => _onPlayAllTap(context, ref, filteredSongs),
             onShuffleTap: () => _onShuffleTap(context, ref, filteredSongs),
-            onSortTap: () => SongSortModal.show(context),
           ),
 
           // Scrollable song list with interactive scrollbar
@@ -183,6 +191,15 @@ class LibraryView extends ConsumerWidget {
     );
   }
 
+  void _onPlayAllTap(
+    BuildContext context,
+    WidgetRef ref,
+    List<Song> currentQueue,
+  ) {
+    if (currentQueue.isEmpty) return;
+    ref.read(playerViewModelProvider.notifier).playSong(currentQueue.first, currentQueue);
+  }
+
   void _onShuffleTap(
     BuildContext context,
     WidgetRef ref,
@@ -199,6 +216,11 @@ class LibraryView extends ConsumerWidget {
     Song song,
     List<Song> currentQueue,
   ) {
+    final playerState = ref.read(playerViewModelProvider);
+    // If the tapped song is already the current track, do nothing
+    if (playerState.currentSong?.id == song.id) {
+      return;
+    }
     ref.read(playerViewModelProvider.notifier).playSong(song, currentQueue);
   }
 

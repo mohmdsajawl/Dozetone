@@ -17,6 +17,10 @@
   "@scanningMusic": {
     "description": "Loading state label while searching for audio files"
   },
+  "playAll": "Play All",
+  "@playAll": {
+    "description": "Button to start playback from the beginning of all songs"
+  },
   "shuffle": "Shuffle",
   "@shuffle": {
     "description": "Button to shuffle all songs"
