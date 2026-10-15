@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../model/song.dart';
+import '../../player/widgets/add_to_playlist_modal.dart';
 import 'song_artwork.dart';
 
 /// Modal bottom sheet displaying track options and details.
@@ -12,12 +13,16 @@ class SongOptionsModal extends StatelessWidget {
   final Song song;
   final VoidCallback onPlayNext;
   final VoidCallback onDeleteTap;
+  final VoidCallback? onRemoveFromPlaylist;
+  final VoidCallback? onRemoveFromFavorites;
 
   const SongOptionsModal({
     super.key,
     required this.song,
     required this.onPlayNext,
     required this.onDeleteTap,
+    this.onRemoveFromPlaylist,
+    this.onRemoveFromFavorites,
   });
 
   static Future<void> show({
@@ -25,6 +30,8 @@ class SongOptionsModal extends StatelessWidget {
     required Song song,
     required VoidCallback onPlayNext,
     required VoidCallback onDeleteTap,
+    VoidCallback? onRemoveFromPlaylist,
+    VoidCallback? onRemoveFromFavorites,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -36,6 +43,8 @@ class SongOptionsModal extends StatelessWidget {
         song: song,
         onPlayNext: onPlayNext,
         onDeleteTap: onDeleteTap,
+        onRemoveFromPlaylist: onRemoveFromPlaylist,
+        onRemoveFromFavorites: onRemoveFromFavorites,
       ),
     );
   }
@@ -119,7 +128,57 @@ class SongOptionsModal extends StatelessWidget {
               },
             ),
 
-            // Option 2: Track details (with date & time)
+            // Option 2: Add to... (opens AddToPlaylistModal)
+            ListTile(
+              leading: const Icon(
+                Icons.add_to_photos_rounded,
+                color: AppColors.accent,
+              ),
+              title: Text(
+                l10n.addTo,
+                style: AppTextStyles.body,
+              ),
+              onTap: () {
+                Navigator.of(context).pop();
+                AddToPlaylistModal.show(context: context, song: song);
+              },
+            ),
+
+            // Option 3 (optional): Remove from favorites
+            if (onRemoveFromFavorites != null)
+              ListTile(
+                leading: const Icon(
+                  Icons.favorite_border_rounded,
+                  color: AppColors.accent,
+                ),
+                title: Text(
+                  l10n.removeFromFavorites,
+                  style: AppTextStyles.body,
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onRemoveFromFavorites!();
+                },
+              ),
+
+            // Option 4 (optional): Remove from playlist
+            if (onRemoveFromPlaylist != null)
+              ListTile(
+                leading: const Icon(
+                  Icons.playlist_remove_rounded,
+                  color: AppColors.accent,
+                ),
+                title: Text(
+                  l10n.removeSongFromPlaylist,
+                  style: AppTextStyles.body,
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onRemoveFromPlaylist!();
+                },
+              ),
+
+            // Option 3: Track details (with date & time)
             ListTile(
               leading: const Icon(
                 Icons.info_outline_rounded,

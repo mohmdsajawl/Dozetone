@@ -160,7 +160,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.accent,
-              foregroundColor: AppColors.textPrimary,
+              foregroundColor: AppColors.onAccent,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.0),
               ),

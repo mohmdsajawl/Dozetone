@@ -293,5 +293,134 @@
   "openSourceLicenses": "Open source licenses",
   "@openSourceLicenses": {
     "description": "Button to view third party open source licenses"
+  },
+
+  "createNewPlaylist": "Create New Playlist",
+  "@createNewPlaylist": {
+    "description": "Title and button for creating a new playlist"
+  },
+  "playlistSubtitle": "Group songs by mood, sleep, or genre",
+  "@playlistSubtitle": {
+    "description": "Subtitle description under create playlist"
+  },
+  "newPlaylist": "New Playlist",
+  "@newPlaylist": {
+    "description": "Dialog title for new playlist"
+  },
+  "enterPlaylistName": "Enter playlist name",
+  "@enterPlaylistName": {
+    "description": "Hint text for playlist name field"
+  },
+  "renamePlaylist": "Rename Playlist",
+  "@renamePlaylist": {
+    "description": "Dialog title and menu item for renaming a playlist"
+  },
+  "deletePlaylist": "Delete Playlist",
+  "@deletePlaylist": {
+    "description": "Dialog title and menu item for deleting a playlist"
+  },
+  "deletePlaylistConfirm": "Are you sure you want to delete \"{name}\"? The songs will remain on your device.",
+  "@deletePlaylistConfirm": {
+    "description": "Confirmation message when deleting a playlist",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistCreated": "Created playlist \"{name}\"",
+  "@playlistCreated": {
+    "description": "Snackbar message when playlist is created",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistRenamed": "Renamed to \"{name}\"",
+  "@playlistRenamed": {
+    "description": "Snackbar message when playlist is renamed",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistDeleted": "Deleted playlist \"{name}\"",
+  "@playlistDeleted": {
+    "description": "Snackbar message when playlist is deleted",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistAlreadyExists": "Playlist \"{name}\" already exists",
+  "@playlistAlreadyExists": {
+    "description": "Snackbar message when playlist name already exists",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addSongs": "Add Songs",
+  "@addSongs": {
+    "description": "Button to add songs to a playlist"
+  },
+  "removeSongFromPlaylist": "Remove from playlist",
+  "@removeSongFromPlaylist": {
+    "description": "Action to remove a song from a playlist"
+  },
+  "songRemovedFromPlaylist": "Removed from \"{name}\"",
+  "@songRemovedFromPlaylist": {
+    "description": "Snackbar message when song is removed from playlist",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noSongsInPlaylist": "No songs in this playlist yet",
+  "@noSongsInPlaylist": {
+    "description": "Empty state title inside playlist details"
+  },
+  "emptyPlaylistPrompt": "Tap \"Add Songs\" to add tracks from your library",
+  "@emptyPlaylistPrompt": {
+    "description": "Empty state caption inside playlist details"
+  },
+  "tracksCount": "{count, plural, =1{1 track} other{{count} tracks}}",
+  "@tracksCount": {
+    "description": "Pluralized count of tracks in a playlist",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "create": "Create",
+  "@create": {
+    "description": "Create button label"
+  },
+  "rename": "Rename",
+  "@rename": {
+    "description": "Rename button label"
+  },
+  "addTo": "Add to...",
+  "@addTo": {
+    "description": "Option to add a track to playlists, queue, or favorites"
+  },
+  "removeFromFavorites": "Remove from Favorites",
+  "@removeFromFavorites": {
+    "description": "Option to remove a song from favorites"
+  },
+  "removedFromFavorites": "Removed \"{title}\" from Favorites",
+  "@removedFromFavorites": {
+    "description": "Snackbar message when a song is removed from favorites",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   }
 }

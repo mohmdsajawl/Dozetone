@@ -459,6 +459,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open source licenses'**
   String get openSourceLicenses;
+
+  /// Title and button for creating a new playlist
+  ///
+  /// In en, this message translates to:
+  /// **'Create New Playlist'**
+  String get createNewPlaylist;
+
+  /// Subtitle description under create playlist
+  ///
+  /// In en, this message translates to:
+  /// **'Group songs by mood, sleep, or genre'**
+  String get playlistSubtitle;
+
+  /// Dialog title for new playlist
+  ///
+  /// In en, this message translates to:
+  /// **'New Playlist'**
+  String get newPlaylist;
+
+  /// Hint text for playlist name field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter playlist name'**
+  String get enterPlaylistName;
+
+  /// Dialog title and menu item for renaming a playlist
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Playlist'**
+  String get renamePlaylist;
+
+  /// Dialog title and menu item for deleting a playlist
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Playlist'**
+  String get deletePlaylist;
+
+  /// Confirmation message when deleting a playlist
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"? The songs will remain on your device.'**
+  String deletePlaylistConfirm(String name);
+
+  /// Snackbar message when playlist is created
+  ///
+  /// In en, this message translates to:
+  /// **'Created playlist \"{name}\"'**
+  String playlistCreated(String name);
+
+  /// Snackbar message when playlist is renamed
+  ///
+  /// In en, this message translates to:
+  /// **'Renamed to \"{name}\"'**
+  String playlistRenamed(String name);
+
+  /// Snackbar message when playlist is deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted playlist \"{name}\"'**
+  String playlistDeleted(String name);
+
+  /// Snackbar message when playlist name already exists
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist \"{name}\" already exists'**
+  String playlistAlreadyExists(String name);
+
+  /// Button to add songs to a playlist
+  ///
+  /// In en, this message translates to:
+  /// **'Add Songs'**
+  String get addSongs;
+
+  /// Action to remove a song from a playlist
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from playlist'**
+  String get removeSongFromPlaylist;
+
+  /// Snackbar message when song is removed from playlist
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from \"{name}\"'**
+  String songRemovedFromPlaylist(String name);
+
+  /// Empty state title inside playlist details
+  ///
+  /// In en, this message translates to:
+  /// **'No songs in this playlist yet'**
+  String get noSongsInPlaylist;
+
+  /// Empty state caption inside playlist details
+  ///
+  /// In en, this message translates to:
+  /// **'Tap \"Add Songs\" to add tracks from your library'**
+  String get emptyPlaylistPrompt;
+
+  /// Pluralized count of tracks in a playlist
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 track} other{{count} tracks}}'**
+  String tracksCount(int count);
+
+  /// Create button label
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get create;
+
+  /// Rename button label
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get rename;
+
+  /// Option to add a track to playlists, queue, or favorites
+  ///
+  /// In en, this message translates to:
+  /// **'Add to...'**
+  String get addTo;
+
+  /// Option to remove a song from favorites
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from Favorites'**
+  String get removeFromFavorites;
+
+  /// Snackbar message when a song is removed from favorites
+  ///
+  /// In en, this message translates to:
+  /// **'Removed \"{title}\" from Favorites'**
+  String removedFromFavorites(String title);
 }
 
 class _AppLocalizationsDelegate

@@ -176,6 +176,11 @@ class LibraryView extends ConsumerWidget {
                           context: context,
                           song: song,
                           onPlayNext: () => _onPlayNext(context, ref, song),
+                          onRemoveFromFavorites:
+                              activeTab == LibraryTab.favorites
+                                  ? () => _onRemoveFromFavorites(
+                                      context, ref, song)
+                                  : null,
                           onDeleteTap: () =>
                               _onDeleteSong(context, ref, viewModel, song),
                         ),
@@ -247,6 +252,41 @@ class LibraryView extends ConsumerWidget {
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
+  Future<void> _onRemoveFromFavorites(
+    BuildContext context,
+    WidgetRef ref,
+    Song song,
+  ) async {
+    await ref.read(favoritesProvider.notifier).toggleFavorite(song.id);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Row(
+            children: <Widget>[
+              const Icon(
+                Icons.favorite_border_rounded,
+                color: AppColors.accent,
+                size: 20.0,
+              ),
+              const SizedBox(width: AppDimensions.space12),
+              Expanded(
+                child: Text(
+                  'Removed "${song.title}" from Favorites',
+                  style: AppTextStyles.body.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],

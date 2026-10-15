@@ -84,6 +84,24 @@ class PlaylistsNotifier extends StateNotifier<Map<String, List<int>>> {
     return created;
   }
 
+  /// Renames playlist [oldName] to [newName].
+  Future<bool> renamePlaylist(String oldName, String newName) async {
+    final renamed = await _repository.renamePlaylist(oldName, newName);
+    if (renamed) {
+      await loadPlaylists();
+    }
+    return renamed;
+  }
+
+  /// Deletes playlist [name].
+  Future<bool> deletePlaylist(String name) async {
+    final deleted = await _repository.deletePlaylist(name);
+    if (deleted) {
+      await loadPlaylists();
+    }
+    return deleted;
+  }
+
   /// Adds [songId] to [playlistName].
   Future<bool> addSongToPlaylist(String playlistName, int songId) async {
     final added = await _repository.addSongToPlaylist(playlistName, songId);
@@ -91,5 +109,23 @@ class PlaylistsNotifier extends StateNotifier<Map<String, List<int>>> {
       await loadPlaylists();
     }
     return added;
+  }
+
+  /// Adds multiple [songIds] to [playlistName].
+  Future<int> addSongsToPlaylist(String playlistName, List<int> songIds) async {
+    final count = await _repository.addSongsToPlaylist(playlistName, songIds);
+    if (count > 0) {
+      await loadPlaylists();
+    }
+    return count;
+  }
+
+  /// Removes [songId] from [playlistName].
+  Future<bool> removeSongFromPlaylist(String playlistName, int songId) async {
+    final removed = await _repository.removeSongFromPlaylist(playlistName, songId);
+    if (removed) {
+      await loadPlaylists();
+    }
+    return removed;
   }
 }

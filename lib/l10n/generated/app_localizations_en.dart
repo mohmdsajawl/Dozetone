@@ -217,4 +217,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openSourceLicenses => 'Open source licenses';
+
+  @override
+  String get createNewPlaylist => 'Create New Playlist';
+
+  @override
+  String get playlistSubtitle => 'Group songs by mood, sleep, or genre';
+
+  @override
+  String get newPlaylist => 'New Playlist';
+
+  @override
+  String get enterPlaylistName => 'Enter playlist name';
+
+  @override
+  String get renamePlaylist => 'Rename Playlist';
+
+  @override
+  String get deletePlaylist => 'Delete Playlist';
+
+  @override
+  String deletePlaylistConfirm(String name) {
+    return 'Are you sure you want to delete \"$name\"? The songs will remain on your device.';
+  }
+
+  @override
+  String playlistCreated(String name) {
+    return 'Created playlist \"$name\"';
+  }
+
+  @override
+  String playlistRenamed(String name) {
+    return 'Renamed to \"$name\"';
+  }
+
+  @override
+  String playlistDeleted(String name) {
+    return 'Deleted playlist \"$name\"';
+  }
+
+  @override
+  String playlistAlreadyExists(String name) {
+    return 'Playlist \"$name\" already exists';
+  }
+
+  @override
+  String get addSongs => 'Add Songs';
+
+  @override
+  String get removeSongFromPlaylist => 'Remove from playlist';
+
+  @override
+  String songRemovedFromPlaylist(String name) {
+    return 'Removed from \"$name\"';
+  }
+
+  @override
+  String get noSongsInPlaylist => 'No songs in this playlist yet';
+
+  @override
+  String get emptyPlaylistPrompt =>
+      'Tap \"Add Songs\" to add tracks from your library';
+
+  @override
+  String tracksCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tracks',
+      one: '1 track',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get rename => 'Rename';
+
+  @override
+  String get addTo => 'Add to...';
+
+  @override
+  String get removeFromFavorites => 'Remove from Favorites';
+
+  @override
+  String removedFromFavorites(String title) {
+    return 'Removed \"$title\" from Favorites';
+  }
 }

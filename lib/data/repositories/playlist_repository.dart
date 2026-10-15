@@ -25,14 +25,25 @@ abstract class PlaylistRepository {
   /// Creates a new playlist with [name].
   Future<bool> createPlaylist(String name);
 
+  /// Renames an existing playlist from [oldName] to [newName].
+  Future<bool> renamePlaylist(String oldName, String newName);
+
+  /// Deletes a playlist with [name].
+  Future<bool> deletePlaylist(String name);
+
   /// Adds [songId] to [playlistName].
   Future<bool> addSongToPlaylist(String playlistName, int songId);
+
+  /// Adds multiple [songIds] to [playlistName].
+  Future<int> addSongsToPlaylist(String playlistName, List<int> songIds);
+
+  /// Removes [songId] from [playlistName].
+  Future<bool> removeSongFromPlaylist(String playlistName, int songId);
 }
 
 /// Implementation using SharedPreferences for instant offline persistence.
 class PlaylistRepositoryImpl implements PlaylistRepository {
   static const List<String> _defaultPlaylists = <String>[
-    'Favorites',
     'Night Ambience',
     'Deep Sleep',
   ];
@@ -85,16 +96,26 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
 
     try {
       final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
-      return decoded.map(
+      final result = decoded.map(
         (key, value) => MapEntry(
           key,
           (value as List<dynamic>).map((e) => e as int).toList(),
         ),
       );
+
+      // Clean up legacy 'Favorites' playlist if present in storage
+      if (result.containsKey('Favorites')) {
+        result.remove('Favorites');
+        await prefs.setString(PrefKeys.customPlaylists, jsonEncode(result));
+      }
+
+      return result;
     } catch (_) {
-      return <String, List<int>>{
+      final fallback = <String, List<int>>{
         for (final name in _defaultPlaylists) name: <int>[],
       };
+      await prefs.setString(PrefKeys.customPlaylists, jsonEncode(fallback));
+      return fallback;
     }
   }
 
@@ -114,6 +135,43 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
   }
 
   @override
+  Future<bool> renamePlaylist(String oldName, String newName) async {
+    final trimmed = newName.trim();
+    if (trimmed.isEmpty) return false;
+    if (oldName == trimmed) return true;
+
+    final prefs = await SharedPreferences.getInstance();
+    final playlists = await getPlaylists();
+
+    if (!playlists.containsKey(oldName)) return false;
+    if (playlists.containsKey(trimmed)) return false;
+
+    final updated = <String, List<int>>{};
+    for (final entry in playlists.entries) {
+      if (entry.key == oldName) {
+        updated[trimmed] = entry.value;
+      } else {
+        updated[entry.key] = entry.value;
+      }
+    }
+
+    await prefs.setString(PrefKeys.customPlaylists, jsonEncode(updated));
+    return true;
+  }
+
+  @override
+  Future<bool> deletePlaylist(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    final playlists = await getPlaylists();
+
+    if (!playlists.containsKey(name)) return false;
+
+    playlists.remove(name);
+    await prefs.setString(PrefKeys.customPlaylists, jsonEncode(playlists));
+    return true;
+  }
+
+  @override
   Future<bool> addSongToPlaylist(String playlistName, int songId) async {
     final prefs = await SharedPreferences.getInstance();
     final playlists = await getPlaylists();
@@ -121,6 +179,46 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
     final songIds = playlists[playlistName] ?? <int>[];
     if (!songIds.contains(songId)) {
       songIds.add(songId);
+      playlists[playlistName] = songIds;
+      await prefs.setString(PrefKeys.customPlaylists, jsonEncode(playlists));
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  Future<int> addSongsToPlaylist(String playlistName, List<int> songIds) async {
+    if (songIds.isEmpty) return 0;
+    final prefs = await SharedPreferences.getInstance();
+    final playlists = await getPlaylists();
+
+    final currentIds = playlists[playlistName] ?? <int>[];
+    int addedCount = 0;
+
+    for (final id in songIds) {
+      if (!currentIds.contains(id)) {
+        currentIds.add(id);
+        addedCount++;
+      }
+    }
+
+    if (addedCount > 0) {
+      playlists[playlistName] = currentIds;
+      await prefs.setString(PrefKeys.customPlaylists, jsonEncode(playlists));
+    }
+    return addedCount;
+  }
+
+  @override
+  Future<bool> removeSongFromPlaylist(String playlistName, int songId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final playlists = await getPlaylists();
+
+    final songIds = playlists[playlistName];
+    if (songIds == null) return false;
+
+    final removed = songIds.remove(songId);
+    if (removed) {
       playlists[playlistName] = songIds;
       await prefs.setString(PrefKeys.customPlaylists, jsonEncode(playlists));
       return true;
