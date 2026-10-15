@@ -8,6 +8,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../widgets/marquee_text.dart';
 import '../../widgets/music_wave_bars.dart';
 import 'add_to_playlist_modal.dart';
+import 'playback_queue_modal.dart';
 import '../../library/widgets/song_artwork.dart';
 import '../../../view_model/player/player_view_model.dart';
 
@@ -107,16 +108,31 @@ class MiniPlayer extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(width: AppDimensions.space4),
+                        const SizedBox(width: AppDimensions.space2),
 
-                        // Add to favorites/queue/playlist button
+                        // Queue sheet trigger button
+                        IconButton(
+                          icon: const Icon(
+                            Icons.queue_music_rounded,
+                            size: 22.0,
+                            color: AppColors.textSecondary,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.all(AppDimensions.space6),
+                          tooltip: 'Queue',
+                          onPressed: () => PlaybackQueueModal.show(context: context),
+                        ),
+
+                        // Add to favorites/playlist button
                         IconButton(
                           icon: const Icon(
                             Icons.add_circle_outline_rounded,
-                            size: 24.0,
+                            size: 22.0,
                             color: AppColors.textSecondary,
                           ),
-                          tooltip: 'Add track',
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.all(AppDimensions.space6),
+                          tooltip: 'Add to playlist or favorites',
                           onPressed: () => AddToPlaylistModal.show(
                             context: context,
                             song: song,
@@ -132,6 +148,8 @@ class MiniPlayer extends ConsumerWidget {
                             size: 28.0,
                             color: AppColors.accent,
                           ),
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.all(AppDimensions.space6),
                           onPressed: viewModel.togglePlayPause,
                         ),
                       ],

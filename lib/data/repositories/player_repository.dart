@@ -52,6 +52,18 @@ abstract class PlayerRepository {
   /// Appends [song] to the end of the queue.
   void addToQueue(Song song);
 
+  /// Reorders a song within the queue.
+  void reorderQueue(int oldIndex, int newIndex);
+
+  /// Removes a song at [index] from the active playback queue.
+  Future<void> removeFromQueue(int index);
+
+  /// Clears all upcoming songs scheduled after the currently playing song.
+  void clearUpNext();
+
+  /// Skips directly to a song at [index] in the active queue and starts playback.
+  Future<void> skipToQueueIndex(int index);
+
   /// Updates playback queue to match new sorting without restarting audio.
   void updatePlaybackQueue(List<Song> newQueue);
 
@@ -118,6 +130,21 @@ class PlayerRepositoryImpl implements PlayerRepository {
 
   @override
   void addToQueue(Song song) => _audioHandler.addToQueue(song);
+
+  @override
+  void reorderQueue(int oldIndex, int newIndex) =>
+      _audioHandler.reorderQueue(oldIndex, newIndex);
+
+  @override
+  Future<void> removeFromQueue(int index) =>
+      _audioHandler.removeFromQueue(index);
+
+  @override
+  void clearUpNext() => _audioHandler.clearUpNext();
+
+  @override
+  Future<void> skipToQueueIndex(int index) =>
+      _audioHandler.skipToQueueIndex(index);
 
   @override
   void updatePlaybackQueue(List<Song> newQueue) =>

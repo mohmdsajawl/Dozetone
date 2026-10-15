@@ -62,6 +62,14 @@
   "@playNext": {
     "description": "Queue song next option"
   },
+  "addToQueue": "Add to queue",
+  "@addToQueue": {
+    "description": "Option to append track to playback queue"
+  },
+  "addToPlaylist": "Add to playlist",
+  "@addToPlaylist": {
+    "description": "Option to add track to a user playlist"
+  },
   "delete": "Delete",
   "@delete": {
     "description": "Generic delete button label"
@@ -422,5 +430,37 @@
         "type": "String"
       }
     }
+  },
+  "queueTitle": "Queue",
+  "@queueTitle": {
+    "description": "Header title for the playback queue sheet"
+  },
+  "nowPlayingHeader": "Now Playing",
+  "@nowPlayingHeader": {
+    "description": "Section header for the actively playing track"
+  },
+  "upNextHeader": "Up Next",
+  "@upNextHeader": {
+    "description": "Section header for upcoming queued tracks"
+  },
+  "clearQueue": "Clear",
+  "@clearQueue": {
+    "description": "Action to clear upcoming tracks in the queue"
+  },
+  "emptyQueue": "Queue is empty",
+  "@emptyQueue": {
+    "description": "Title when playback queue has no songs"
+  },
+  "emptyQueuePrompt": "Play a track to start a playback queue",
+  "@emptyQueuePrompt": {
+    "description": "Prompt when playback queue is empty"
+  },
+  "emptyUpNext": "No upcoming tracks",
+  "@emptyUpNext": {
+    "description": "Title when there are no upcoming tracks in queue"
+  },
+  "emptyUpNextPrompt": "Use \"Add to...\" on tracks to queue next",
+  "@emptyUpNextPrompt": {
+    "description": "Prompt explaining how to queue tracks"
   }
 }

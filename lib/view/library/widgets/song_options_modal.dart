@@ -1,17 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../model/song.dart';
+import '../../../view_model/player/player_view_model.dart';
+import '../../../view_model/playlist/favorites_provider.dart';
 import '../../player/widgets/add_to_playlist_modal.dart';
 import 'song_artwork.dart';
 
 /// Modal bottom sheet displaying track options and details.
-class SongOptionsModal extends StatelessWidget {
+///
+/// Direct 1-tap options:
+/// - Play Next
+/// - Add to Queue
+/// - Add to Playlist
+/// - Favorite / Unfavorite
+/// - Track Details
+/// - Delete from Device
+class SongOptionsModal extends ConsumerWidget {
   final Song song;
   final VoidCallback onPlayNext;
+  final VoidCallback? onAddToQueue;
   final VoidCallback onDeleteTap;
   final VoidCallback? onRemoveFromPlaylist;
   final VoidCallback? onRemoveFromFavorites;
@@ -20,6 +32,7 @@ class SongOptionsModal extends StatelessWidget {
     super.key,
     required this.song,
     required this.onPlayNext,
+    this.onAddToQueue,
     required this.onDeleteTap,
     this.onRemoveFromPlaylist,
     this.onRemoveFromFavorites,
@@ -29,6 +42,7 @@ class SongOptionsModal extends StatelessWidget {
     required BuildContext context,
     required Song song,
     required VoidCallback onPlayNext,
+    VoidCallback? onAddToQueue,
     required VoidCallback onDeleteTap,
     VoidCallback? onRemoveFromPlaylist,
     VoidCallback? onRemoveFromFavorites,
@@ -42,6 +56,7 @@ class SongOptionsModal extends StatelessWidget {
       builder: (context) => SongOptionsModal(
         song: song,
         onPlayNext: onPlayNext,
+        onAddToQueue: onAddToQueue,
         onDeleteTap: onDeleteTap,
         onRemoveFromPlaylist: onRemoveFromPlaylist,
         onRemoveFromFavorites: onRemoveFromFavorites,
@@ -49,9 +64,37 @@ class SongOptionsModal extends StatelessWidget {
     );
   }
 
+  void _showFeedback(BuildContext context, String message, IconData icon) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Row(
+            children: <Widget>[
+              Icon(icon, color: AppColors.accent, size: 20.0),
+              const SizedBox(width: AppDimensions.space12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: AppTextStyles.body.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final isFavorite = ref.watch(favoritesProvider).contains(song.id);
 
     return SafeArea(
       child: Padding(
@@ -63,7 +106,7 @@ class SongOptionsModal extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            // Drag handle
+            // Standard Drag handle
             Center(
               child: Container(
                 width: 36.0,
@@ -112,11 +155,12 @@ class SongOptionsModal extends StatelessWidget {
             const Divider(color: AppColors.outline, height: 1.0),
             const SizedBox(height: AppDimensions.space8),
 
-            // Option 1: Play next
+            // 1. Play next (1-tap direct action)
             ListTile(
               leading: const Icon(
-                Icons.queue_music_rounded,
+                Icons.playlist_play_rounded,
                 color: AppColors.accent,
+                size: 24.0,
               ),
               title: Text(
                 l10n.playNext,
@@ -128,28 +172,60 @@ class SongOptionsModal extends StatelessWidget {
               },
             ),
 
-            // Option 2: Add to... (opens AddToPlaylistModal)
+            // 2. Add to queue (1-tap direct action)
             ListTile(
               leading: const Icon(
-                Icons.add_to_photos_rounded,
+                Icons.queue_music_rounded,
                 color: AppColors.accent,
+                size: 24.0,
               ),
               title: Text(
-                l10n.addTo,
+                l10n.addToQueue,
                 style: AppTextStyles.body,
               ),
               onTap: () {
                 Navigator.of(context).pop();
-                AddToPlaylistModal.show(context: context, song: song);
+                if (onAddToQueue != null) {
+                  onAddToQueue!();
+                } else {
+                  ref.read(playerViewModelProvider.notifier).addToQueue(song);
+                  _showFeedback(
+                    context,
+                    'Added to queue: ${song.title}',
+                    Icons.queue_music_rounded,
+                  );
+                }
               },
             ),
 
-            // Option 3 (optional): Remove from favorites
+            // 3. Add to playlist... (opens clean playlist selector)
+            ListTile(
+              leading: const Icon(
+                Icons.playlist_add_rounded,
+                color: AppColors.accent,
+                size: 24.0,
+              ),
+              title: Text(
+                l10n.addToPlaylist,
+                style: AppTextStyles.body,
+              ),
+              onTap: () {
+                Navigator.of(context).pop();
+                AddToPlaylistModal.show(
+                  context: context,
+                  song: song,
+                  showFavorites: false,
+                );
+              },
+            ),
+
+            // 4. Favorites toggle
             if (onRemoveFromFavorites != null)
               ListTile(
                 leading: const Icon(
-                  Icons.favorite_border_rounded,
-                  color: AppColors.accent,
+                  Icons.favorite_rounded,
+                  color: Colors.redAccent,
+                  size: 24.0,
                 ),
                 title: Text(
                   l10n.removeFromFavorites,
@@ -159,14 +235,46 @@ class SongOptionsModal extends StatelessWidget {
                   Navigator.of(context).pop();
                   onRemoveFromFavorites!();
                 },
+              )
+            else
+              ListTile(
+                leading: Icon(
+                  isFavorite
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                  color: isFavorite ? Colors.redAccent : AppColors.accent,
+                  size: 24.0,
+                ),
+                title: Text(
+                  isFavorite ? l10n.removeFromFavorites : 'Add to Favorites',
+                  style: AppTextStyles.body,
+                ),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  final nowFav = await ref
+                      .read(favoritesProvider.notifier)
+                      .toggleFavorite(song.id);
+                  if (context.mounted) {
+                    _showFeedback(
+                      context,
+                      nowFav
+                          ? 'Added to Favorites'
+                          : l10n.removedFromFavorites(song.title),
+                      nowFav
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                    );
+                  }
+                },
               ),
 
-            // Option 4 (optional): Remove from playlist
+            // 5 (optional): Remove from playlist
             if (onRemoveFromPlaylist != null)
               ListTile(
                 leading: const Icon(
                   Icons.playlist_remove_rounded,
                   color: AppColors.accent,
+                  size: 24.0,
                 ),
                 title: Text(
                   l10n.removeSongFromPlaylist,
@@ -178,11 +286,12 @@ class SongOptionsModal extends StatelessWidget {
                 },
               ),
 
-            // Option 3: Track details (with date & time)
+            // 6. Track details
             ListTile(
               leading: const Icon(
                 Icons.info_outline_rounded,
                 color: AppColors.textSecondary,
+                size: 24.0,
               ),
               title: Text(
                 l10n.songDetails,
@@ -194,11 +303,12 @@ class SongOptionsModal extends StatelessWidget {
               },
             ),
 
-            // Option 3: Delete from device
+            // 7. Delete from device
             ListTile(
               leading: const Icon(
                 Icons.delete_outline_rounded,
                 color: AppColors.error,
+                size: 24.0,
               ),
               title: Text(
                 l10n.delete,

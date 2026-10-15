@@ -178,6 +178,18 @@ abstract class AppLocalizations {
   /// **'Play next'**
   String get playNext;
 
+  /// Option to append track to playback queue
+  ///
+  /// In en, this message translates to:
+  /// **'Add to queue'**
+  String get addToQueue;
+
+  /// Option to add track to a user playlist
+  ///
+  /// In en, this message translates to:
+  /// **'Add to playlist'**
+  String get addToPlaylist;
+
   /// Generic delete button label
   ///
   /// In en, this message translates to:
@@ -591,6 +603,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed \"{title}\" from Favorites'**
   String removedFromFavorites(String title);
+
+  /// Header title for the playback queue sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Queue'**
+  String get queueTitle;
+
+  /// Section header for the actively playing track
+  ///
+  /// In en, this message translates to:
+  /// **'Now Playing'**
+  String get nowPlayingHeader;
+
+  /// Section header for upcoming queued tracks
+  ///
+  /// In en, this message translates to:
+  /// **'Up Next'**
+  String get upNextHeader;
+
+  /// Action to clear upcoming tracks in the queue
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearQueue;
+
+  /// Title when playback queue has no songs
+  ///
+  /// In en, this message translates to:
+  /// **'Queue is empty'**
+  String get emptyQueue;
+
+  /// Prompt when playback queue is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Play a track to start a playback queue'**
+  String get emptyQueuePrompt;
+
+  /// Title when there are no upcoming tracks in queue
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming tracks'**
+  String get emptyUpNext;
+
+  /// Prompt explaining how to queue tracks
+  ///
+  /// In en, this message translates to:
+  /// **'Use \"Add to...\" on tracks to queue next'**
+  String get emptyUpNextPrompt;
 }
 
 class _AppLocalizationsDelegate

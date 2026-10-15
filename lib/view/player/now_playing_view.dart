@@ -9,6 +9,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../model/player_state.dart';
 import '../library/widgets/song_artwork.dart';
 import '../../view_model/player/player_view_model.dart';
+import 'widgets/playback_queue_modal.dart';
 
 /// Full-screen Now Playing modal view.
 ///
@@ -97,7 +98,12 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                         letterSpacing: 0.8,
                       ),
                     ),
-                    const SizedBox(width: 48.0), // Visual balance placeholder
+                    IconButton(
+                      icon: const Icon(Icons.queue_music_rounded, size: 26.0),
+                      color: AppColors.textPrimary,
+                      tooltip: l10n.queueTitle,
+                      onPressed: () => PlaybackQueueModal.show(context: context),
+                    ),
                   ],
                 ),
                 const Spacer(flex: 1),

@@ -117,6 +117,32 @@ class FakePlayerRepository implements PlayerRepository {
     lastAddedToQueueSong = song;
   }
 
+  int? lastReorderOldIndex;
+  int? lastReorderNewIndex;
+  @override
+  void reorderQueue(int oldIndex, int newIndex) {
+    lastReorderOldIndex = oldIndex;
+    lastReorderNewIndex = newIndex;
+  }
+
+  int? lastRemovedFromQueueIndex;
+  @override
+  Future<void> removeFromQueue(int index) async {
+    lastRemovedFromQueueIndex = index;
+  }
+
+  bool clearUpNextCalled = false;
+  @override
+  void clearUpNext() {
+    clearUpNextCalled = true;
+  }
+
+  int? lastSkippedQueueIndex;
+  @override
+  Future<void> skipToQueueIndex(int index) async {
+    lastSkippedQueueIndex = index;
+  }
+
   List<Song>? lastUpdatedQueue;
 
   @override
@@ -282,6 +308,21 @@ void main() {
       expect(viewModel.state.currentSong, equals(testSong2));
       expect(viewModel.state.position, equals(const Duration(milliseconds: 30000)));
       expect(viewModel.state.isPlaying, isFalse);
+    });
+
+    test('reorderQueue, removeFromQueue, clearUpNext and skipToQueueIndex forward to repository', () async {
+      viewModel.reorderQueue(1, 3);
+      expect(repository.lastReorderOldIndex, equals(1));
+      expect(repository.lastReorderNewIndex, equals(3));
+
+      await viewModel.removeFromQueue(2);
+      expect(repository.lastRemovedFromQueueIndex, equals(2));
+
+      viewModel.clearUpNext();
+      expect(repository.clearUpNextCalled, isTrue);
+
+      await viewModel.skipToQueueIndex(4);
+      expect(repository.lastSkippedQueueIndex, equals(4));
     });
   });
 }

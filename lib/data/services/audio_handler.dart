@@ -322,6 +322,17 @@ class DozetoneAudioHandler extends BaseAudioHandler
     }
   }
 
+  @override
+  Future<void> skipToQueueItem(int index) async {
+    await skipToQueueIndex(index);
+  }
+
+  /// Skips directly to a song at [index] in the active queue and starts playback.
+  Future<void> skipToQueueIndex(int index) async {
+    if (index < 0 || index >= _activeQueue.length) return;
+    await _playIndex(index);
+  }
+
   /// Toggles shuffle mode on or off.
   void toggleShuffle() {
     _isShuffle = !_isShuffle;
@@ -453,6 +464,69 @@ class DozetoneAudioHandler extends BaseAudioHandler
     _rawQueue.add(song);
     _activeQueue.add(song);
     _emitCurrentState();
+  }
+
+  /// Reorders songs within the active playback queue.
+  /// [oldIndex] and [newIndex] are standard indices from Flutter's ReorderableListView onReorder callback.
+  void reorderQueue(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= _activeQueue.length) return;
+    var adjustedNewIndex = newIndex;
+    if (oldIndex < adjustedNewIndex) {
+      adjustedNewIndex -= 1;
+    }
+    if (adjustedNewIndex < 0 || adjustedNewIndex >= _activeQueue.length) return;
+    if (oldIndex == adjustedNewIndex) return;
+
+    final song = _activeQueue.removeAt(oldIndex);
+    _activeQueue.insert(adjustedNewIndex, song);
+
+    if (oldIndex == _currentIndex) {
+      _currentIndex = adjustedNewIndex;
+    } else if (oldIndex < _currentIndex && adjustedNewIndex >= _currentIndex) {
+      _currentIndex -= 1;
+    } else if (oldIndex > _currentIndex && adjustedNewIndex <= _currentIndex) {
+      _currentIndex += 1;
+    }
+
+    _emitCurrentState();
+  }
+
+  /// Removes a song at [index] from the active playback queue.
+  Future<void> removeFromQueue(int index) async {
+    if (index < 0 || index >= _activeQueue.length) return;
+
+    if (index == _currentIndex) {
+      if (_activeQueue.length <= 1) {
+        _activeQueue.clear();
+        _currentIndex = -1;
+        await _player.stop();
+        mediaItem.add(null);
+        _broadcastPlaybackState();
+        _emitCurrentState();
+        return;
+      }
+
+      _activeQueue.removeAt(index);
+      if (_currentIndex >= _activeQueue.length) {
+        _currentIndex = 0;
+      }
+      await _playIndex(_currentIndex);
+    } else {
+      _activeQueue.removeAt(index);
+      if (index < _currentIndex) {
+        _currentIndex -= 1;
+      }
+      _emitCurrentState();
+    }
+  }
+
+  /// Clears all upcoming songs scheduled after the currently playing song.
+  void clearUpNext() {
+    if (_activeQueue.isEmpty || _currentIndex < 0) return;
+    if (_currentIndex + 1 < _activeQueue.length) {
+      _activeQueue.removeRange(_currentIndex + 1, _activeQueue.length);
+      _emitCurrentState();
+    }
   }
 
   /// Removes a song from playback and queue when deleted from device storage.

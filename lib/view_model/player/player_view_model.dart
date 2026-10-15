@@ -141,6 +141,26 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
     _repository.addToQueue(song);
   }
 
+  /// Reorders a song within the active playback queue.
+  void reorderQueue(int oldIndex, int newIndex) {
+    _repository.reorderQueue(oldIndex, newIndex);
+  }
+
+  /// Removes a song at [index] from the active playback queue.
+  Future<void> removeFromQueue(int index) async {
+    await _repository.removeFromQueue(index);
+  }
+
+  /// Clears all upcoming tracks after the active song.
+  void clearUpNext() {
+    _repository.clearUpNext();
+  }
+
+  /// Skips directly to a song at [index] in the active queue and starts playback.
+  Future<void> skipToQueueIndex(int index) async {
+    await _repository.skipToQueueIndex(index);
+  }
+
   /// Updates the active playback queue to match new sorting or filtering.
   void updatePlaybackQueue(List<Song> newQueue) {
     _repository.updatePlaybackQueue(newQueue);

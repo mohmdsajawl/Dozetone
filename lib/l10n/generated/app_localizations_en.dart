@@ -59,6 +59,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playNext => 'Play next';
 
   @override
+  String get addToQueue => 'Add to queue';
+
+  @override
+  String get addToPlaylist => 'Add to playlist';
+
+  @override
   String get delete => 'Delete';
 
   @override
@@ -306,4 +312,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String removedFromFavorites(String title) {
     return 'Removed \"$title\" from Favorites';
   }
+
+  @override
+  String get queueTitle => 'Queue';
+
+  @override
+  String get nowPlayingHeader => 'Now Playing';
+
+  @override
+  String get upNextHeader => 'Up Next';
+
+  @override
+  String get clearQueue => 'Clear';
+
+  @override
+  String get emptyQueue => 'Queue is empty';
+
+  @override
+  String get emptyQueuePrompt => 'Play a track to start a playback queue';
+
+  @override
+  String get emptyUpNext => 'No upcoming tracks';
+
+  @override
+  String get emptyUpNextPrompt => 'Use \"Add to...\" on tracks to queue next';
 }
