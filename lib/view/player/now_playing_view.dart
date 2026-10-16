@@ -10,6 +10,7 @@ import '../../model/player_state.dart';
 import '../../view_model/library/library_view_model.dart';
 import '../../view_model/player/player_view_model.dart';
 import '../../view_model/playlist/favorites_provider.dart';
+import '../../view_model/sleep_timer/sleep_timer_view_model.dart';
 import '../library/widgets/song_artwork.dart';
 import '../library/widgets/song_options_modal.dart';
 import '../widgets/marquee_text.dart';
@@ -52,6 +53,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final playerState = ref.watch(playerViewModelProvider);
+    final sleepTimerState = ref.watch(sleepTimerProvider);
     final viewModel = ref.read(playerViewModelProvider.notifier);
     final song = playerState.currentSong;
 
@@ -741,7 +743,9 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                   height: 36.0,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8.0),
-                                    color: AppColors.accent.withValues(alpha: 0.15),
+                                    color: sleepTimerState.isActive
+                                        ? AppColors.accent.withValues(alpha: 0.25)
+                                        : AppColors.accent.withValues(alpha: 0.15),
                                   ),
                                   child: const Icon(
                                     Icons.bedtime_rounded,
@@ -764,10 +768,21 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                         ),
                                       ),
                                       Text(
-                                        'Gentle audio fade-out',
+                                        sleepTimerState.isActive
+                                            ? (sleepTimerState.isFadingOut
+                                                ? l10n.fadingOut
+                                                : (sleepTimerState.isEndOfSong
+                                                    ? 'End of song'
+                                                    : '${sleepTimerState.formattedRemaining} remaining'))
+                                            : 'Gentle audio fade-out',
                                         style: AppTextStyles.caption.copyWith(
-                                          color: AppColors.textSecondary,
+                                          color: sleepTimerState.isFadingOut
+                                              ? AppColors.accent
+                                              : AppColors.textSecondary,
                                           fontSize: 11.5,
+                                          fontWeight: sleepTimerState.isFadingOut
+                                              ? FontWeight.w600
+                                              : FontWeight.w400,
                                         ),
                                       ),
                                     ],
@@ -779,28 +794,40 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                     vertical: AppDimensions.space6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.background.withValues(alpha: 0.6),
+                                    color: sleepTimerState.isActive
+                                        ? AppColors.accent.withValues(alpha: 0.15)
+                                        : AppColors.background.withValues(alpha: 0.6),
                                     borderRadius: BorderRadius.circular(8.0),
                                     border: Border.all(
-                                      color: AppColors.outline.withValues(alpha: 0.6),
+                                      color: sleepTimerState.isActive
+                                          ? AppColors.accent.withValues(alpha: 0.4)
+                                          : AppColors.outline.withValues(alpha: 0.6),
                                     ),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: <Widget>[
                                       Text(
-                                        'Set timer',
+                                        sleepTimerState.isActive
+                                            ? sleepTimerState.formattedRemaining
+                                            : 'Set timer',
                                         style: AppTextStyles.caption.copyWith(
-                                          color: AppColors.textSecondary,
+                                          color: sleepTimerState.isActive
+                                              ? AppColors.accent
+                                              : AppColors.textSecondary,
                                           fontSize: 12.0,
-                                          fontWeight: FontWeight.w500,
+                                          fontWeight: sleepTimerState.isActive
+                                              ? FontWeight.w600
+                                              : FontWeight.w500,
                                         ),
                                       ),
                                       const SizedBox(width: 4.0),
-                                      const Icon(
+                                      Icon(
                                         Icons.chevron_right_rounded,
                                         size: 16.0,
-                                        color: AppColors.textSecondary,
+                                        color: sleepTimerState.isActive
+                                            ? AppColors.accent
+                                            : AppColors.textSecondary,
                                       ),
                                     ],
                                   ),
