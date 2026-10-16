@@ -159,6 +159,19 @@ class FakePlayerRepository implements PlayerRepository {
     }
   }
 
+  int? lastUpdatedSongId;
+  String? lastUpdatedSongTitle;
+  @override
+  void updateSongMetadata(int songId, String newTitle) {
+    lastUpdatedSongId = songId;
+    lastUpdatedSongTitle = newTitle;
+    if (_currentState.currentSong?.id == songId) {
+      emitState(_currentState.copyWith(
+        currentSong: _currentState.currentSong!.copyWith(title: newTitle),
+      ));
+    }
+  }
+
   @override
   Future<void> restoreLastSession({
     required Song song,
@@ -323,6 +336,16 @@ void main() {
 
       await viewModel.skipToQueueIndex(4);
       expect(repository.lastSkippedQueueIndex, equals(4));
+    });
+
+    test('updateSongMetadata updates current song and notifies repository', () async {
+      await viewModel.playSong(testSong1, testQueue);
+      expect(viewModel.state.currentSong?.title, equals('Song One'));
+
+      viewModel.updateSongMetadata(testSong1.id, 'Renamed Song A');
+      expect(repository.lastUpdatedSongId, equals(testSong1.id));
+      expect(repository.lastUpdatedSongTitle, equals('Renamed Song A'));
+      expect(viewModel.state.currentSong?.title, equals('Renamed Song A'));
     });
   });
 }

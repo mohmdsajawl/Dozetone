@@ -2,6 +2,7 @@ package com.velcruxlab.dozetone
 
 import android.app.Activity
 import android.content.ContentUris
+import android.content.ContentValues
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
@@ -21,13 +22,14 @@ import java.io.File
  * Native Android MediaStore query and management plugin.
  *
  * Implements direct Android MediaStore queries and scoped storage file deletion
- * through ContentResolver and MediaStore.createDeleteRequest.
+ * and rename through ContentResolver and MediaStore createWriteRequest / createDeleteRequest.
  */
 class MediaStorePlugin(private val activity: Activity) : MethodChannel.MethodCallHandler {
 
     companion object {
         const val CHANNEL = "com.velcruxlab.dozetone/media_store"
         const val DELETE_REQUEST_CODE = 4041
+        const val RENAME_REQUEST_CODE = 4042
 
         fun registerWith(flutterEngine: FlutterEngine, activity: Activity): MediaStorePlugin {
             val channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
@@ -76,6 +78,12 @@ class MediaStorePlugin(private val activity: Activity) : MethodChannel.MethodCal
                 val songId = (call.argument<Number>("songId"))?.toLong() ?: 0L
                 val dataUri = call.argument<String>("dataUri") ?: ""
                 deleteSong(songId, dataUri, result)
+            }
+            "renameSong" -> {
+                val songId = (call.argument<Number>("songId"))?.toLong() ?: 0L
+                val dataUri = call.argument<String>("dataUri") ?: ""
+                val newTitle = call.argument<String>("newTitle") ?: ""
+                renameSong(songId, dataUri, newTitle, result)
             }
             else -> result.notImplemented()
         }
@@ -129,6 +137,58 @@ class MediaStorePlugin(private val activity: Activity) : MethodChannel.MethodCal
         }
 
         result.success(false)
+    }
+
+    private fun renameSong(songId: Long, dataUri: String, newTitle: String, result: MethodChannel.Result) {
+        if (newTitle.trim().isEmpty()) {
+            result.success(false)
+            return
+        }
+
+        scope.launch {
+            val success = withContext(Dispatchers.IO) {
+                performRename(songId, dataUri, newTitle.trim())
+            }
+            result.success(success)
+        }
+    }
+
+    private fun performRename(songId: Long, dataUri: String, newTitle: String): Boolean {
+        var renamed = false
+
+        // Step 1: Try physical file rename if accessible and permitted
+        if (dataUri.isNotEmpty()) {
+            try {
+                val file = File(dataUri)
+                if (file.exists() && file.canWrite()) {
+                    val ext = file.extension
+                    val newFileName = if (ext.isNotEmpty()) "$newTitle.$ext" else newTitle
+                    val parent = file.parentFile
+                    if (parent != null) {
+                        val target = File(parent, newFileName)
+                        if (!target.exists() && file.renameTo(target)) {
+                            renamed = true
+                        }
+                    }
+                }
+            } catch (_: Exception) {
+            }
+        }
+
+        // Step 2: Try MediaStore entry update
+        try {
+            val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
+            val values = ContentValues().apply {
+                put(MediaStore.Audio.Media.TITLE, newTitle)
+            }
+            val count = activity.contentResolver.update(uri, values, null, null)
+            if (count > 0) {
+                renamed = true
+            }
+        } catch (_: Exception) {
+        }
+
+        return renamed
     }
 
     private fun loadSongs(): List<Map<String, Any?>> {

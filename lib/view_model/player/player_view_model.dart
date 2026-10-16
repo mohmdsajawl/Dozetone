@@ -171,6 +171,11 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
     await _repository.removeSongFromPlayback(songId);
   }
 
+  /// Updates track metadata (e.g. title after rename) in the active player and queue.
+  void updateSongMetadata(int songId, String newTitle) {
+    _repository.updateSongMetadata(songId, newTitle);
+  }
+
   /// Restores previous playback session if available and no song is playing.
   Future<void> restoreSavedSession(List<Song> librarySongs) async {
     if (state.currentSong != null || librarySongs.isEmpty) return;

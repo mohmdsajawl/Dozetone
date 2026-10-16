@@ -243,7 +243,7 @@ class DozetoneAudioHandler extends BaseAudioHandler
       artist: song.artist,
       album: song.album,
       duration: Duration(milliseconds: song.durationMs),
-      artUri: song.dataUri.isNotEmpty ? Uri.file(song.dataUri) : null,
+      artUri: null,
     );
     mediaItem.add(item);
 
@@ -558,6 +558,40 @@ class DozetoneAudioHandler extends BaseAudioHandler
     } else {
       if (removedIndex != -1 && removedIndex < _currentIndex) {
         _currentIndex--;
+      }
+      _emitCurrentState();
+    }
+  }
+
+  /// Updates song metadata (e.g. title after rename) in the active playback queue and notification.
+  void updateSongMetadata(int songId, String newTitle) {
+    bool changed = false;
+    for (int i = 0; i < _rawQueue.length; i++) {
+      if (_rawQueue[i].id == songId) {
+        _rawQueue[i] = _rawQueue[i].copyWith(title: newTitle);
+        changed = true;
+      }
+    }
+    for (int i = 0; i < _activeQueue.length; i++) {
+      if (_activeQueue[i].id == songId) {
+        _activeQueue[i] = _activeQueue[i].copyWith(title: newTitle);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      if (_currentIndex >= 0 &&
+          _currentIndex < _activeQueue.length &&
+          _activeQueue[_currentIndex].id == songId) {
+        final current = _activeQueue[_currentIndex];
+        mediaItem.add(MediaItem(
+          id: current.id.toString(),
+          title: current.title,
+          artist: current.artist,
+          album: current.album,
+          duration: Duration(milliseconds: current.durationMs),
+          artUri: null,
+        ));
       }
       _emitCurrentState();
     }

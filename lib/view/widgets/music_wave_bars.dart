@@ -19,12 +19,24 @@ class MusicWaveBars extends StatefulWidget {
   /// Maximum height of the equalizer bars.
   final double height;
 
+  /// Number of bars in the equalizer (defaults to 5).
+  final int barCount;
+
+  /// Width of each bar (defaults to 2.4).
+  final double barWidth;
+
+  /// Spacing between bars (defaults to 1.8).
+  final double gap;
+
   const MusicWaveBars({
     super.key,
     this.isPlaying = true,
     this.color = AppColors.accent,
     this.width = 22.0,
     this.height = 18.0,
+    this.barCount = 5,
+    this.barWidth = 2.4,
+    this.gap = 1.8,
   });
 
   @override
@@ -68,10 +80,7 @@ class _MusicWaveBarsState extends State<MusicWaveBars>
 
   @override
   Widget build(BuildContext context) {
-    const barCount = 5;
-    const barWidth = 2.4;
     const minHeight = 3.5;
-    const gap = 1.8;
 
     return SizedBox(
       height: widget.height,
@@ -84,31 +93,28 @@ class _MusicWaveBarsState extends State<MusicWaveBars>
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
-            children: List.generate(barCount, (index) {
+            children: List.generate(widget.barCount, (index) {
               double barHeight;
 
               if (widget.isPlaying) {
-                // Stagger each bar's phase so all 5 bounce independently
-                final phase = (index * 0.22) * 2 * math.pi;
+                final phase = (index * (1.0 / widget.barCount)) * 2 * math.pi;
                 final wave = (math.sin(progress * 2 * math.pi + phase) + 1.0) / 2.0;
                 barHeight = minHeight + wave * (widget.height - minHeight);
               } else {
-                // Resting heights when paused
-                barHeight = switch (index) {
+                barHeight = switch (index % 4) {
                   0 => 4.0,
                   1 => 7.0,
                   2 => 9.0,
-                  3 => 6.0,
-                  _ => 4.0,
+                  _ => 5.0,
                 };
               }
 
               return Padding(
                 padding: EdgeInsets.only(
-                  right: index < barCount - 1 ? gap : 0.0,
+                  right: index < widget.barCount - 1 ? widget.gap : 0.0,
                 ),
                 child: Container(
-                  width: barWidth,
+                  width: widget.barWidth,
                   height: barHeight,
                   decoration: BoxDecoration(
                     color: widget.color,
@@ -122,6 +128,131 @@ class _MusicWaveBarsState extends State<MusicWaveBars>
                           ]
                         : null,
                   ),
+                ),
+              );
+            }),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// A full-width animated equalizer soundwave visualizer for the Now Playing screen.
+class SoundwaveVisualizer extends StatefulWidget {
+  final bool isPlaying;
+  final double height;
+  final int barCount;
+  final Color? activeColor;
+  final Color? inactiveColor;
+
+  const SoundwaveVisualizer({
+    super.key,
+    required this.isPlaying,
+    this.height = 24.0,
+    this.barCount = 24,
+    this.activeColor,
+    this.inactiveColor,
+  });
+
+  @override
+  State<SoundwaveVisualizer> createState() => _SoundwaveVisualizerState();
+}
+
+class _SoundwaveVisualizerState extends State<SoundwaveVisualizer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    if (widget.isPlaying) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant SoundwaveVisualizer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isPlaying != oldWidget.isPlaying) {
+      if (widget.isPlaying) {
+        _controller.repeat();
+      } else {
+        _controller.stop();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final active = widget.activeColor ?? AppColors.accent;
+    final inactive = widget.inactiveColor ?? AppColors.outline;
+    const minHeight = 4.0;
+
+    return SizedBox(
+      height: widget.height,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final progress = _controller.value;
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(widget.barCount, (index) {
+              double barHeight;
+
+              if (widget.isPlaying) {
+                final ratio = index / widget.barCount;
+                final phase1 = ratio * 2 * math.pi;
+                final phase2 = ratio * 4 * math.pi;
+                final wave = 0.55 * math.sin(progress * 2 * math.pi + phase1) +
+                    0.45 * math.cos(progress * 3 * math.pi + phase2);
+                final normalized = ((wave + 1.0) / 2.0).clamp(0.0, 1.0);
+                barHeight = minHeight + normalized * (widget.height - minHeight);
+              } else {
+                // Calm resting bell curve
+                final centerDist = (index - widget.barCount / 2).abs() /
+                    (widget.barCount / 2);
+                barHeight = minHeight + (1.0 - centerDist) * 6.0;
+              }
+
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                width: 2.8,
+                height: barHeight,
+                decoration: BoxDecoration(
+                  gradient: widget.isPlaying
+                      ? LinearGradient(
+                          colors: <Color>[
+                            Color.lerp(AppColors.accent, Colors.white, 0.25)!,
+                            active,
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        )
+                      : null,
+                  color: widget.isPlaying ? null : inactive,
+                  borderRadius: BorderRadius.circular(2.0),
+                  boxShadow: widget.isPlaying
+                      ? <BoxShadow>[
+                          BoxShadow(
+                            color: active.withValues(alpha: 0.35),
+                            blurRadius: 3.0,
+                          ),
+                        ]
+                      : null,
                 ),
               );
             }),

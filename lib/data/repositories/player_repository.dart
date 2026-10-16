@@ -70,6 +70,9 @@ abstract class PlayerRepository {
   /// Removes a song from playback and queue when deleted from device storage.
   Future<void> removeSongFromPlayback(int songId);
 
+  /// Updates song metadata (e.g. title after rename) in the active playback queue.
+  void updateSongMetadata(int songId, String newTitle);
+
   /// Preloads a saved song and position without starting playback.
   Future<void> restoreLastSession({
     required Song song,
@@ -153,6 +156,10 @@ class PlayerRepositoryImpl implements PlayerRepository {
   @override
   Future<void> removeSongFromPlayback(int songId) =>
       _audioHandler.removeSongFromPlayback(songId);
+
+  @override
+  void updateSongMetadata(int songId, String newTitle) =>
+      _audioHandler.updateSongMetadata(songId, newTitle);
 
   @override
   Future<void> restoreLastSession({

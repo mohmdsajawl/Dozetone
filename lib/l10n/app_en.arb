@@ -105,6 +105,31 @@
       }
     }
   },
+  "renameSong": "Rename",
+  "@renameSong": {
+    "description": "Button to rename song title"
+  },
+  "renameSongDialogTitle": "Rename song",
+  "@renameSongDialogTitle": {
+    "description": "Dialog title for renaming song"
+  },
+  "renameSongFieldLabel": "Song title",
+  "@renameSongFieldLabel": {
+    "description": "Input field label for new song title"
+  },
+  "renameSongSuccess": "Renamed to \"{title}\"",
+  "@renameSongSuccess": {
+    "description": "Snackbar message when song rename succeeds",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "renameSongFailed": "Could not rename song",
+  "@renameSongFailed": {
+    "description": "Snackbar message when song rename fails"
+  },
   "dateAdded": "Date Added",
   "@dateAdded": {
     "description": "Label for date added field in track details"

@@ -107,4 +107,19 @@ class MediaLibraryService {
       return false;
     }
   }
+
+  /// Renames a song title in MediaStore and on device storage.
+  /// Returns true if rename succeeded.
+  Future<bool> renameSong(int songId, String dataUri, String newTitle) async {
+    try {
+      final success = await _channel.invokeMethod<bool>('renameSong', {
+        'songId': songId,
+        'dataUri': dataUri,
+        'newTitle': newTitle,
+      });
+      return success ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
 }

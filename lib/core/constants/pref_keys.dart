@@ -41,6 +41,9 @@ abstract final class PrefKeys {
   /// Map of custom user playlists and song IDs serialized as JSON.
   static const String customPlaylists = 'custom_playlists';
 
+  /// Map of custom song titles keyed by song ID serialized as JSON.
+  static const String customSongTitles = 'custom_song_titles';
+
   /// Timestamp of the last bedtime auto-start to prevent re-trigger within 60 minutes.
   static const String lastBedtimeAutoStartTimestamp = 'last_bedtime_auto_start_timestamp';
 }

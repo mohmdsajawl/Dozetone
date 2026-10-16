@@ -98,4 +98,28 @@ class LibraryViewModel extends StateNotifier<LibraryState> {
     }
     return deleted;
   }
+
+  /// Renames a song title on storage and updates library state immediately.
+  Future<bool> renameSong(Song song, String newTitle) async {
+    final trimmed = newTitle.trim();
+    if (trimmed.isEmpty) return false;
+
+    final renamed = await _repository.renameSong(song, trimmed);
+    if (renamed && state is LibraryLoaded) {
+      final currentSongs = (state as LibraryLoaded).songs;
+      final updatedList = currentSongs.map((s) {
+        if (s.id == song.id) {
+          return s.copyWith(title: trimmed);
+        }
+        return s;
+      }).toList();
+
+      updatedList.sort(
+        (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+      );
+
+      state = LibraryLoaded(updatedList);
+    }
+    return renamed;
+  }
 }

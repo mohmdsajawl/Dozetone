@@ -220,6 +220,36 @@ abstract class AppLocalizations {
   /// **'Could not delete \"{title}\"'**
   String songDeleteFailed(String title);
 
+  /// Button to rename song title
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get renameSong;
+
+  /// Dialog title for renaming song
+  ///
+  /// In en, this message translates to:
+  /// **'Rename song'**
+  String get renameSongDialogTitle;
+
+  /// Input field label for new song title
+  ///
+  /// In en, this message translates to:
+  /// **'Song title'**
+  String get renameSongFieldLabel;
+
+  /// Snackbar message when song rename succeeds
+  ///
+  /// In en, this message translates to:
+  /// **'Renamed to \"{title}\"'**
+  String renameSongSuccess(String title);
+
+  /// Snackbar message when song rename fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not rename song'**
+  String get renameSongFailed;
+
   /// Label for date added field in track details
   ///
   /// In en, this message translates to:

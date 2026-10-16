@@ -86,6 +86,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get renameSong => 'Rename';
+
+  @override
+  String get renameSongDialogTitle => 'Rename song';
+
+  @override
+  String get renameSongFieldLabel => 'Song title';
+
+  @override
+  String renameSongSuccess(String title) {
+    return 'Renamed to \"$title\"';
+  }
+
+  @override
+  String get renameSongFailed => 'Could not rename song';
+
+  @override
   String get dateAdded => 'Date Added';
 
   @override
