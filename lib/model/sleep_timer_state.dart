@@ -22,10 +22,13 @@ class SleepTimerState {
   final bool isEndOfSong;
 
   /// Identifier or label of the last used preset/choice (persisted in settings).
-  final String lastUsedChoice;
+  final String? lastUsedChoice;
 
   /// Current internal audio volume factor (1.0 down to 0.0 during fade-out).
   final double volumeFactor;
+
+  /// Whether shaking the phone during fade-out adds 5 minutes.
+  final bool shakeToExtendEnabled;
 
   const SleepTimerState({
     this.isActive = false,
@@ -34,13 +37,14 @@ class SleepTimerState {
     this.remainingDuration = Duration.zero,
     this.isFadingOut = false,
     this.isEndOfSong = false,
-    this.lastUsedChoice = '30 minutes',
+    this.lastUsedChoice,
     this.volumeFactor = 1.0,
+    this.shakeToExtendEnabled = true,
   });
 
   /// Formatted countdown display (e.g. "29:45" or "1:05:30").
   String get formattedRemaining {
-    if (isEndOfSong) return 'End of song';
+    if (isEndOfSong) return 'End of track';
     final hours = remainingDuration.inHours;
     final minutes = remainingDuration.inMinutes.remainder(60);
     final seconds = remainingDuration.inSeconds.remainder(60);
@@ -68,7 +72,9 @@ class SleepTimerState {
     bool? isFadingOut,
     bool? isEndOfSong,
     String? lastUsedChoice,
+    bool clearLastUsedChoice = false,
     double? volumeFactor,
+    bool? shakeToExtendEnabled,
   }) {
     return SleepTimerState(
       isActive: isActive ?? this.isActive,
@@ -77,8 +83,10 @@ class SleepTimerState {
       remainingDuration: remainingDuration ?? this.remainingDuration,
       isFadingOut: isFadingOut ?? this.isFadingOut,
       isEndOfSong: isEndOfSong ?? this.isEndOfSong,
-      lastUsedChoice: lastUsedChoice ?? this.lastUsedChoice,
+      lastUsedChoice:
+          clearLastUsedChoice ? null : (lastUsedChoice ?? this.lastUsedChoice),
       volumeFactor: volumeFactor ?? this.volumeFactor,
+      shakeToExtendEnabled: shakeToExtendEnabled ?? this.shakeToExtendEnabled,
     );
   }
 
@@ -93,7 +101,8 @@ class SleepTimerState {
         other.isFadingOut == isFadingOut &&
         other.isEndOfSong == isEndOfSong &&
         other.lastUsedChoice == lastUsedChoice &&
-        other.volumeFactor == volumeFactor;
+        other.volumeFactor == volumeFactor &&
+        other.shakeToExtendEnabled == shakeToExtendEnabled;
   }
 
   @override
@@ -106,5 +115,6 @@ class SleepTimerState {
         isEndOfSong,
         lastUsedChoice,
         volumeFactor,
+        shakeToExtendEnabled,
       );
 }

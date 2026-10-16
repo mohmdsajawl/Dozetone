@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import 'package:dozetone/core/constants/pref_keys.dart';
 import 'package:dozetone/data/repositories/player_repository.dart';
 import 'package:dozetone/model/player_state.dart';
@@ -11,16 +13,31 @@ import 'package:dozetone/view_model/sleep_timer/sleep_timer_view_model.dart';
 class FakePlayerRepository implements PlayerRepository {
   final StreamController<PlayerState> _controller =
       StreamController<PlayerState>.broadcast();
+  final StreamController<void> _trackCompletedController =
+      StreamController<void>.broadcast();
 
   bool pauseCalled = false;
+  bool pauseOnTrackEnd = false;
   double? lastVolume;
   List<double> volumeHistory = [];
 
   @override
   Stream<PlayerState> get playerStateStream => _controller.stream;
 
+  @override
+  Stream<void> get trackCompletedStream => _trackCompletedController.stream;
+
+  @override
+  void setPauseOnTrackEnd(bool pause) {
+    pauseOnTrackEnd = pause;
+  }
+
   void emitState(PlayerState state) {
     _controller.add(state);
+  }
+
+  void emitTrackCompleted() {
+    _trackCompletedController.add(null);
   }
 
   @override
@@ -101,11 +118,19 @@ class FakePlayerRepository implements PlayerRepository {
 
   void dispose() {
     _controller.close();
+    _trackCompletedController.close();
   }
 }
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+            const MethodChannel('dev.fluttercommunity.plus/sensors/method'),
+            (call) async => null);
+  });
 
   late FakePlayerRepository fakeRepo;
   late SleepTimerViewModel viewModel;
@@ -141,6 +166,11 @@ void main() {
       expect(state.formattedRemaining, '1:12:04');
     });
 
+    test('formattedRemaining returns End of track when isEndOfSong is true', () {
+      const state = SleepTimerState(isEndOfSong: true);
+      expect(state.formattedRemaining, 'End of track');
+    });
+
     test('progressFraction calculates correct ratio', () {
       const state = SleepTimerState(
         totalDuration: Duration(minutes: 10),
@@ -163,6 +193,19 @@ void main() {
       expect(viewModel.state.volumeFactor, 1.0);
     });
 
+    test('fresh install has null lastUsedChoice by default', () async {
+      SharedPreferences.setMockInitialValues({});
+      final freshRepo = FakePlayerRepository();
+      final freshViewModel = SleepTimerViewModel(freshRepo);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      expect(freshViewModel.state.lastUsedChoice, isNull);
+      expect(freshViewModel.state.isActive, false);
+
+      freshViewModel.dispose();
+      freshRepo.dispose();
+    });
+
     test('startTimer activates timer and sets volume to 1.0', () async {
       await viewModel.startTimer(
         const Duration(minutes: 30),
@@ -174,6 +217,7 @@ void main() {
       expect(viewModel.state.totalDuration, const Duration(minutes: 30));
       expect(viewModel.state.lastUsedChoice, '30 minutes');
       expect(fakeRepo.lastVolume, 1.0);
+      expect(fakeRepo.pauseOnTrackEnd, false);
     });
 
     test('cancelTimer deactivates timer and restores volume to 1.0', () async {
@@ -186,6 +230,7 @@ void main() {
       expect(viewModel.state.remainingDuration, Duration.zero);
       expect(viewModel.state.isFadingOut, false);
       expect(fakeRepo.lastVolume, 1.0);
+      expect(fakeRepo.pauseOnTrackEnd, false);
     });
 
     test('add5Minutes extends remaining duration by 5 minutes', () async {
@@ -205,8 +250,6 @@ void main() {
 
   group('SleepTimer volume fade-out and termination', () {
     test('volume fades quadratically and pauses when timer expires', () async {
-      // Start a short timer with total duration 2 seconds
-      // Since fadeSeconds is 10, the entire 2 seconds will be in fade window
       await viewModel.startTimer(const Duration(seconds: 2));
 
       expect(viewModel.state.isActive, true);
@@ -230,52 +273,143 @@ void main() {
     });
   });
 
-  group('End of song sleep timer', () {
-    test('pauses and restores volume when track finishes or skips', () async {
-      const songA = Song(
-        id: 1,
-        title: 'Song A',
-        artist: 'Artist A',
-        durationMs: 180000,
-        dataUri: '/music/song_a.mp3',
-      );
+  group('End of current track sleep timer', () {
+    const testSong = Song(
+      id: 1,
+      title: 'Sleep Song',
+      artist: 'Sleep Artist',
+      durationMs: 180000,
+      dataUri: '/music/song.mp3',
+    );
 
-      const songB = Song(
-        id: 2,
-        title: 'Song B',
-        artist: 'Artist B',
-        durationMs: 200000,
-        dataUri: '/music/song_b.mp3',
-      );
-
-      await viewModel.startEndOfSongTimer(choiceLabel: 'End of song');
+    test('sets pauseOnTrackEnd and fades volume in gentleness window near end of song', () async {
+      await viewModel.startEndOfSongTimer(choiceLabel: 'End of current track');
       expect(viewModel.state.isActive, true);
       expect(viewModel.state.isEndOfSong, true);
+      expect(viewModel.state.lastUsedChoice, 'End of current track');
+      expect(fakeRepo.pauseOnTrackEnd, true);
 
-      // Emit first track playing
+      // Emit playing state far from end (position 1m00s of 3m00s, fade is 10s)
       fakeRepo.emitState(const PlayerState(
         isPlaying: true,
-        currentSong: songA,
+        currentSong: testSong,
         duration: Duration(minutes: 3),
-        position: Duration(seconds: 30),
+        position: Duration(minutes: 1),
       ));
-      await Future<void>.delayed(const Duration(milliseconds: 20));
+      await Future<void>.delayed(const Duration(milliseconds: 30));
 
-      expect(fakeRepo.pauseCalled, false);
+      expect(viewModel.state.isFadingOut, false);
+      expect(viewModel.state.volumeFactor, 1.0);
 
-      // Emit second track (track changed)
+      // Emit playing state near end (position 2m55s of 3m00s, 5s remaining <= 10s fade)
       fakeRepo.emitState(const PlayerState(
         isPlaying: true,
-        currentSong: songB,
+        currentSong: testSong,
         duration: Duration(minutes: 3),
-        position: Duration.zero,
+        position: Duration(minutes: 2, seconds: 55),
       ));
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await Future<void>.delayed(const Duration(milliseconds: 30));
 
-      // Should detect song changed and finish timer
+      expect(viewModel.state.isFadingOut, true);
+      expect(viewModel.state.volumeFactor, lessThan(1.0));
+      expect(fakeRepo.lastVolume, lessThan(1.0));
+    });
+
+    test('track completion stream triggers pause, UI reset, and volume restoration', () async {
+      await viewModel.startEndOfSongTimer(choiceLabel: 'End of current track');
+      expect(viewModel.state.isActive, true);
+      expect(fakeRepo.pauseOnTrackEnd, true);
+
+      fakeRepo.emitTrackCompleted();
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+
       expect(fakeRepo.pauseCalled, true);
       expect(fakeRepo.lastVolume, 1.0);
       expect(viewModel.state.isActive, false);
+      expect(viewModel.state.isEndOfSong, false);
+      expect(fakeRepo.pauseOnTrackEnd, false);
+    });
+
+    test('canceling End of Track timer resets pauseOnTrackEnd and restores volume', () async {
+      await viewModel.startEndOfSongTimer(choiceLabel: 'End of current track');
+      expect(fakeRepo.pauseOnTrackEnd, true);
+
+      await viewModel.cancelTimer();
+
+      expect(fakeRepo.pauseOnTrackEnd, false);
+      expect(fakeRepo.lastVolume, 1.0);
+      expect(viewModel.state.isActive, false);
+    });
+  });
+
+  group('Shake to extend feature', () {
+    late StreamController<UserAccelerometerEvent> accelController;
+    late SleepTimerViewModel shakeViewModel;
+    late FakePlayerRepository shakeRepo;
+
+    setUp(() async {
+      accelController = StreamController<UserAccelerometerEvent>.broadcast();
+      shakeRepo = FakePlayerRepository();
+      shakeViewModel = SleepTimerViewModel(
+        shakeRepo,
+        accelerometerStreamOverride: accelController.stream,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    });
+
+    tearDown(() {
+      shakeViewModel.dispose();
+      shakeRepo.dispose();
+      accelController.close();
+    });
+
+    test('ignores shake when timer is far from ending and not fading out', () async {
+      await shakeViewModel.startTimer(const Duration(minutes: 30));
+      final initialRemaining = shakeViewModel.state.remainingDuration;
+
+      // Emit two vigorous shake peaks
+      accelController.add(UserAccelerometerEvent(15.0, 15.0, 0.0, DateTime.now()));
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      accelController.add(UserAccelerometerEvent(-15.0, -15.0, 0.0, DateTime.now()));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(shakeViewModel.state.remainingDuration.inMinutes, initialRemaining.inMinutes);
+    });
+
+    test('triggers add5Minutes when double shake detected during fade-out', () async {
+      // 2-second timer so entire duration is in 10s fade window
+      await shakeViewModel.startTimer(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+
+      expect(shakeViewModel.state.isFadingOut, true);
+
+      // Emit double shake
+      accelController.add(UserAccelerometerEvent(15.0, 15.0, 0.0, DateTime.now()));
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      accelController.add(UserAccelerometerEvent(-15.0, -15.0, 0.0, DateTime.now()));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // Should add 5 minutes and reset fading out
+      expect(shakeViewModel.state.isFadingOut, false);
+      expect(shakeViewModel.state.remainingDuration.inSeconds, greaterThanOrEqualTo(290));
+      expect(shakeRepo.lastVolume, 1.0);
+    });
+
+    test('does not add 5 minutes if shakeToExtend is disabled', () async {
+      await shakeViewModel.setShakeToExtend(false);
+      await shakeViewModel.startTimer(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+
+      expect(shakeViewModel.state.isFadingOut, true);
+
+      // Emit double shake
+      accelController.add(UserAccelerometerEvent(15.0, 15.0, 0.0, DateTime.now()));
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      accelController.add(UserAccelerometerEvent(-15.0, -15.0, 0.0, DateTime.now()));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // Shaking ignored because disabled
+      expect(shakeViewModel.state.remainingDuration.inSeconds, lessThanOrEqualTo(2));
     });
   });
 }

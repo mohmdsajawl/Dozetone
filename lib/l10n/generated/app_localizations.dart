@@ -367,7 +367,7 @@ abstract class AppLocalizations {
   /// Option to pause after current track completes
   ///
   /// In en, this message translates to:
-  /// **'End of current song'**
+  /// **'End of current track'**
   String get timerEndOfSong;
 
   /// Badge indicator on last used timer choice

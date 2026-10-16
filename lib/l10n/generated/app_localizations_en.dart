@@ -163,7 +163,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timerCustom => 'Custom';
 
   @override
-  String get timerEndOfSong => 'End of current song';
+  String get timerEndOfSong => 'End of current track';
 
   @override
   String get lastUsed => 'Last used';

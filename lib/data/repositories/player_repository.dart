@@ -16,6 +16,13 @@ abstract class PlayerRepository {
   /// Stream emitting real-time player states.
   Stream<PlayerState> get playerStateStream;
 
+  /// Stream firing when a track reaches completion.
+  Stream<void> get trackCompletedStream;
+
+  /// Sets whether playback should automatically pause at the end of the current track
+  /// rather than advancing to the next song or repeating.
+  void setPauseOnTrackEnd(bool pause);
+
   /// Starts playback for [song] with the provided [queue].
   Future<void> playSong(Song song, List<Song> queue);
 
@@ -95,6 +102,12 @@ class PlayerRepositoryImpl implements PlayerRepository {
 
   @override
   Stream<PlayerState> get playerStateStream => _audioHandler.playerStateStream;
+
+  @override
+  Stream<void> get trackCompletedStream => _audioHandler.trackCompletedStream;
+
+  @override
+  void setPauseOnTrackEnd(bool pause) => _audioHandler.setPauseOnTrackEnd(pause);
 
   @override
   Future<void> playSong(Song song, List<Song> queue) {

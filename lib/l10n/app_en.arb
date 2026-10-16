@@ -213,7 +213,7 @@
   "@timerCustom": {
     "description": "Custom timer duration picker option"
   },
-  "timerEndOfSong": "End of current song",
+  "timerEndOfSong": "End of current track",
   "@timerEndOfSong": {
     "description": "Option to pause after current track completes"
   },

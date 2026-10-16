@@ -772,7 +772,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                             ? (sleepTimerState.isFadingOut
                                                 ? l10n.fadingOut
                                                 : (sleepTimerState.isEndOfSong
-                                                    ? 'End of song'
+                                                    ? l10n.timerEndOfSong
                                                     : '${sleepTimerState.formattedRemaining} remaining'))
                                             : 'Gentle audio fade-out',
                                         style: AppTextStyles.caption.copyWith(

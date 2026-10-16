@@ -27,8 +27,17 @@ class FakePlayerRepository implements PlayerRepository {
   int? savedSongId;
   int? savedPositionMs;
 
+  final StreamController<void> _trackCompletedController =
+      StreamController<void>.broadcast(sync: true);
+
   @override
   Stream<PlayerState> get playerStateStream => _controller.stream;
+
+  @override
+  Stream<void> get trackCompletedStream => _trackCompletedController.stream;
+
+  @override
+  void setPauseOnTrackEnd(bool pause) {}
 
   void emitState(PlayerState state) {
     _currentState = state;
@@ -199,6 +208,7 @@ class FakePlayerRepository implements PlayerRepository {
 
   void dispose() {
     _controller.close();
+    _trackCompletedController.close();
   }
 }
 

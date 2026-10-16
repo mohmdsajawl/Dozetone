@@ -373,6 +373,40 @@ class SleepTimerModal extends ConsumerWidget {
             ),
           ],
         ),
+        if (timerState.shakeToExtendEnabled) ...<Widget>[
+          const SizedBox(height: AppDimensions.space12),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.space12,
+              vertical: AppDimensions.space8,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.surface.withValues(alpha: 0.6),
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(
+                color: AppColors.outline.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Icon(
+                  Icons.vibration_rounded,
+                  size: 16.0,
+                  color: AppColors.accent,
+                ),
+                const SizedBox(width: AppDimensions.space8),
+                Text(
+                  l10n.shakeToExtendHint,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: AppDimensions.space16),
       ],
     );
@@ -398,108 +432,166 @@ class SleepTimerModal extends ConsumerWidget {
 
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.55,
+        maxHeight: MediaQuery.of(context).size.height * 0.58,
       ),
       child: SingleChildScrollView(
         child: Column(
-          children: presets.map((preset) {
-            final isLastUsed = timerState.lastUsedChoice == preset.label;
-            final accentHighlight =
-                Color.lerp(AppColors.accent, Colors.white, 0.25)!;
+          children: <Widget>[
+            ...presets.map((preset) {
+              final isLastUsed = timerState.lastUsedChoice != null &&
+                  timerState.lastUsedChoice == preset.label;
+              final accentHighlight =
+                  Color.lerp(AppColors.accent, Colors.white, 0.25)!;
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: AppDimensions.space8),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    if (preset.isCustom) {
-                      _showCustomDurationDialog(context: context, ref: ref);
-                    } else if (preset.isEndOfSong) {
-                      _startEndOfSongTimer(
-                        context: context,
-                        ref: ref,
-                        label: preset.label,
-                      );
-                    } else if (preset.duration != null) {
-                      _startPresetTimer(
-                        context: context,
-                        ref: ref,
-                        duration: preset.duration!,
-                        label: preset.label,
-                      );
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(14.0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.space16,
-                      vertical: AppDimensions.space12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isLastUsed
-                          ? AppColors.accent.withValues(alpha: 0.12)
-                          : AppColors.surface.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(14.0),
-                      border: Border.all(
-                        color: isLastUsed
-                            ? AppColors.accent.withValues(alpha: 0.4)
-                            : AppColors.outline.withValues(alpha: 0.5),
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppDimensions.space8),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      if (preset.isCustom) {
+                        _showCustomDurationDialog(context: context, ref: ref);
+                      } else if (preset.isEndOfSong) {
+                        _startEndOfSongTimer(
+                          context: context,
+                          ref: ref,
+                          label: preset.label,
+                        );
+                      } else if (preset.duration != null) {
+                        _startPresetTimer(
+                          context: context,
+                          ref: ref,
+                          duration: preset.duration!,
+                          label: preset.label,
+                        );
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(14.0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.space16,
+                        vertical: AppDimensions.space12,
                       ),
-                    ),
-                    child: Row(
-                      children: <Widget>[
-                        Icon(
-                          preset.isEndOfSong
-                              ? Icons.music_note_rounded
-                              : preset.isCustom
-                                  ? Icons.tune_rounded
-                                  : Icons.schedule_rounded,
-                          size: 18.0,
+                      decoration: BoxDecoration(
+                        color: isLastUsed
+                            ? AppColors.accent.withValues(alpha: 0.12)
+                            : AppColors.surface.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(14.0),
+                        border: Border.all(
                           color: isLastUsed
-                              ? AppColors.accent
-                              : AppColors.textSecondary,
+                              ? AppColors.accent.withValues(alpha: 0.4)
+                              : AppColors.outline.withValues(alpha: 0.5),
                         ),
-                        const SizedBox(width: AppDimensions.space12),
-                        Expanded(
-                          child: Text(
-                            preset.label,
-                            style: AppTextStyles.body.copyWith(
-                              color: isLastUsed
-                                  ? accentHighlight
-                                  : AppColors.textPrimary,
-                              fontWeight: isLastUsed
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
-                            ),
+                      ),
+                      child: Row(
+                        children: <Widget>[
+                          Icon(
+                            preset.isEndOfSong
+                                ? Icons.music_note_rounded
+                                : preset.isCustom
+                                    ? Icons.tune_rounded
+                                    : Icons.schedule_rounded,
+                            size: 18.0,
+                            color: isLastUsed
+                                ? AppColors.accent
+                                : AppColors.textSecondary,
                           ),
-                        ),
-                        if (isLastUsed)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppDimensions.space8,
-                              vertical: 2.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.accent.withValues(alpha: 0.2),
-                              borderRadius: AppDimensions.borderRadiusPill,
-                            ),
+                          const SizedBox(width: AppDimensions.space12),
+                          Expanded(
                             child: Text(
-                              l10n.lastUsed,
-                              style: AppTextStyles.caption.copyWith(
-                                color: accentHighlight,
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.w600,
+                              preset.label,
+                              style: AppTextStyles.body.copyWith(
+                                color: isLastUsed
+                                    ? accentHighlight
+                                    : AppColors.textPrimary,
+                                fontWeight: isLastUsed
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
                               ),
                             ),
                           ),
-                      ],
+                          if (isLastUsed)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppDimensions.space8,
+                                vertical: 2.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.accent.withValues(alpha: 0.2),
+                                borderRadius: AppDimensions.borderRadiusPill,
+                              ),
+                              child: Text(
+                                l10n.lastUsed,
+                                style: AppTextStyles.caption.copyWith(
+                                  color: accentHighlight,
+                                  fontSize: 11.0,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+              );
+            }),
+            const SizedBox(height: AppDimensions.space4),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.space16,
+                vertical: AppDimensions.space8,
               ),
-            );
-          }).toList(),
+              decoration: BoxDecoration(
+                color: AppColors.surface.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(14.0),
+                border: Border.all(
+                  color: AppColors.outline.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Row(
+                children: <Widget>[
+                  const Icon(
+                    Icons.vibration_rounded,
+                    size: 18.0,
+                    color: AppColors.accent,
+                  ),
+                  const SizedBox(width: AppDimensions.space12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          l10n.shakeToExtendTitle,
+                          style: AppTextStyles.body.copyWith(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14.0,
+                          ),
+                        ),
+                        Text(
+                          l10n.shakeToExtendHint,
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textSecondary,
+                            fontSize: 11.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: timerState.shakeToExtendEnabled,
+                    activeThumbColor: AppColors.accent,
+                    onChanged: (val) {
+                      ref
+                          .read(sleepTimerProvider.notifier)
+                          .setShakeToExtend(val);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

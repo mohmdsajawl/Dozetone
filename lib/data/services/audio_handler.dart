@@ -38,6 +38,22 @@ class DozetoneAudioHandler extends BaseAudioHandler
   /// Stream emitting comprehensive PlayerState updates.
   Stream<PlayerState> get playerStateStream => _playerStateController.stream;
 
+  bool _pauseOnTrackEnd = false;
+  final StreamController<void> _trackCompletedController =
+      StreamController<void>.broadcast();
+
+  /// Whether playback will pause when the current track finishes.
+  bool get pauseOnTrackEnd => _pauseOnTrackEnd;
+
+  /// Sets whether playback should automatically pause at the end of the current track
+  /// rather than advancing to the next song or repeating.
+  void setPauseOnTrackEnd(bool pause) {
+    _pauseOnTrackEnd = pause;
+  }
+
+  /// Broadcast stream firing whenever a track finishes playback.
+  Stream<void> get trackCompletedStream => _trackCompletedController.stream;
+
   DozetoneAudioHandler() {
     _initAudioSession();
     _listenToPlayerEvents();
@@ -183,6 +199,16 @@ class DozetoneAudioHandler extends BaseAudioHandler
   }
 
   void _handleTrackCompletion() {
+    if (_pauseOnTrackEnd) {
+      _pauseOnTrackEnd = false;
+      _player.pause();
+      _player.seek(Duration.zero);
+      _broadcastPlaybackState();
+      _emitCurrentState();
+      _trackCompletedController.add(null);
+      return;
+    }
+
     if (_repeatMode == PlayerRepeatMode.one) {
       // Repeat current song indefinitely
       _player.seek(Duration.zero);
@@ -204,6 +230,7 @@ class DozetoneAudioHandler extends BaseAudioHandler
         _player.seek(Duration.zero);
         _broadcastPlaybackState();
         _emitCurrentState();
+        _trackCompletedController.add(null);
       }
     }
   }
@@ -600,6 +627,7 @@ class DozetoneAudioHandler extends BaseAudioHandler
   /// Disposes internal resources when app terminates.
   Future<void> dispose() async {
     await _playerStateController.close();
+    await _trackCompletedController.close();
     await _player.dispose();
   }
 }
