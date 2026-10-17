@@ -361,6 +361,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
                     child: SongArtwork(
                       songId: song.id,
                       albumId: song.albumId,
+                      dataUri: song.dataUri,
                       size: 46.0,
                       borderRadius: AppDimensions.borderRadiusArtworkSmall,
                     ),

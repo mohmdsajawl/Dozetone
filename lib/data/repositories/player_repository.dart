@@ -63,6 +63,9 @@ abstract class PlayerRepository {
   /// Appends [song] to the end of the queue.
   void addToQueue(Song song);
 
+  /// Appends multiple [songs] to the end of the queue.
+  void addSongsToQueue(List<Song> songs);
+
   /// Reorders a song within the queue.
   void reorderQueue(int oldIndex, int newIndex);
 
@@ -154,6 +157,9 @@ class PlayerRepositoryImpl implements PlayerRepository {
 
   @override
   void addToQueue(Song song) => _audioHandler.addToQueue(song);
+
+  @override
+  void addSongsToQueue(List<Song> songs) => _audioHandler.addSongsToQueue(songs);
 
   @override
   void reorderQueue(int oldIndex, int newIndex) =>

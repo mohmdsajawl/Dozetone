@@ -121,14 +121,15 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
     final playerViewModel = ref.read(playerViewModelProvider.notifier);
     final sleepTimerViewModel = ref.read(sleepTimerProvider.notifier);
 
-    // Immediately start playing the selected tracks starting from the first chosen song
-    await playerViewModel.playSong(selectedTracks.first, selectedTracks);
-
+    // Immediately start the sleep timer with selected tracks
     await sleepTimerViewModel.startTracksTimer(
       trackCount: selectedTracks.length,
       specificTracks: selectedTracks,
       choiceLabel: '${selectedTracks.length} tracks',
     );
+
+    // Immediately start playing the selected tracks starting from the first chosen song
+    await playerViewModel.playSong(selectedTracks.first, selectedTracks);
 
     if (mounted) {
       Navigator.of(context).pop();
@@ -400,6 +401,8 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                           height: 38.0,
                           child: SongArtwork(
                             songId: currentSong.id,
+                            albumId: currentSong.albumId,
+                            dataUri: currentSong.dataUri,
                             size: 38.0,
                             borderRadius: BorderRadius.circular(8.0),
                           ),
@@ -804,6 +807,8 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                                     height: 28.0,
                                     child: SongArtwork(
                                       songId: song.id,
+                                      albumId: song.albumId,
+                                      dataUri: song.dataUri,
                                       size: 28.0,
                                       borderRadius: BorderRadius.circular(6.0),
                                     ),

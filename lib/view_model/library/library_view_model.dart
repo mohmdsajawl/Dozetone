@@ -99,6 +99,30 @@ class LibraryViewModel extends StateNotifier<LibraryState> {
     return deleted;
   }
 
+  /// Deletes multiple songs from device storage and updates library state immediately.
+  Future<int> deleteSongs(List<Song> songs) async {
+    int deletedCount = 0;
+    final deletedIds = <int>{};
+    for (final song in songs) {
+      final ok = await _repository.deleteSong(song);
+      if (ok) {
+        deletedCount++;
+        deletedIds.add(song.id);
+      }
+    }
+    if (deletedIds.isNotEmpty && state is LibraryLoaded) {
+      final currentSongs = (state as LibraryLoaded).songs;
+      final updatedList =
+          currentSongs.where((s) => !deletedIds.contains(s.id)).toList();
+      if (updatedList.isEmpty) {
+        state = const LibraryEmpty();
+      } else {
+        state = LibraryLoaded(updatedList);
+      }
+    }
+    return deletedCount;
+  }
+
   /// Renames a song title on storage and updates library state immediately.
   Future<bool> renameSong(Song song, String newTitle) async {
     final trimmed = newTitle.trim();

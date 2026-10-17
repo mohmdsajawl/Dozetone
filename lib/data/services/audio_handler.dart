@@ -287,7 +287,7 @@ class DozetoneAudioHandler extends BaseAudioHandler
 
     try {
       await _player.setFilePath(song.dataUri);
-      await _player.play();
+      unawaited(_player.play());
     } catch (e) {
       debugPrint('Playback error for ${song.title}: $e');
       // Skip to next if broken file per requirements
@@ -302,7 +302,7 @@ class DozetoneAudioHandler extends BaseAudioHandler
 
   @override
   Future<void> play() async {
-    await _player.play();
+    unawaited(_player.play());
     _broadcastPlaybackState();
     _emitCurrentState();
   }
@@ -501,6 +501,18 @@ class DozetoneAudioHandler extends BaseAudioHandler
     }
     _rawQueue.add(song);
     _activeQueue.add(song);
+    _emitCurrentState();
+  }
+
+  /// Adds multiple [songs] to the end of the active playback queue.
+  void addSongsToQueue(List<Song> songs) {
+    if (songs.isEmpty) return;
+    if (_activeQueue.isEmpty) {
+      playSong(songs.first, songs);
+      return;
+    }
+    _rawQueue.addAll(songs);
+    _activeQueue.addAll(songs);
     _emitCurrentState();
   }
 

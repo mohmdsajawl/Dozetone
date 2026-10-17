@@ -141,6 +141,11 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
     _repository.addToQueue(song);
   }
 
+  /// Appends multiple [songs] to the end of the current playback queue.
+  void addSongsToQueue(List<Song> songs) {
+    _repository.addSongsToQueue(songs);
+  }
+
   /// Reorders a song within the active playback queue.
   void reorderQueue(int oldIndex, int newIndex) {
     _repository.reorderQueue(oldIndex, newIndex);

@@ -31,7 +31,15 @@ class SongRepositoryImpl implements SongRepository {
 
   @override
   Future<List<Song>> fetchSongs() async {
-    final songs = await _mediaLibraryService.queryDeviceSongs();
+    bool excludeWhatsapp = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      excludeWhatsapp = prefs.getBool(PrefKeys.excludeWhatsappAudio) ?? true;
+    } catch (_) {}
+
+    final songs = await _mediaLibraryService.queryDeviceSongs(
+      excludeWhatsapp: excludeWhatsapp,
+    );
 
     try {
       final prefs = await SharedPreferences.getInstance();

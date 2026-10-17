@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_durations.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_text_styles.dart';
 import '../../view/library/library_view.dart';
 import '../../view/player/now_playing_view.dart';
+import '../../view/settings/settings_view.dart';
 import '../../view/splash/splash_view.dart';
 import 'route_names.dart';
 
@@ -66,20 +65,12 @@ final GoRouter appRouter = GoRouter(
       },
     ),
 
-    // Settings screen placeholder (built in Phase 4)
+    // Settings screen
     GoRoute(
       path: RouteNames.settingsPath,
       name: RouteNames.settings,
       builder: (BuildContext context, GoRouterState state) {
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
-            title: const Text('Settings', style: AppTextStyles.screenTitle),
-          ),
-          body: const Center(
-            child: Text('Settings (Phase 4)', style: AppTextStyles.bodySecondary),
-          ),
-        );
+        return const SettingsView();
       },
     ),
   ],

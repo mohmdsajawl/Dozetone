@@ -52,6 +52,26 @@ class FavoritesNotifier extends StateNotifier<Set<int>> {
 
   /// Whether [songId] is currently marked as favorite.
   bool isFavorite(int songId) => state.contains(songId);
+
+  /// Adds multiple songs to favorites.
+  Future<void> addFavorites(Iterable<int> songIds) async {
+    for (final id in songIds) {
+      if (!state.contains(id)) {
+        await _repository.toggleFavorite(id);
+      }
+    }
+    await loadFavorites();
+  }
+
+  /// Removes multiple songs from favorites.
+  Future<void> removeFavorites(Iterable<int> songIds) async {
+    for (final id in songIds) {
+      if (state.contains(id)) {
+        await _repository.toggleFavorite(id);
+      }
+    }
+    await loadFavorites();
+  }
 }
 
 /// Provider exposing custom playlists and their songs.

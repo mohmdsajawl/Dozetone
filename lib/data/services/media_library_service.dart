@@ -18,12 +18,44 @@ class MediaLibraryService {
 
   const MediaLibraryService();
 
+  /// Checks whether an audio file path or URI belongs to WhatsApp, voice notes,
+  /// or messaging recordings that should be excluded from the music library.
+  static bool isExcludedAudio(String dataUri) {
+    if (dataUri.isEmpty) return false;
+    final normalized = dataUri.toLowerCase().replaceAll('\\', '/');
+
+    // Filter paths containing WhatsApp, voice notes, recordings, telegram audio
+    if (normalized.contains('/whatsapp/') ||
+        normalized.contains('/com.whatsapp') ||
+        normalized.contains('/whatsapp audio/') ||
+        normalized.contains('/whatsapp voice notes/') ||
+        normalized.contains('/voice notes/') ||
+        normalized.contains('/voicenotes/') ||
+        normalized.contains('/telegram/telegram audio/') ||
+        normalized.contains('/callrecordings/') ||
+        normalized.contains('/call_rec/') ||
+        normalized.contains('/soundrecorder/')) {
+      return true;
+    }
+
+    // Filter WhatsApp naming patterns: AUD-YYYYMMDD-WA0001, PTT-YYYYMMDD-WA0001
+    final fileName = normalized.split('/').last;
+    if ((fileName.startsWith('aud-') || fileName.startsWith('ptt-')) &&
+        fileName.contains('-wa')) {
+      return true;
+    }
+
+    return false;
+  }
+
   /// Queries all device songs via native MediaStore ContentResolver,
   /// filters out short clips and non-music files,
   /// and returns an immutable list of [Song] models sorted A to Z by title.
-  Future<List<Song>> queryDeviceSongs() async {
+  Future<List<Song>> queryDeviceSongs({bool excludeWhatsapp = true}) async {
     final List<dynamic>? rawList =
-        await _channel.invokeMethod<List<dynamic>>('querySongs');
+        await _channel.invokeMethod<List<dynamic>>('querySongs', {
+      'excludeWhatsapp': excludeWhatsapp,
+    });
 
     if (rawList == null || rawList.isEmpty) {
       return <Song>[];
@@ -44,6 +76,11 @@ class MediaLibraryService {
         continue;
       }
 
+      // Filter WhatsApp and voice notes when enabled
+      if (excludeWhatsapp && isExcludedAudio(dataUri)) {
+        continue;
+      }
+
       final rawTitle = (map['title'] as String?)?.trim() ?? '';
       final rawArtist = (map['artist'] as String?)?.trim() ?? '';
       final album = map['album'] as String?;
@@ -51,11 +88,22 @@ class MediaLibraryService {
       final size = (map['size'] as num?)?.toInt();
       final dateAdded = (map['dateAdded'] as num?)?.toInt();
 
-      final title = rawTitle.isNotEmpty ? rawTitle : 'Unknown Title';
-      final artist =
+      var title = rawTitle.isNotEmpty ? rawTitle : 'Unknown Title';
+      var artist =
           (rawArtist.isNotEmpty && rawArtist != '<unknown>')
               ? rawArtist
               : 'Unknown Artist';
+
+      // If artist is unknown and title follows standard "Artist - Track" convention
+      if (artist == 'Unknown Artist' && title.contains(' - ')) {
+        final parts = title.split(' - ');
+        if (parts.length >= 2 &&
+            parts[0].trim().isNotEmpty &&
+            parts[1].trim().isNotEmpty) {
+          artist = parts[0].trim();
+          title = parts.sublist(1).join(' - ').trim();
+        }
+      }
 
       songs.add(
         Song(
@@ -80,13 +128,15 @@ class MediaLibraryService {
     return songs;
   }
 
-  /// Queries artwork thumbnail bytes for the given song/album.
-  /// Returns null if no artwork is available.
-  Future<Uint8List?> queryArtwork(int songId, int? albumId) async {
+  /// Queries artwork thumbnail bytes for the given song/album via
+  /// direct container ID3 extraction and dedicated album folder lookup.
+  /// Returns null if no genuine artwork is available.
+  Future<Uint8List?> queryArtwork(int songId, int? albumId, {String? dataUri}) async {
     try {
       final bytes = await _channel.invokeMethod<Uint8List>('queryArtwork', {
         'songId': songId,
         'albumId': albumId ?? 0,
+        'dataUri': dataUri ?? '',
       });
       return bytes;
     } catch (_) {

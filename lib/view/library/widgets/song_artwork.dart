@@ -17,12 +17,14 @@ class SongArtworkCache {
     }
     _cache[songId] = bytes;
   }
+  static void clear() => _cache.clear();
 }
 
 /// Displays album artwork for a song with cached loading and vibrant gradient fallback.
 class SongArtwork extends ConsumerStatefulWidget {
   final int songId;
   final int? albumId;
+  final String? dataUri;
   final double size;
   final BorderRadius borderRadius;
 
@@ -30,6 +32,7 @@ class SongArtwork extends ConsumerStatefulWidget {
     super.key,
     required this.songId,
     this.albumId,
+    this.dataUri,
     this.size = AppDimensions.listArtSize,
     this.borderRadius = AppDimensions.borderRadiusArtworkSmall,
   });
@@ -73,7 +76,9 @@ class _SongArtworkState extends ConsumerState<SongArtwork> {
     }
 
     final mediaService = ref.read(mediaLibraryServiceProvider);
-    mediaService.queryArtwork(widget.songId, widget.albumId).then((bytes) {
+    mediaService
+        .queryArtwork(widget.songId, widget.albumId, dataUri: widget.dataUri)
+        .then((bytes) {
       if (!mounted) return;
       SongArtworkCache.put(widget.songId, bytes);
       setState(() {

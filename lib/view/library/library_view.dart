@@ -14,11 +14,18 @@ import '../../view_model/library/library_view_model.dart';
 import '../../view_model/player/player_view_model.dart';
 import '../../view_model/playlist/favorites_provider.dart';
 import '../player/widgets/mini_player.dart';
+import 'package:flutter/services.dart';
+import '../../view_model/library/multi_select_provider.dart';
+import '../../view_model/sleep_timer/sleep_timer_view_model.dart';
+import 'widgets/batch_action_bar.dart';
+import 'widgets/batch_add_to_playlist_modal.dart';
 import 'widgets/library_action_bar.dart';
 import 'widgets/library_header.dart';
 import 'widgets/library_states.dart';
 import 'widgets/library_tab_pills.dart';
+import 'widgets/multi_select_action_bar.dart';
 import 'widgets/playlists_tab_view.dart';
+import 'widgets/song_artwork.dart';
 import 'widgets/song_list_tile.dart';
 import 'widgets/song_options_modal.dart';
 import 'widgets/song_sort_modal.dart';
@@ -35,6 +42,9 @@ class LibraryView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(libraryViewModelProvider);
     final viewModel = ref.read(libraryViewModelProvider.notifier);
+    final filteredSongs = ref.watch(filteredSongsProvider);
+    final selectedSongIds = ref.watch(multiSelectProvider);
+    final isSelectionMode = selectedSongIds.isNotEmpty;
 
     // If already loaded when build executes, ensure session is restored
     if (state is LibraryLoaded) {
@@ -61,19 +71,83 @@ class LibraryView extends ConsumerWidget {
           stops: [0.0, 0.35],
         ),
       ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: LibraryHeader(
-          onSettingsTap: () => context.push(RouteNames.settingsPath),
-          onSortTap: () => SongSortModal.show(context),
-        ),
-        body: Column(
-          children: <Widget>[
-            Expanded(
-              child: _buildBody(context, ref, state, viewModel),
-            ),
-            const MiniPlayer(),
-          ],
+      child: PopScope(
+        canPop: !isSelectionMode,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop && isSelectionMode) {
+            ref.read(multiSelectProvider.notifier).clear();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: isSelectionMode
+              ? MultiSelectActionBar(
+                  selectedCount: selectedSongIds.length,
+                  totalCount: filteredSongs.length,
+                  onCancel: () => ref.read(multiSelectProvider.notifier).clear(),
+                  onSelectAllToggle: () {
+                    final notifier = ref.read(multiSelectProvider.notifier);
+                    if (selectedSongIds.length == filteredSongs.length) {
+                      notifier.clear();
+                    } else {
+                      notifier.selectAll(filteredSongs.map((s) => s.id));
+                    }
+                  },
+                )
+              : LibraryHeader(
+                  onSettingsTap: () => context.push(RouteNames.settingsPath),
+                  onSortTap: () => SongSortModal.show(context),
+                ),
+          body: Column(
+            children: <Widget>[
+              Expanded(
+                child: _buildBody(
+                  context,
+                  ref,
+                  state,
+                  viewModel,
+                  filteredSongs,
+                  selectedSongIds,
+                  isSelectionMode,
+                ),
+              ),
+              if (isSelectionMode)
+                BatchActionBar(
+                  selectedCount: selectedSongIds.length,
+                  onQueueTap: () => _handleBatchQueue(
+                    context,
+                    ref,
+                    filteredSongs,
+                    selectedSongIds,
+                  ),
+                  onPlaylistTap: () => _handleBatchPlaylist(
+                    context,
+                    ref,
+                    selectedSongIds,
+                  ),
+                  onSleepTimerTap: () => _handleBatchSleepTimer(
+                    context,
+                    ref,
+                    filteredSongs,
+                    selectedSongIds,
+                  ),
+                  onFavoriteTap: () => _handleBatchFavorite(
+                    context,
+                    ref,
+                    selectedSongIds,
+                  ),
+                  onDeleteTap: () => _handleBatchDelete(
+                    context,
+                    ref,
+                    viewModel,
+                    filteredSongs,
+                    selectedSongIds,
+                  ),
+                )
+              else
+                const MiniPlayer(),
+            ],
+          ),
         ),
       ),
     );
@@ -84,6 +158,9 @@ class LibraryView extends ConsumerWidget {
     WidgetRef ref,
     LibraryState state,
     LibraryViewModel viewModel,
+    List<Song> filteredSongs,
+    Set<int> selectedSongIds,
+    bool isSelectionMode,
   ) {
     return switch (state) {
       LibraryPermissionRequired(:final isPermanentlyDenied) =>
@@ -98,7 +175,14 @@ class LibraryView extends ConsumerWidget {
           message: message,
           onRetry: viewModel.scanSongs,
         ),
-      LibraryLoaded() => _buildLoadedList(context, ref, viewModel),
+      LibraryLoaded() => _buildLoadedList(
+          context,
+          ref,
+          viewModel,
+          filteredSongs,
+          selectedSongIds,
+          isSelectionMode,
+        ),
     };
   }
 
@@ -106,9 +190,11 @@ class LibraryView extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     LibraryViewModel viewModel,
+    List<Song> filteredSongs,
+    Set<int> selectedSongIds,
+    bool isSelectionMode,
   ) {
     final activeTab = ref.watch(libraryTabProvider);
-    final filteredSongs = ref.watch(filteredSongsProvider);
     final activeQuery = ref.watch(libraryQueryProvider).trim();
     final playerState = ref.watch(playerViewModelProvider);
 
@@ -121,29 +207,33 @@ class LibraryView extends ConsumerWidget {
 
     return Column(
       children: <Widget>[
-        // Top filter pills: All Songs, Favorites, Playlists
-        const LibraryTabPills(),
+        // Top filter pills: All Songs, Favorites, Playlists (hidden during multi-select)
+        if (!isSelectionMode) const LibraryTabPills(),
 
-        if (activeTab == LibraryTab.playlists)
+        if (activeTab == LibraryTab.playlists && !isSelectionMode)
           const Expanded(child: PlaylistsTabView())
         else if (activeQuery.isNotEmpty && filteredSongs.isEmpty)
           Expanded(child: NoSearchResultsView(query: activeQuery))
         else if (activeTab == LibraryTab.favorites && filteredSongs.isEmpty)
           const Expanded(child: NoFavoritesView())
         else ...<Widget>[
-          // Hero Action Bar with Play All, Shuffle, and Track Count
-          LibraryActionBar(
-            songCount: filteredSongs.length,
-            onPlayAllTap: () => _onPlayAllTap(context, ref, filteredSongs),
-            onShuffleTap: () => _onShuffleTap(context, ref, filteredSongs),
-          ),
+          // Hero Action Bar with Play All, Shuffle, and Track Count (hidden during multi-select)
+          if (!isSelectionMode)
+            LibraryActionBar(
+              songCount: filteredSongs.length,
+              onPlayAllTap: () => _onPlayAllTap(context, ref, filteredSongs),
+              onShuffleTap: () => _onShuffleTap(context, ref, filteredSongs),
+            ),
 
           // Scrollable song list with interactive scrollbar
           Expanded(
             child: RefreshIndicator(
               color: AppColors.accent,
               backgroundColor: AppColors.surface,
-              onRefresh: viewModel.rescan,
+              onRefresh: () async {
+                SongArtworkCache.clear();
+                await viewModel.rescan();
+              },
               child: ScrollConfiguration(
                 behavior: const ScrollBehavior().copyWith(
                   physics: const ClampingScrollPhysics(),
@@ -166,24 +256,40 @@ class LibraryView extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final song = filteredSongs[index];
                       final isCurrentSong = playerState.currentSong?.id == song.id;
+                      final isSelected = selectedSongIds.contains(song.id);
 
                       return SongListTile(
                         key: ValueKey<int>(song.id),
                         song: song,
                         isPlaying: isCurrentSong && playerState.isPlaying,
-                        onTap: () => _onSongTap(context, ref, song, filteredSongs),
-                        onMoreTap: () => SongOptionsModal.show(
-                          context: context,
-                          song: song,
-                          onPlayNext: () => _onPlayNext(context, ref, song),
-                          onRemoveFromFavorites:
-                              activeTab == LibraryTab.favorites
-                                  ? () => _onRemoveFromFavorites(
-                                      context, ref, song)
-                                  : null,
-                          onDeleteTap: () =>
-                              _onDeleteSong(context, ref, viewModel, song),
-                        ),
+                        isSelectionMode: isSelectionMode,
+                        isSelected: isSelected,
+                        onTap: () {
+                          if (isSelectionMode) {
+                            HapticFeedback.selectionClick();
+                            ref.read(multiSelectProvider.notifier).toggle(song.id);
+                          } else {
+                            _onSongTap(context, ref, song, filteredSongs);
+                          }
+                        },
+                        onLongPress: () {
+                          HapticFeedback.mediumImpact();
+                          ref.read(multiSelectProvider.notifier).toggle(song.id);
+                        },
+                        onMoreTap: isSelectionMode
+                            ? null
+                            : () => SongOptionsModal.show(
+                                context: context,
+                                song: song,
+                                onPlayNext: () => _onPlayNext(context, ref, song),
+                                onRemoveFromFavorites:
+                                    activeTab == LibraryTab.favorites
+                                        ? () => _onRemoveFromFavorites(
+                                            context, ref, song)
+                                        : null,
+                                onDeleteTap: () =>
+                                    _onDeleteSong(context, ref, viewModel, song),
+                              ),
                       );
                     },
                   ),
@@ -344,4 +450,270 @@ class LibraryView extends ConsumerWidget {
         ),
       );
   }
+
+  void _handleBatchQueue(
+    BuildContext context,
+    WidgetRef ref,
+    List<Song> allSongs,
+    Set<int> selectedIds,
+  ) {
+    final selectedSongs =
+        allSongs.where((s) => selectedIds.contains(s.id)).toList();
+    if (selectedSongs.isEmpty) return;
+
+    ref.read(playerViewModelProvider.notifier).addSongsToQueue(selectedSongs);
+    ref.read(multiSelectProvider.notifier).clear();
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Row(
+            children: <Widget>[
+              const Icon(
+                Icons.queue_music_rounded,
+                color: AppColors.accent,
+                size: 20.0,
+              ),
+              const SizedBox(width: AppDimensions.space12),
+              Expanded(
+                child: Text(
+                  'Added ${selectedSongs.length} ${selectedSongs.length == 1 ? "track" : "tracks"} to queue',
+                  style: AppTextStyles.body.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
+  Future<void> _handleBatchPlaylist(
+    BuildContext context,
+    WidgetRef ref,
+    Set<int> selectedIds,
+  ) async {
+    final playlistName = await BatchAddToPlaylistModal.show(
+      context: context,
+      songIds: selectedIds.toList(),
+    );
+
+    if (playlistName != null && context.mounted) {
+      ref.read(multiSelectProvider.notifier).clear();
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Row(
+              children: <Widget>[
+                const Icon(
+                  Icons.playlist_add_check_rounded,
+                  color: AppColors.accent,
+                  size: 20.0,
+                ),
+                const SizedBox(width: AppDimensions.space12),
+                Expanded(
+                  child: Text(
+                    'Added ${selectedIds.length} ${selectedIds.length == 1 ? "track" : "tracks"} to "$playlistName"',
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+    }
+  }
+
+  Future<void> _handleBatchSleepTimer(
+    BuildContext context,
+    WidgetRef ref,
+    List<Song> allSongs,
+    Set<int> selectedIds,
+  ) async {
+    final selectedSongs =
+        allSongs.where((s) => selectedIds.contains(s.id)).toList();
+    if (selectedSongs.isEmpty) return;
+
+    // Immediately clear multi-select mode so UI dismisses the selection mode right away
+    ref.read(multiSelectProvider.notifier).clear();
+
+    // Start sleep timer first so state is active immediately
+    await ref.read(sleepTimerProvider.notifier).startTracksTimer(
+          trackCount: selectedSongs.length,
+          specificTracks: selectedSongs,
+          choiceLabel: '${selectedSongs.length} tracks',
+        );
+
+    // Then start playing the selected tracks with the selected tracks as queue
+    await ref
+        .read(playerViewModelProvider.notifier)
+        .playSong(selectedSongs.first, selectedSongs);
+
+    if (context.mounted) {
+      final label =
+          '${selectedSongs.length} ${selectedSongs.length == 1 ? "track" : "tracks"}';
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Row(
+              children: <Widget>[
+                const Icon(
+                  Icons.bedtime_rounded,
+                  color: AppColors.accent,
+                  size: 20.0,
+                ),
+                const SizedBox(width: AppDimensions.space12),
+                Expanded(
+                  child: Text(
+                    'Sleep timer set for $label',
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+    }
+  }
+
+  Future<void> _handleBatchFavorite(
+    BuildContext context,
+    WidgetRef ref,
+    Set<int> selectedIds,
+  ) async {
+    await ref.read(favoritesProvider.notifier).addFavorites(selectedIds);
+    ref.read(multiSelectProvider.notifier).clear();
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Row(
+              children: <Widget>[
+                const Icon(
+                  Icons.favorite_rounded,
+                  color: Color(0xFFFF5252),
+                  size: 20.0,
+                ),
+                const SizedBox(width: AppDimensions.space12),
+                Expanded(
+                  child: Text(
+                    'Added ${selectedIds.length} ${selectedIds.length == 1 ? "track" : "tracks"} to Favorites',
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+    }
+  }
+
+  Future<void> _handleBatchDelete(
+    BuildContext context,
+    WidgetRef ref,
+    LibraryViewModel viewModel,
+    List<Song> allSongs,
+    Set<int> selectedIds,
+  ) async {
+    final selectedSongs =
+        allSongs.where((s) => selectedIds.contains(s.id)).toList();
+    if (selectedSongs.isEmpty) return;
+
+    final count = selectedSongs.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.radiusCard),
+          side: const BorderSide(color: AppColors.outline),
+        ),
+        title: Text(
+          'Delete $count ${count == 1 ? "Track" : "Tracks"}?',
+          style: AppTextStyles.screenTitle,
+        ),
+        content: Text(
+          'Are you sure you want to permanently delete $count ${count == 1 ? "track" : "tracks"} from your device storage? This cannot be undone.',
+          style: AppTextStyles.bodySecondary,
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final deletedCount = await viewModel.deleteSongs(selectedSongs);
+      for (final song in selectedSongs) {
+        ref.read(playerViewModelProvider.notifier).removeSongFromPlayback(song.id);
+      }
+      ref.read(multiSelectProvider.notifier).clear();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Row(
+                children: <Widget>[
+                  Icon(
+                    deletedCount > 0
+                        ? Icons.check_circle_rounded
+                        : Icons.error_outline_rounded,
+                    color: deletedCount > 0 ? AppColors.accent : AppColors.error,
+                    size: 20.0,
+                  ),
+                  const SizedBox(width: AppDimensions.space12),
+                  Expanded(
+                    child: Text(
+                      'Permanently deleted $deletedCount ${deletedCount == 1 ? "track" : "tracks"}',
+                      style: AppTextStyles.body.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+      }
+    }
+  }
 }
+

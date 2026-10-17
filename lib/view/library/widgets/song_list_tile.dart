@@ -14,24 +14,38 @@ class SongListTile extends StatelessWidget {
   final Song song;
   final bool isPlaying;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   final VoidCallback? onMoreTap;
+  final bool isSelectionMode;
+  final bool isSelected;
 
   const SongListTile({
     super.key,
     required this.song,
     this.isPlaying = false,
     required this.onTap,
+    this.onLongPress,
     this.onMoreTap,
+    this.isSelectionMode = false,
+    this.isSelected = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       borderRadius: AppDimensions.borderRadiusCard,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         height: AppDimensions.listRowHeight,
         padding: const EdgeInsets.symmetric(horizontal: AppDimensions.space16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.accent.withValues(alpha: 0.12)
+              : Colors.transparent,
+          borderRadius: AppDimensions.borderRadiusCard,
+        ),
         child: Row(
           children: <Widget>[
             // Album artwork with cached thumbnail and animated equalizer overlay
@@ -42,6 +56,7 @@ class SongListTile extends StatelessWidget {
               child: SongArtwork(
                 songId: song.id,
                 albumId: song.albumId,
+                dataUri: song.dataUri,
                 size: AppDimensions.listArtSize,
                 borderRadius: AppDimensions.borderRadiusArtworkSmall,
               ),
@@ -100,14 +115,39 @@ class SongListTile extends StatelessWidget {
             ),
             const SizedBox(width: AppDimensions.space8),
 
-            // Trailing 3-dots more actions button
-            IconButton(
-              icon: const Icon(Icons.more_vert_rounded),
-              iconSize: 20.0,
-              color: AppColors.textSecondary,
-              splashRadius: 20.0,
-              onPressed: onMoreTap,
-            ),
+            // Trailing actions: Checkbox indicator in selection mode, 3-dots otherwise
+            if (isSelectionMode)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 24.0,
+                  height: 24.0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected ? AppColors.accent : Colors.transparent,
+                    border: Border.all(
+                      color: isSelected ? AppColors.accent : AppColors.outline,
+                      width: 2.0,
+                    ),
+                  ),
+                  child: isSelected
+                      ? const Icon(
+                          Icons.check_rounded,
+                          size: 16.0,
+                          color: AppColors.background,
+                        )
+                      : null,
+                ),
+              )
+            else
+              IconButton(
+                icon: const Icon(Icons.more_vert_rounded),
+                iconSize: 20.0,
+                color: AppColors.textSecondary,
+                splashRadius: 20.0,
+                onPressed: onMoreTap,
+              ),
           ],
         ),
       ),

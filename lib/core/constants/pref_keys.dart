@@ -46,4 +46,7 @@ abstract final class PrefKeys {
 
   /// Timestamp of the last bedtime auto-start to prevent re-trigger within 60 minutes.
   static const String lastBedtimeAutoStartTimestamp = 'last_bedtime_auto_start_timestamp';
+
+  /// Toggle to exclude WhatsApp audio and voice notes from library (boolean; default true).
+  static const String excludeWhatsappAudio = 'exclude_whatsapp_audio';
 }

@@ -512,6 +512,8 @@ class _SleepTracksPickerModalState
                         height: 44.0,
                         child: SongArtwork(
                           songId: song.id,
+                          albumId: song.albumId,
+                          dataUri: song.dataUri,
                           size: 44.0,
                           borderRadius: BorderRadius.circular(8.0),
                         ),

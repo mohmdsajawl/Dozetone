@@ -53,9 +53,10 @@ class MediaStorePlugin(private val activity: Activity) : MethodChannel.MethodCal
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "querySongs" -> {
+                val excludeWhatsapp = call.argument<Boolean>("excludeWhatsapp") ?: true
                 scope.launch {
                     try {
-                        val songs = withContext(Dispatchers.IO) { loadSongs() }
+                        val songs = withContext(Dispatchers.IO) { loadSongs(excludeWhatsapp) }
                         result.success(songs)
                     } catch (e: Exception) {
                         result.error("MEDIA_STORE_ERROR", e.message, null)
@@ -65,9 +66,10 @@ class MediaStorePlugin(private val activity: Activity) : MethodChannel.MethodCal
             "queryArtwork" -> {
                 val songId = (call.argument<Number>("songId"))?.toLong() ?: 0L
                 val albumId = (call.argument<Number>("albumId"))?.toLong() ?: 0L
+                val dataUri = call.argument<String>("dataUri") ?: ""
                 scope.launch {
                     try {
-                        val bytes = withContext(Dispatchers.IO) { loadArtwork(songId, albumId) }
+                        val bytes = withContext(Dispatchers.IO) { loadArtwork(songId, albumId, dataUri) }
                         result.success(bytes)
                     } catch (_: Exception) {
                         result.success(null)
@@ -191,7 +193,29 @@ class MediaStorePlugin(private val activity: Activity) : MethodChannel.MethodCal
         return renamed
     }
 
-    private fun loadSongs(): List<Map<String, Any?>> {
+    private fun isExcludedAudio(data: String): Boolean {
+        if (data.isBlank()) return false
+        val normalized = data.lowercase().replace('\\', '/')
+        if (normalized.contains("/whatsapp/") ||
+            normalized.contains("/com.whatsapp") ||
+            normalized.contains("/whatsapp audio/") ||
+            normalized.contains("/whatsapp voice notes/") ||
+            normalized.contains("/voice notes/") ||
+            normalized.contains("/voicenotes/") ||
+            normalized.contains("/telegram/telegram audio/") ||
+            normalized.contains("/callrecordings/") ||
+            normalized.contains("/call_rec/") ||
+            normalized.contains("/soundrecorder/")) {
+            return true
+        }
+        val fileName = normalized.substringAfterLast('/')
+        if ((fileName.startsWith("aud-") || fileName.startsWith("ptt-")) && fileName.contains("-wa")) {
+            return true
+        }
+        return false
+    }
+
+    private fun loadSongs(excludeWhatsapp: Boolean = true): List<Map<String, Any?>> {
         val songList = mutableListOf<Map<String, Any?>>()
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
@@ -233,21 +257,32 @@ class MediaStorePlugin(private val activity: Activity) : MethodChannel.MethodCal
                 if (isNotificationCol != -1 && cursor.getInt(isNotificationCol) != 0) continue
                 if (isAlarmCol != -1 && cursor.getInt(isAlarmCol) != 0) continue
 
+                val data = if (dataCol != -1) cursor.getString(dataCol) ?: "" else ""
+                if (excludeWhatsapp && isExcludedAudio(data)) continue
+
                 val id = if (idCol != -1) cursor.getLong(idCol) else 0L
                 val rawTitle = if (titleCol != -1) cursor.getString(titleCol) else null
                 val rawArtist = if (artistCol != -1) cursor.getString(artistCol) else null
                 val album = if (albumCol != -1) cursor.getString(albumCol) else null
                 val albumId = if (albumIdCol != -1) cursor.getLong(albumIdCol) else 0L
                 val duration = if (durationCol != -1) cursor.getLong(durationCol) else 0L
-                val data = if (dataCol != -1) cursor.getString(dataCol) ?: "" else ""
                 val size = if (sizeCol != -1) cursor.getLong(sizeCol) else 0L
                 val dateAdded = if (dateAddedCol != -1) cursor.getLong(dateAddedCol) else 0L
 
-                val title = if (!rawTitle.isNullOrBlank()) rawTitle.trim() else "Unknown Title"
-                val artist = if (!rawArtist.isNullOrBlank() && rawArtist != "<unknown>") {
+                var title = if (!rawTitle.isNullOrBlank()) rawTitle.trim() else "Unknown Title"
+                var artist = if (!rawArtist.isNullOrBlank() && rawArtist != "<unknown>") {
                     rawArtist.trim()
                 } else {
                     "Unknown Artist"
+                }
+
+                // If artist is unknown and title follows standard "Artist - Track" convention
+                if (artist == "Unknown Artist" && title.contains(" - ")) {
+                    val parts = title.split(" - ", limit = 2)
+                    if (parts[0].trim().isNotEmpty() && parts[1].trim().isNotEmpty()) {
+                        artist = parts[0].trim()
+                        title = parts[1].trim()
+                    }
                 }
 
                 val songMap = mapOf<String, Any?>(
@@ -267,37 +302,74 @@ class MediaStorePlugin(private val activity: Activity) : MethodChannel.MethodCal
         return songList
     }
 
-    private fun loadArtwork(songId: Long, albumId: Long): ByteArray? {
-        val resolver = activity.contentResolver
+    private fun loadArtwork(songId: Long, albumId: Long, dataUriParam: String): ByteArray? {
+        var dataUri = dataUriParam
 
-        // On Android 10+ (API 29+), use modern loadThumbnail directly from audio URI
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        // Resolve dataUri from MediaStore if not provided
+        if (dataUri.isBlank() && songId > 0) {
             try {
-                val songUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
-                val bitmap = resolver.loadThumbnail(songUri, Size(256, 256), null)
-                val stream = ByteArrayOutputStream()
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 85, stream)
-                return stream.toByteArray()
-            } catch (_: Exception) {
-                // Fallback to album uri below
-            }
-        }
-
-        // Standard artwork resolution through album URI
-        if (albumId > 0) {
-            try {
-                val albumArtUri = ContentUris.withAppendedId(
-                    Uri.parse("content://media/external/audio/albumart"),
-                    albumId
-                )
-                resolver.openInputStream(albumArtUri)?.use { inputStream ->
-                    return inputStream.readBytes()
+                val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
+                val proj = arrayOf(MediaStore.Audio.Media.DATA)
+                activity.contentResolver.query(uri, proj, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        dataUri = cursor.getString(0) ?: ""
+                    }
                 }
             } catch (_: Exception) {
-                // No album art available
             }
         }
 
+        // Tier 1: Direct Container ID3 Extraction via MediaMetadataRetriever
+        // Reads genuine embedded APIC/PIC frame directly from the physical audio file
+        if (dataUri.isNotBlank()) {
+            try {
+                val file = File(dataUri)
+                if (file.exists() && file.canRead()) {
+                    val retriever = android.media.MediaMetadataRetriever()
+                    retriever.setDataSource(file.absolutePath)
+                    val embeddedArt = retriever.embeddedPicture
+                    retriever.release()
+                    if (embeddedArt != null && embeddedArt.isNotEmpty()) {
+                        return embeddedArt
+                    }
+                }
+            } catch (_: Exception) {
+            }
+        }
+
+        // Tier 2: Dedicated Album Folder Art (Whitelisted standard filenames, non-shared folders)
+        if (dataUri.isNotBlank()) {
+            try {
+                val file = File(dataUri)
+                val parent = file.parentFile
+                if (parent != null && parent.exists() && parent.isDirectory) {
+                    val parentName = parent.name.lowercase()
+                    // Never inspect generic shared folders where unrelated downloads/images bleed
+                    val isSharedFolder = parentName == "download" ||
+                            parentName == "downloads" ||
+                            parentName == "whatsapp" ||
+                            parentName == "telegram" ||
+                            parentName == "bluetooth" ||
+                            parentName == "0" ||
+                            parentName == "sdcard"
+
+                    if (!isSharedFolder) {
+                        val candidates = arrayOf("cover.jpg", "cover.png", "folder.jpg", "albumart.jpg", "front.jpg")
+                        for (candidate in candidates) {
+                            val candidateFile = File(parent, candidate)
+                            if (candidateFile.exists() && candidateFile.isFile && candidateFile.length() > 0) {
+                                return candidateFile.readBytes()
+                            }
+                        }
+                    }
+                }
+            } catch (_: Exception) {
+            }
+        }
+
+        // Tier 3: Return null to allow clean procedural vector fallback.
+        // NOTE: We deliberately do NOT query MediaStore albumart table because of Android's
+        // documented folder-pollution cache bug.
         return null
     }
 }

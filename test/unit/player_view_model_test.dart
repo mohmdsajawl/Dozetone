@@ -129,6 +129,12 @@ class FakePlayerRepository implements PlayerRepository {
     lastAddedToQueueSong = song;
   }
 
+  List<Song>? lastAddedSongsToQueue;
+  @override
+  void addSongsToQueue(List<Song> songs) {
+    lastAddedSongsToQueue = songs;
+  }
+
   int? lastReorderOldIndex;
   int? lastReorderNewIndex;
   @override
@@ -313,6 +319,11 @@ void main() {
     test('addToQueue forwards song to repository', () {
       viewModel.addToQueue(testSong2);
       expect(repository.lastAddedToQueueSong, equals(testSong2));
+    });
+
+    test('addSongsToQueue forwards multiple songs to repository', () {
+      viewModel.addSongsToQueue([testSong1, testSong2]);
+      expect(repository.lastAddedSongsToQueue, equals([testSong1, testSong2]));
     });
 
     test('removeSongFromPlayback clears song if playing', () async {

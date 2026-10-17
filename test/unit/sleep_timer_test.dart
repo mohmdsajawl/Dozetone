@@ -88,6 +88,9 @@ class FakePlayerRepository implements PlayerRepository {
   void addToQueue(Song song) {}
 
   @override
+  void addSongsToQueue(List<Song> songs) {}
+
+  @override
   void reorderQueue(int oldIndex, int newIndex) {}
 
   @override

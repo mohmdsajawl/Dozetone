@@ -137,6 +137,7 @@ class SongOptionsModal extends ConsumerWidget {
                   SongArtwork(
                     songId: song.id,
                     albumId: song.albumId,
+                    dataUri: song.dataUri,
                     size: 54.0,
                     borderRadius: AppDimensions.borderRadiusArtworkSmall,
                   ),

@@ -384,6 +384,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                               child: SongArtwork(
                                 songId: song.id,
                                 albumId: song.albumId,
+                                dataUri: song.dataUri,
                                 size: artSize,
                                 borderRadius:
                                     AppDimensions.borderRadiusArtworkLarge,
