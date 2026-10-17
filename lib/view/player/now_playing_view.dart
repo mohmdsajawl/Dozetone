@@ -164,15 +164,15 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                             ),
                           ),
 
-                          // Center Playing Capsule with dynamic mini wave bars
+                          // Center Playing Badge with dynamic mini wave bars (box-shaped matching Set Timer button)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: AppDimensions.space12,
-                              vertical: 6.0,
+                              vertical: AppDimensions.space6,
                             ),
                             decoration: BoxDecoration(
-                              borderRadius: AppDimensions.borderRadiusPill,
-                              color: AppColors.surface.withValues(alpha: 0.55),
+                              borderRadius: BorderRadius.circular(8.0),
+                              color: AppColors.surface.withValues(alpha: 0.6),
                               border: Border.all(
                                 color: AppColors.outline.withValues(alpha: 0.6),
                               ),
@@ -771,9 +771,13 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                         sleepTimerState.isActive
                                             ? (sleepTimerState.isFadingOut
                                                 ? l10n.fadingOut
-                                                : (sleepTimerState.isEndOfSong
-                                                    ? l10n.timerEndOfSong
-                                                    : '${sleepTimerState.formattedRemaining} remaining'))
+                                                : (sleepTimerState.isTrackBased
+                                                    ? (sleepTimerState.remainingTracks <= 1
+                                                        ? l10n.timerEndOfSong
+                                                        : '${sleepTimerState.remainingTracks} tracks remaining')
+                                                    : (sleepTimerState.isEndOfSong
+                                                        ? l10n.timerEndOfSong
+                                                        : '${sleepTimerState.formattedRemaining} remaining')))
                                             : 'Gentle audio fade-out',
                                         style: AppTextStyles.caption.copyWith(
                                           color: sleepTimerState.isFadingOut

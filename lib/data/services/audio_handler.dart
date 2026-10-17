@@ -51,6 +51,14 @@ class DozetoneAudioHandler extends BaseAudioHandler
     _pauseOnTrackEnd = pause;
   }
 
+  bool _loopForSleepTimer = false;
+
+  /// Sets whether playback should automatically loop back to start of queue
+  /// when reaching the end, keeping playback active while a sleep timer is running.
+  void setLoopForSleepTimer(bool loop) {
+    _loopForSleepTimer = loop;
+  }
+
   /// Broadcast stream firing whenever a track finishes playback.
   Stream<void> get trackCompletedStream => _trackCompletedController.stream;
 
@@ -199,13 +207,16 @@ class DozetoneAudioHandler extends BaseAudioHandler
   }
 
   void _handleTrackCompletion() {
-    if (_pauseOnTrackEnd) {
-      _pauseOnTrackEnd = false;
+    final shouldPause = _pauseOnTrackEnd;
+    _pauseOnTrackEnd = false;
+
+    _trackCompletedController.add(null);
+
+    if (shouldPause) {
       _player.pause();
       _player.seek(Duration.zero);
       _broadcastPlaybackState();
       _emitCurrentState();
-      _trackCompletedController.add(null);
       return;
     }
 
@@ -221,8 +232,9 @@ class DozetoneAudioHandler extends BaseAudioHandler
       skipToNext();
     } else {
       // Reached end of queue
-      if (_repeatMode == PlayerRepeatMode.all && _activeQueue.isNotEmpty) {
-        // Loop back to start
+      if ((_repeatMode == PlayerRepeatMode.all || _loopForSleepTimer) &&
+          _activeQueue.isNotEmpty) {
+        // Loop back to start so sleep timer never cuts off prematurely
         _playIndex(0);
       } else {
         // Stop at end, paused, per Section 11.2 requirements
@@ -230,7 +242,6 @@ class DozetoneAudioHandler extends BaseAudioHandler
         _player.seek(Duration.zero);
         _broadcastPlaybackState();
         _emitCurrentState();
-        _trackCompletedController.add(null);
       }
     }
   }
@@ -325,7 +336,7 @@ class DozetoneAudioHandler extends BaseAudioHandler
 
     if (_currentIndex + 1 < _activeQueue.length) {
       await _playIndex(_currentIndex + 1);
-    } else if (_repeatMode == PlayerRepeatMode.all) {
+    } else if (_repeatMode == PlayerRepeatMode.all || _loopForSleepTimer) {
       await _playIndex(0);
     }
   }

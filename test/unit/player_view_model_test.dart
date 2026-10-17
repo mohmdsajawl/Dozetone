@@ -39,6 +39,9 @@ class FakePlayerRepository implements PlayerRepository {
   @override
   void setPauseOnTrackEnd(bool pause) {}
 
+  @override
+  void setLoopForSleepTimer(bool loop) {}
+
   void emitState(PlayerState state) {
     _currentState = state;
     _controller.add(state);

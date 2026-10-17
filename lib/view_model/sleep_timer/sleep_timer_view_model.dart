@@ -94,6 +94,7 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _stopTicker();
     _cancelEndOfSongSubscription();
     _playerRepository.setPauseOnTrackEnd(false);
+    _playerRepository.setLoopForSleepTimer(true);
 
     final now = DateTime.now();
     final endTime = now.add(duration);
@@ -112,6 +113,10 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
       remainingDuration: duration,
       isFadingOut: false,
       isEndOfSong: false,
+      isTrackBased: false,
+      totalTracks: 0,
+      remainingTracks: 0,
+      selectedTracks: const <Song>[],
       volumeFactor: 1.0,
       lastUsedChoice: choiceLabel ?? state.lastUsedChoice,
     );
@@ -122,10 +127,28 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
 
   /// Starts an "End of current track" timer that pauses when current track ends.
   Future<void> startEndOfSongTimer({String? choiceLabel}) async {
+    await startTracksTimer(
+      trackCount: 1,
+      choiceLabel: choiceLabel ?? 'End of current track',
+    );
+  }
+
+  /// Starts a track-based timer that pauses playback after [trackCount] tracks finish.
+  ///
+  /// Optionally accepts [specificTracks] if the user handpicked specific songs.
+  Future<void> startTracksTimer({
+    required int trackCount,
+    List<Song>? specificTracks,
+    String? choiceLabel,
+  }) async {
+    if (trackCount <= 0) return;
+
     _stopTicker();
     _cancelEndOfSongSubscription();
 
-    _playerRepository.setPauseOnTrackEnd(true);
+    final isSingleTrack = trackCount == 1;
+    _playerRepository.setPauseOnTrackEnd(isSingleTrack);
+    _playerRepository.setLoopForSleepTimer(true);
 
     if (choiceLabel != null) {
       _saveLastUsedChoice(choiceLabel);
@@ -139,18 +162,20 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
       totalDuration: null,
       remainingDuration: Duration.zero,
       isFadingOut: false,
-      isEndOfSong: true,
+      isEndOfSong: isSingleTrack,
+      isTrackBased: true,
+      totalTracks: trackCount,
+      remainingTracks: trackCount,
+      selectedTracks: specificTracks ?? const <Song>[],
       volumeFactor: 1.0,
       lastUsedChoice: choiceLabel ?? state.lastUsedChoice,
     );
 
-    // Track completion signal directly from player service
     _trackCompletedSubscription =
         _playerRepository.trackCompletedStream.listen((_) {
-      _onTimerFinished();
+      _onTrackCompleted();
     });
 
-    // Track active song and position to detect progress, changes, and fade out
     _playerStateSubscription =
         _playerRepository.playerStateStream.listen(_handlePlayerStateForEndOfSong);
 
@@ -158,32 +183,224 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _startShakeListening();
   }
 
+  /// Adjusts active time-based timer by [delta] (positive or negative).
+  Future<void> adjustTime(Duration delta) async {
+    if (!state.isActive) return;
+
+    if (state.isTrackBased) {
+      // If currently track-based, convert to time-based timer (15 min base)
+      const baseMinutes = 15;
+      final newDuration = const Duration(minutes: baseMinutes) + delta;
+      await startTimer(
+        newDuration > const Duration(minutes: 1)
+            ? newDuration
+            : const Duration(minutes: 1),
+      );
+      return;
+    }
+
+    final currentTarget = state.targetEndTime ?? DateTime.now();
+    final newEndTime = currentTarget.add(delta);
+    final remaining = newEndTime.difference(DateTime.now());
+
+    if (remaining <= Duration.zero) {
+      await _onTimerFinished();
+      return;
+    }
+
+    if (delta > Duration.zero && state.isFadingOut) {
+      await _playerRepository.setVolume(1.0);
+    }
+
+    final newTotal = (state.totalDuration ?? Duration.zero) + delta;
+
+    state = state.copyWith(
+      targetEndTime: newEndTime,
+      totalDuration: newTotal > Duration.zero ? newTotal : remaining,
+      remainingDuration: remaining,
+      isFadingOut: false,
+      volumeFactor: 1.0,
+    );
+  }
+
+  /// Sets active countdown to exact [duration].
+  Future<void> setTime(Duration duration) async {
+    if (duration <= Duration.zero) {
+      await _onTimerFinished();
+      return;
+    }
+
+    if (state.isFadingOut) {
+      await _playerRepository.setVolume(1.0);
+    }
+
+    _cancelEndOfSongSubscription();
+    _playerRepository.setPauseOnTrackEnd(false);
+
+    final now = DateTime.now();
+    final endTime = now.add(duration);
+
+    state = state.copyWith(
+      isActive: true,
+      targetEndTime: endTime,
+      totalDuration: duration,
+      remainingDuration: duration,
+      isFadingOut: false,
+      isEndOfSong: false,
+      isTrackBased: false,
+      totalTracks: 0,
+      remainingTracks: 0,
+      selectedTracks: const <Song>[],
+      volumeFactor: 1.0,
+    );
+
+    if (_ticker == null) {
+      _startTicker();
+    }
+    _startShakeListening();
+  }
+
+  /// Dynamically increments remaining tracks for track-based sleep timer.
+  Future<void> addTracks(int count) async {
+    if (!state.isActive || !state.isTrackBased) return;
+    final newRemaining = state.remainingTracks + count;
+    final newTotal = state.totalTracks + count;
+
+    if (newRemaining > 1) {
+      _playerRepository.setPauseOnTrackEnd(false);
+      if (state.isFadingOut) {
+        await _playerRepository.setVolume(1.0);
+      }
+    }
+
+    state = state.copyWith(
+      remainingTracks: newRemaining,
+      totalTracks: newTotal,
+      isEndOfSong: newRemaining == 1,
+      isFadingOut: false,
+      volumeFactor: 1.0,
+    );
+  }
+
+  /// Dynamically decrements remaining tracks for track-based sleep timer.
+  Future<void> removeTracks(int count) async {
+    if (!state.isActive || !state.isTrackBased) return;
+    final newRemaining = state.remainingTracks - count;
+    if (newRemaining <= 0) {
+      await _onTimerFinished();
+      return;
+    }
+
+    if (newRemaining == 1) {
+      _playerRepository.setPauseOnTrackEnd(true);
+    }
+
+    List<Song> updatedSelected = state.selectedTracks;
+    if (updatedSelected.length > newRemaining) {
+      updatedSelected = updatedSelected.sublist(0, newRemaining);
+    }
+
+    state = state.copyWith(
+      remainingTracks: newRemaining,
+      selectedTracks: updatedSelected,
+      isEndOfSong: newRemaining == 1,
+    );
+  }
+
+  /// Updates user-selected songs list for active track-based timer.
+  Future<void> updateSelectedTracks(List<Song> newTracks) async {
+    if (newTracks.isEmpty) {
+      await cancelTimer();
+      return;
+    }
+
+    final newRemaining = newTracks.length;
+    final newTotal = math.max(state.totalTracks, newTracks.length);
+
+    if (newRemaining == 1) {
+      _playerRepository.setPauseOnTrackEnd(true);
+    } else {
+      _playerRepository.setPauseOnTrackEnd(false);
+      if (state.isFadingOut) {
+        await _playerRepository.setVolume(1.0);
+      }
+    }
+
+    state = state.copyWith(
+      selectedTracks: newTracks,
+      remainingTracks: newRemaining,
+      totalTracks: newTotal,
+      isEndOfSong: newRemaining == 1,
+      isFadingOut: false,
+      volumeFactor: 1.0,
+    );
+  }
+
+  void _onTrackCompleted() async {
+    if (!mounted || !state.isActive) return;
+
+    if (state.isTrackBased && state.remainingTracks > 1) {
+      final nextRemaining = state.remainingTracks - 1;
+      List<Song> nextSelected = state.selectedTracks;
+      if (nextSelected.isNotEmpty) {
+        nextSelected = nextSelected.sublist(1);
+      }
+
+      if (nextRemaining == 1) {
+        _playerRepository.setPauseOnTrackEnd(true);
+      }
+
+      // Reset stale player state and volume for transitioning to next track
+      _lastPlayerState = null;
+      _trackedSongForEndOfSong = null;
+      await _playerRepository.setVolume(1.0);
+
+      state = state.copyWith(
+        remainingTracks: nextRemaining,
+        selectedTracks: nextSelected,
+        isEndOfSong: nextRemaining == 1,
+        isFadingOut: false,
+        volumeFactor: 1.0,
+      );
+    } else {
+      await _onTimerFinished();
+    }
+  }
+
   void _handlePlayerStateForEndOfSong(PlayerState playerState) {
-    if (!mounted || !state.isActive || !state.isEndOfSong) return;
+    if (!mounted || !state.isActive) return;
+    if (!state.isEndOfSong && (!state.isTrackBased || state.remainingTracks > 1)) {
+      return;
+    }
 
     _lastPlayerState = playerState;
     final song = playerState.currentSong;
-    if (song == null) {
-      // No active song playing, cancel timer
+    if (song == null && playerState.queue.isEmpty) {
+      // No active song and queue empty, cancel timer
       cancelTimer();
       return;
     }
+    if (song == null) return;
 
     if (_trackedSongForEndOfSong == null) {
       _trackedSongForEndOfSong = song;
     } else if (_trackedSongForEndOfSong!.id != song.id) {
-      // Song changed (e.g. user manually changed track)
+      // Song changed (e.g. next track started or user changed track)
       _trackedSongForEndOfSong = song;
+      _playerRepository.setVolume(1.0);
       if (state.isFadingOut) {
-        _playerRepository.setVolume(1.0);
+        state = state.copyWith(isFadingOut: false, volumeFactor: 1.0);
       }
     }
 
-    _updateEndOfSongFade(playerState);
+    if (state.remainingTracks <= 1 || state.isEndOfSong) {
+      _updateEndOfSongFade(playerState);
+    }
   }
 
   Future<void> _updateEndOfSongFade(PlayerState playerState) async {
-    if (!mounted || !state.isActive || !state.isEndOfSong) return;
+    if (!mounted || !state.isActive) return;
+    if (!state.isEndOfSong && state.remainingTracks > 1) return;
 
     final duration = playerState.duration;
     final position = playerState.position;
@@ -194,7 +411,7 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     final remainingMs = remaining.inMilliseconds;
 
     if (remainingMs <= 0 && position >= duration) {
-      await _onTimerFinished();
+      await _playerRepository.setVolume(0.0);
       return;
     }
 
@@ -208,6 +425,7 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
 
       await _playerRepository.setVolume(factor);
 
+      if (!mounted || !state.isActive) return;
       state = state.copyWith(
         remainingDuration: remaining > Duration.zero ? remaining : Duration.zero,
         isFadingOut: true,
@@ -216,12 +434,14 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     } else if (state.isFadingOut) {
       // Restores volume if sought backward out of fade window
       await _playerRepository.setVolume(1.0);
+      if (!mounted || !state.isActive) return;
       state = state.copyWith(
         remainingDuration: remaining > Duration.zero ? remaining : Duration.zero,
         isFadingOut: false,
         volumeFactor: 1.0,
       );
     } else {
+      if (!mounted || !state.isActive) return;
       state = state.copyWith(
         remainingDuration: remaining > Duration.zero ? remaining : Duration.zero,
         isFadingOut: false,
@@ -230,36 +450,16 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     }
   }
 
-  /// Extends active sleep timer by 5 minutes.
-  ///
-  /// If a fade-out was actively running, resets the fade and restores full volume.
+  /// Extends active sleep timer by 5 minutes or 1 track.
   Future<void> add5Minutes() async {
     if (!state.isActive) return;
 
-    if (state.isEndOfSong) {
-      // Convert End of Track to 5-minute timed duration
-      await startTimer(const Duration(minutes: 5));
+    if (state.isTrackBased) {
+      await addTracks(1);
       return;
     }
 
-    final currentTarget = state.targetEndTime ?? DateTime.now();
-    final newEndTime = currentTarget.add(const Duration(minutes: 5));
-    final newTotal = (state.totalDuration ?? Duration.zero) + const Duration(minutes: 5);
-
-    // If currently fading, restore full volume
-    if (state.isFadingOut) {
-      await _playerRepository.setVolume(1.0);
-    }
-
-    final remaining = newEndTime.difference(DateTime.now());
-
-    state = state.copyWith(
-      targetEndTime: newEndTime,
-      totalDuration: newTotal,
-      remainingDuration: remaining.isNegative ? Duration.zero : remaining,
-      isFadingOut: false,
-      volumeFactor: 1.0,
-    );
+    await adjustTime(const Duration(minutes: 5));
   }
 
   /// Cancels any active sleep timer and restores audio volume multiplier to 1.0.
@@ -268,6 +468,7 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _stopShakeListening();
     _cancelEndOfSongSubscription();
     _playerRepository.setPauseOnTrackEnd(false);
+    _playerRepository.setLoopForSleepTimer(false);
 
     await _playerRepository.setVolume(1.0);
 
@@ -278,6 +479,10 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
       remainingDuration: Duration.zero,
       isFadingOut: false,
       isEndOfSong: false,
+      isTrackBased: false,
+      totalTracks: 0,
+      remainingTracks: 0,
+      selectedTracks: const <Song>[],
       volumeFactor: 1.0,
     );
   }
@@ -306,8 +511,9 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
   Future<void> _tick() async {
     if (!mounted || !state.isActive) return;
 
-    if (state.isEndOfSong) {
-      if (_lastPlayerState != null) {
+    if (state.isEndOfSong || state.isTrackBased) {
+      if (_lastPlayerState != null &&
+          (state.remainingTracks <= 1 || state.isEndOfSong)) {
         await _updateEndOfSongFade(_lastPlayerState!);
       }
       return;
@@ -356,6 +562,7 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _stopShakeListening();
     _cancelEndOfSongSubscription();
     _playerRepository.setPauseOnTrackEnd(false);
+    _playerRepository.setLoopForSleepTimer(false);
 
     // 1. Pause playback
     await _playerRepository.pause();
@@ -372,6 +579,10 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
       remainingDuration: Duration.zero,
       isFadingOut: false,
       isEndOfSong: false,
+      isTrackBased: false,
+      totalTracks: 0,
+      remainingTracks: 0,
+      selectedTracks: const <Song>[],
       volumeFactor: 1.0,
     );
   }
@@ -473,6 +684,7 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _stopShakeListening();
     _cancelEndOfSongSubscription();
     _playerRepository.setPauseOnTrackEnd(false);
+    _playerRepository.setLoopForSleepTimer(false);
     super.dispose();
   }
 }

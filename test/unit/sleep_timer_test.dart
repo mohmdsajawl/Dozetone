@@ -18,6 +18,7 @@ class FakePlayerRepository implements PlayerRepository {
 
   bool pauseCalled = false;
   bool pauseOnTrackEnd = false;
+  bool loopForSleepTimer = false;
   double? lastVolume;
   List<double> volumeHistory = [];
 
@@ -30,6 +31,11 @@ class FakePlayerRepository implements PlayerRepository {
   @override
   void setPauseOnTrackEnd(bool pause) {
     pauseOnTrackEnd = pause;
+  }
+
+  @override
+  void setLoopForSleepTimer(bool loop) {
+    loopForSleepTimer = loop;
   }
 
   void emitState(PlayerState state) {
@@ -412,4 +418,248 @@ void main() {
       expect(shakeViewModel.state.remainingDuration.inSeconds, lessThanOrEqualTo(2));
     });
   });
+
+  group('Track-based multi-track sleep timer', () {
+    late FakePlayerRepository repo;
+    late SleepTimerViewModel vm;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      repo = FakePlayerRepository();
+      vm = SleepTimerViewModel(repo);
+    });
+
+    tearDown(() {
+      vm.dispose();
+    });
+
+    test('startTracksTimer with 3 tracks sets up correct initial state', () async {
+      await vm.startTracksTimer(trackCount: 3);
+
+      expect(vm.state.isActive, true);
+      expect(vm.state.isTrackBased, true);
+      expect(vm.state.totalTracks, 3);
+      expect(vm.state.remainingTracks, 3);
+      expect(vm.state.isEndOfSong, false);
+      expect(repo.pauseOnTrackEnd, false);
+      expect(repo.lastVolume, 1.0);
+    });
+
+    test('multi-track countdown decrements and activates pauseOnTrackEnd on final track', () async {
+      await vm.startTracksTimer(trackCount: 3);
+
+      // Track 1 completes
+      repo.emitTrackCompleted();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(vm.state.remainingTracks, 2);
+      expect(vm.state.isEndOfSong, false);
+      expect(repo.pauseOnTrackEnd, false);
+
+      // Track 2 completes -> only 1 remaining!
+      repo.emitTrackCompleted();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(vm.state.remainingTracks, 1);
+      expect(vm.state.isEndOfSong, true);
+      expect(repo.pauseOnTrackEnd, true);
+
+      // Track 3 completes -> finishes timer!
+      repo.emitTrackCompleted();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(vm.state.isActive, false);
+      expect(repo.pauseCalled, true);
+      expect(repo.pauseOnTrackEnd, false);
+    });
+
+    test('dynamic track adjustments: addTracks and removeTracks', () async {
+      await vm.startTracksTimer(trackCount: 2);
+      expect(vm.state.remainingTracks, 2);
+
+      // Add 2 tracks -> 4 tracks total
+      await vm.addTracks(2);
+      expect(vm.state.remainingTracks, 4);
+      expect(vm.state.totalTracks, 4);
+
+      // Remove 1 track -> 3 tracks remaining
+      await vm.removeTracks(1);
+      expect(vm.state.remainingTracks, 3);
+
+      // Remove 2 tracks -> 1 track remaining (pauseOnTrackEnd should turn true)
+      await vm.removeTracks(2);
+      expect(vm.state.remainingTracks, 1);
+      expect(vm.state.isEndOfSong, true);
+      expect(repo.pauseOnTrackEnd, true);
+
+      // Remove final track -> timer finishes
+      await vm.removeTracks(1);
+      expect(vm.state.isActive, false);
+      expect(repo.pauseCalled, true);
+    });
+
+    test('updateSelectedTracks updates list and track count', () async {
+      const song1 = Song(id: 1, title: 'Song 1', artist: 'Artist 1', durationMs: 180000, dataUri: 'uri1');
+      const song2 = Song(id: 2, title: 'Song 2', artist: 'Artist 2', durationMs: 200000, dataUri: 'uri2');
+      const song3 = Song(id: 3, title: 'Song 3', artist: 'Artist 3', durationMs: 220000, dataUri: 'uri3');
+
+      await vm.startTracksTimer(trackCount: 2, specificTracks: [song1, song2]);
+      expect(vm.state.selectedTracks.length, 2);
+
+      // Update with 3 songs
+      await vm.updateSelectedTracks([song1, song2, song3]);
+      expect(vm.state.selectedTracks.length, 3);
+      expect(vm.state.remainingTracks, 3);
+      expect(repo.pauseOnTrackEnd, false);
+
+      // Update with 1 song
+      await vm.updateSelectedTracks([song1]);
+      expect(vm.state.selectedTracks.length, 1);
+      expect(vm.state.remainingTracks, 1);
+      expect(vm.state.isEndOfSong, true);
+      expect(repo.pauseOnTrackEnd, true);
+    });
+
+    test('3-track flow does not terminate prematurely when track 3 starts and fades at end', () async {
+      final song1 = Song(
+        id: 1,
+        title: 'Song A',
+        artist: 'Artist',
+        album: 'Album',
+        durationMs: 180000,
+        dataUri: '/a.mp3',
+        sizeBytes: 1000,
+        dateAdded: 0,
+      );
+      final song2 = Song(
+        id: 2,
+        title: 'Song B',
+        artist: 'Artist',
+        album: 'Album',
+        durationMs: 180000,
+        dataUri: '/b.mp3',
+        sizeBytes: 1000,
+        dateAdded: 0,
+      );
+      final song3 = Song(
+        id: 3,
+        title: 'Song C',
+        artist: 'Artist',
+        album: 'Album',
+        durationMs: 180000,
+        dataUri: '/c.mp3',
+        sizeBytes: 1000,
+        dateAdded: 0,
+      );
+
+      await vm.startTracksTimer(
+        trackCount: 3,
+        specificTracks: [song1, song2, song3],
+      );
+
+      expect(vm.state.isActive, true);
+      expect(vm.state.remainingTracks, 3);
+
+      // Song A completes -> Song B begins
+      repo.emitTrackCompleted();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(vm.state.isActive, true);
+      expect(vm.state.remainingTracks, 2);
+
+      // Song B ends -> emit completed
+      repo.emitTrackCompleted();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      // At this point, Song C is starting!
+      // Verify timer is STILL active and NOT prematurely cancelled!
+      expect(vm.state.isActive, true);
+      expect(vm.state.remainingTracks, 1);
+      expect(vm.state.isEndOfSong, true);
+      expect(repo.pauseOnTrackEnd, true);
+
+      // Even if player emits stale position from end of Song B, timer must remain active
+      repo.emitState(PlayerState(
+        isPlaying: true,
+        position: const Duration(milliseconds: 180000),
+        duration: const Duration(milliseconds: 180000),
+        currentSong: song2,
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(vm.state.isActive, true);
+
+      // Song C starts playing
+      repo.emitState(PlayerState(
+        isPlaying: true,
+        position: const Duration(seconds: 10),
+        duration: const Duration(milliseconds: 180000),
+        currentSong: song3,
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(vm.state.isActive, true);
+      expect(vm.state.isFadingOut, false);
+      expect(repo.lastVolume, 1.0);
+
+      // Song C enters fade-out window (remaining 5s <= 10s fade window)
+      repo.emitState(PlayerState(
+        isPlaying: true,
+        position: const Duration(milliseconds: 175000),
+        duration: const Duration(milliseconds: 180000),
+        currentSong: song3,
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(vm.state.isActive, true);
+      expect(vm.state.isFadingOut, true);
+      expect(vm.state.volumeFactor, lessThan(1.0));
+      expect(repo.lastVolume, lessThan(1.0));
+
+      // Song C completes -> timer finishes cleanly
+      repo.emitTrackCompleted();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(vm.state.isActive, false);
+      expect(repo.pauseCalled, true);
+      expect(repo.lastVolume, 1.0);
+    });
+  });
+
+  group('Dynamic in-flight time editing', () {
+    late FakePlayerRepository repo;
+    late SleepTimerViewModel vm;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      repo = FakePlayerRepository();
+      vm = SleepTimerViewModel(repo);
+    });
+
+    tearDown(() {
+      vm.dispose();
+    });
+
+    test('adjustTime adds and subtracts duration accurately', () async {
+      await vm.startTimer(const Duration(minutes: 15));
+      expect(vm.state.remainingDuration.inMinutes, 15);
+
+      // Add 5 minutes
+      await vm.adjustTime(const Duration(minutes: 5));
+      expect(vm.state.remainingDuration.inMinutes, greaterThanOrEqualTo(19));
+
+      // Subtract 10 minutes
+      await vm.adjustTime(const Duration(minutes: -10));
+      expect(vm.state.remainingDuration.inMinutes, lessThanOrEqualTo(10));
+    });
+
+    test('adjustTime to zero or negative terminates timer', () async {
+      await vm.startTimer(const Duration(minutes: 5));
+      await vm.adjustTime(const Duration(minutes: -10));
+
+      expect(vm.state.isActive, false);
+      expect(repo.pauseCalled, true);
+    });
+
+    test('setTime sets exact countdown duration', () async {
+      await vm.startTimer(const Duration(minutes: 10));
+      await vm.setTime(const Duration(minutes: 45));
+
+      expect(vm.state.remainingDuration.inMinutes, 45);
+      expect(vm.state.totalDuration, const Duration(minutes: 45));
+    });
+  });
 }
+

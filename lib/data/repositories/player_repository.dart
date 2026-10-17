@@ -23,6 +23,10 @@ abstract class PlayerRepository {
   /// rather than advancing to the next song or repeating.
   void setPauseOnTrackEnd(bool pause);
 
+  /// Sets whether playback should loop to the start of the queue when reaching the end,
+  /// used while sleep timer is active so playback doesn't terminate before time expires.
+  void setLoopForSleepTimer(bool loop);
+
   /// Starts playback for [song] with the provided [queue].
   Future<void> playSong(Song song, List<Song> queue);
 
@@ -108,6 +112,10 @@ class PlayerRepositoryImpl implements PlayerRepository {
 
   @override
   void setPauseOnTrackEnd(bool pause) => _audioHandler.setPauseOnTrackEnd(pause);
+
+  @override
+  void setLoopForSleepTimer(bool loop) =>
+      _audioHandler.setLoopForSleepTimer(loop);
 
   @override
   Future<void> playSong(Song song, List<Song> queue) {
