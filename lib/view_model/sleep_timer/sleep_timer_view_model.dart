@@ -21,6 +21,12 @@ final sleepTimerProvider =
   return SleepTimerViewModel(playerRepository);
 });
 
+/// Provider exposing bedtime auto-start event stream.
+final bedtimeAutoStartStreamProvider = StreamProvider<Duration>((ref) {
+  final vm = ref.watch(sleepTimerProvider.notifier);
+  return vm.bedtimeAutoStartStream;
+});
+
 /// ViewModel managing sleep timer countdown, gentle volume fade-out,
 /// track completion triggers, and shake-to-extend gestures.
 class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
@@ -29,10 +35,17 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
 
   Timer? _ticker;
   StreamSubscription<PlayerState>? _playerStateSubscription;
+  StreamSubscription<PlayerState>? _bedtimePlaybackSubscription;
   StreamSubscription<void>? _trackCompletedSubscription;
   StreamSubscription<UserAccelerometerEvent>? _accelerometerSubscription;
   Song? _trackedSongForEndOfSong;
   PlayerState? _lastPlayerState;
+
+  final _bedtimeAutoStartController = StreamController<Duration>.broadcast();
+
+  /// Stream emitting bedtime auto-timer durations when automatically triggered.
+  Stream<Duration> get bedtimeAutoStartStream =>
+      _bedtimeAutoStartController.stream;
 
   int _fadeSeconds = 30;
   bool _shakeToExtendEnabled = true;
@@ -46,6 +59,18 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     this.accelerometerStreamOverride,
   }) : super(const SleepTimerState()) {
     _loadInitialPreferences();
+    _listenToPlaybackForBedtime();
+  }
+
+  void _listenToPlaybackForBedtime() {
+    _bedtimePlaybackSubscription =
+        _playerRepository.playerStateStream.listen((playerState) {
+      final wasPlaying = _lastPlayerState?.isPlaying ?? false;
+      _lastPlayerState = playerState;
+      if (!wasPlaying && playerState.isPlaying) {
+        checkAndTriggerBedtimeAutoTimer();
+      }
+    });
   }
 
   /// Loads persisted last used choice and configured fade duration.
@@ -678,8 +703,80 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     } catch (_) {}
   }
 
+  /// Checks whether [now] falls within the configured bedtime window.
+  ///
+  /// The window begins at [startMinutes] after midnight and ends at [endMinutes]
+  /// after midnight (default: 300 minutes -> 5:00 AM).
+  /// Correctly handles windows that cross midnight (e.g. 10:00 PM to 5:00 AM).
+  static bool isInsideBedtimeWindow({
+    required DateTime now,
+    required int startMinutes,
+    int endMinutes = 300,
+  }) {
+    final currentMinutes = now.hour * 60 + now.minute;
+    if (startMinutes > endMinutes) {
+      // Window crosses midnight (e.g., 22:00 [1320] to 05:00 [300])
+      return currentMinutes >= startMinutes || currentMinutes < endMinutes;
+    } else {
+      // Window does not cross midnight (e.g., 01:00 [60] to 05:00 [300])
+      return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+    }
+  }
+
+  /// Evaluates bedtime auto-timer conditions and activates the timer if eligible.
+  ///
+  /// Requires:
+  /// 1. No sleep timer currently running.
+  /// 2. Bedtime auto-timer enabled in SharedPreferences.
+  /// 3. Current local time inside bedtime window (start time to 5:00 AM).
+  /// 4. At least 60 minutes passed since last auto-start (prevents re-trigger spam).
+  Future<bool> checkAndTriggerBedtimeAutoTimer([DateTime? currentTime]) async {
+    if (state.isActive) return false;
+
+    final now = currentTime ?? DateTime.now();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final enabled = prefs.getBool(PrefKeys.bedtimeAutoTimer) ?? false;
+      if (!enabled) return false;
+
+      final startMinutes = prefs.getInt(PrefKeys.bedtimeStartMinutes) ?? 1320;
+      if (!isInsideBedtimeWindow(now: now, startMinutes: startMinutes)) {
+        return false;
+      }
+
+      final lastTimestamp =
+          prefs.getInt(PrefKeys.lastBedtimeAutoStartTimestamp) ?? 0;
+      const cooldownMs = 60 * 60 * 1000; // 60 minutes cooldown
+      if (now.millisecondsSinceEpoch - lastTimestamp < cooldownMs) {
+        return false;
+      }
+
+      final durationMinutes =
+          prefs.getInt(PrefKeys.bedtimeDurationMinutes) ?? 30;
+      final duration = Duration(minutes: durationMinutes);
+
+      // Persist trigger timestamp
+      await prefs.setInt(
+        PrefKeys.lastBedtimeAutoStartTimestamp,
+        now.millisecondsSinceEpoch,
+      );
+
+      // Start the sleep timer
+      await startTimer(duration, choiceLabel: 'Bedtime auto-timer');
+
+      // Notify UI
+      _bedtimeAutoStartController.add(duration);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   void dispose() {
+    _bedtimePlaybackSubscription?.cancel();
+    _bedtimeAutoStartController.close();
     _stopTicker();
     _stopShakeListening();
     _cancelEndOfSongSubscription();

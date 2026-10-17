@@ -59,6 +59,7 @@ class LibraryView extends ConsumerWidget {
       }
     });
 
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -335,36 +336,69 @@ class LibraryView extends ConsumerWidget {
     ref.read(playerViewModelProvider.notifier).playSong(song, currentQueue);
   }
 
-  void _onPlayNext(BuildContext context, WidgetRef ref, Song song) {
-    ref.read(playerViewModelProvider.notifier).insertNext(song);
+  void _showFloatingSnackBar(
+    BuildContext context,
+    WidgetRef ref, {
+    required Widget content,
+    SnackBarAction? action,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    final hasMiniPlayer = ref.read(playerViewModelProvider).currentSong != null;
+    final isSelectionMode = ref.read(multiSelectProvider).isNotEmpty;
+    final bottomMargin = hasMiniPlayer
+        ? (AppDimensions.miniPlayerHeight + AppDimensions.space24) // 88.0 dp
+        : (isSelectionMode ? 72.0 : AppDimensions.space16);
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Row(
-            children: <Widget>[
-              const Icon(
-                Icons.queue_music_rounded,
-                color: AppColors.accent,
-                size: 20.0,
-              ),
-              const SizedBox(width: AppDimensions.space12),
-              Expanded(
-                child: Text(
-                  'Playing next: ${song.title}',
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(
+            left: AppDimensions.space16,
+            right: AppDimensions.space16,
+            bottom: bottomMargin,
           ),
-          duration: const Duration(seconds: 2),
+          shape: const RoundedRectangleBorder(
+            borderRadius: AppDimensions.borderRadiusCard,
+            side: BorderSide(color: AppColors.outline),
+          ),
+          backgroundColor: AppColors.surface,
+          duration: duration,
+          content: content,
+          action: action,
         ),
       );
+  }
+
+  void _onPlayNext(BuildContext context, WidgetRef ref, Song song) {
+    ref.read(playerViewModelProvider.notifier).insertNext(song);
+    _showFloatingSnackBar(
+      context,
+      ref,
+      duration: const Duration(seconds: 2),
+      content: Row(
+        children: <Widget>[
+          const Icon(
+            Icons.queue_music_rounded,
+            color: AppColors.accent,
+            size: 20.0,
+          ),
+          const SizedBox(width: AppDimensions.space12),
+          Expanded(
+            child: Text(
+              'Playing next: ${song.title}',
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _onRemoveFromFavorites(
@@ -374,32 +408,30 @@ class LibraryView extends ConsumerWidget {
   ) async {
     await ref.read(favoritesProvider.notifier).toggleFavorite(song.id);
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Row(
-            children: <Widget>[
-              const Icon(
-                Icons.favorite_border_rounded,
-                color: AppColors.accent,
-                size: 20.0,
-              ),
-              const SizedBox(width: AppDimensions.space12),
-              Expanded(
-                child: Text(
-                  'Removed "${song.title}" from Favorites',
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
+    _showFloatingSnackBar(
+      context,
+      ref,
+      duration: const Duration(seconds: 2),
+      content: Row(
+        children: <Widget>[
+          const Icon(
+            Icons.favorite_border_rounded,
+            color: AppColors.accent,
+            size: 20.0,
           ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+          const SizedBox(width: AppDimensions.space12),
+          Expanded(
+            child: Text(
+              'Removed "${song.title}" from Favorites',
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _onDeleteSong(
@@ -417,38 +449,36 @@ class LibraryView extends ConsumerWidget {
 
     if (!context.mounted) return;
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Row(
-            children: <Widget>[
-              Icon(
-                deleted
-                    ? Icons.check_circle_rounded
-                    : Icons.error_outline_rounded,
-                color: deleted ? AppColors.accent : AppColors.error,
-                size: 20.0,
-              ),
-              const SizedBox(width: AppDimensions.space12),
-              Expanded(
-                child: Text(
-                  deleted
-                      ? l10n.songDeleted(song.title)
-                      : l10n.songDeleteFailed(song.title),
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+    _showFloatingSnackBar(
+      context,
+      ref,
+      duration: const Duration(seconds: 3),
+      content: Row(
+        children: <Widget>[
+          Icon(
+            deleted
+                ? Icons.check_circle_rounded
+                : Icons.error_outline_rounded,
+            color: deleted ? AppColors.accent : AppColors.error,
+            size: 20.0,
           ),
-          duration: const Duration(seconds: 3),
-        ),
-      );
+          const SizedBox(width: AppDimensions.space12),
+          Expanded(
+            child: Text(
+              deleted
+                  ? l10n.songDeleted(song.title)
+                  : l10n.songDeleteFailed(song.title),
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _handleBatchQueue(
@@ -464,32 +494,30 @@ class LibraryView extends ConsumerWidget {
     ref.read(playerViewModelProvider.notifier).addSongsToQueue(selectedSongs);
     ref.read(multiSelectProvider.notifier).clear();
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Row(
-            children: <Widget>[
-              const Icon(
-                Icons.queue_music_rounded,
-                color: AppColors.accent,
-                size: 20.0,
-              ),
-              const SizedBox(width: AppDimensions.space12),
-              Expanded(
-                child: Text(
-                  'Added ${selectedSongs.length} ${selectedSongs.length == 1 ? "track" : "tracks"} to queue',
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
+    _showFloatingSnackBar(
+      context,
+      ref,
+      duration: const Duration(seconds: 2),
+      content: Row(
+        children: <Widget>[
+          const Icon(
+            Icons.queue_music_rounded,
+            color: AppColors.accent,
+            size: 20.0,
           ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+          const SizedBox(width: AppDimensions.space12),
+          Expanded(
+            child: Text(
+              'Added ${selectedSongs.length} ${selectedSongs.length == 1 ? "track" : "tracks"} to queue',
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _handleBatchPlaylist(
@@ -504,32 +532,30 @@ class LibraryView extends ConsumerWidget {
 
     if (playlistName != null && context.mounted) {
       ref.read(multiSelectProvider.notifier).clear();
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Row(
-              children: <Widget>[
-                const Icon(
-                  Icons.playlist_add_check_rounded,
-                  color: AppColors.accent,
-                  size: 20.0,
-                ),
-                const SizedBox(width: AppDimensions.space12),
-                Expanded(
-                  child: Text(
-                    'Added ${selectedIds.length} ${selectedIds.length == 1 ? "track" : "tracks"} to "$playlistName"',
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
+      _showFloatingSnackBar(
+        context,
+        ref,
+        duration: const Duration(seconds: 2),
+        content: Row(
+          children: <Widget>[
+            const Icon(
+              Icons.playlist_add_check_rounded,
+              color: AppColors.accent,
+              size: 20.0,
             ),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+            const SizedBox(width: AppDimensions.space12),
+            Expanded(
+              child: Text(
+                'Added ${selectedIds.length} ${selectedIds.length == 1 ? "track" : "tracks"} to "$playlistName"',
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -561,32 +587,30 @@ class LibraryView extends ConsumerWidget {
     if (context.mounted) {
       final label =
           '${selectedSongs.length} ${selectedSongs.length == 1 ? "track" : "tracks"}';
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Row(
-              children: <Widget>[
-                const Icon(
-                  Icons.bedtime_rounded,
-                  color: AppColors.accent,
-                  size: 20.0,
-                ),
-                const SizedBox(width: AppDimensions.space12),
-                Expanded(
-                  child: Text(
-                    'Sleep timer set for $label',
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
+      _showFloatingSnackBar(
+        context,
+        ref,
+        duration: const Duration(seconds: 2),
+        content: Row(
+          children: <Widget>[
+            const Icon(
+              Icons.bedtime_rounded,
+              color: AppColors.accent,
+              size: 20.0,
             ),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+            const SizedBox(width: AppDimensions.space12),
+            Expanded(
+              child: Text(
+                'Sleep timer set for $label',
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -599,32 +623,30 @@ class LibraryView extends ConsumerWidget {
     ref.read(multiSelectProvider.notifier).clear();
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Row(
-              children: <Widget>[
-                const Icon(
-                  Icons.favorite_rounded,
-                  color: Color(0xFFFF5252),
-                  size: 20.0,
-                ),
-                const SizedBox(width: AppDimensions.space12),
-                Expanded(
-                  child: Text(
-                    'Added ${selectedIds.length} ${selectedIds.length == 1 ? "track" : "tracks"} to Favorites',
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
+      _showFloatingSnackBar(
+        context,
+        ref,
+        duration: const Duration(seconds: 2),
+        content: Row(
+          children: <Widget>[
+            const Icon(
+              Icons.favorite_rounded,
+              color: Color(0xFFFF5252),
+              size: 20.0,
             ),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+            const SizedBox(width: AppDimensions.space12),
+            Expanded(
+              child: Text(
+                'Added ${selectedIds.length} ${selectedIds.length == 1 ? "track" : "tracks"} to Favorites',
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -684,34 +706,32 @@ class LibraryView extends ConsumerWidget {
       ref.read(multiSelectProvider.notifier).clear();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              content: Row(
-                children: <Widget>[
-                  Icon(
-                    deletedCount > 0
-                        ? Icons.check_circle_rounded
-                        : Icons.error_outline_rounded,
-                    color: deletedCount > 0 ? AppColors.accent : AppColors.error,
-                    size: 20.0,
-                  ),
-                  const SizedBox(width: AppDimensions.space12),
-                  Expanded(
-                    child: Text(
-                      'Permanently deleted $deletedCount ${deletedCount == 1 ? "track" : "tracks"}',
-                      style: AppTextStyles.body.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
+        _showFloatingSnackBar(
+          context,
+          ref,
+          duration: const Duration(seconds: 3),
+          content: Row(
+            children: <Widget>[
+              Icon(
+                deletedCount > 0
+                    ? Icons.check_circle_rounded
+                    : Icons.error_outline_rounded,
+                color: deletedCount > 0 ? AppColors.accent : AppColors.error,
+                size: 20.0,
               ),
-              duration: const Duration(seconds: 3),
-            ),
-          );
+              const SizedBox(width: AppDimensions.space12),
+              Expanded(
+                child: Text(
+                  'Permanently deleted $deletedCount ${deletedCount == 1 ? "track" : "tracks"}',
+                  style: AppTextStyles.body.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
       }
     }
   }

@@ -27,6 +27,10 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
         shakeToExtend: prefs.getBool(PrefKeys.shakeToExtend) ?? true,
         slowVolumeDecline: prefs.getBool(PrefKeys.slowVolumeDecline) ?? true,
         fadeSeconds: prefs.getInt(PrefKeys.fadeSeconds) ?? 30,
+        bedtimeAutoTimer: prefs.getBool(PrefKeys.bedtimeAutoTimer) ?? false,
+        bedtimeStartMinutes: prefs.getInt(PrefKeys.bedtimeStartMinutes) ?? 1320,
+        bedtimeDurationMinutes:
+            prefs.getInt(PrefKeys.bedtimeDurationMinutes) ?? 30,
       );
     } catch (_) {}
   }
@@ -67,6 +71,33 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(PrefKeys.fadeSeconds, seconds);
+    } catch (_) {}
+  }
+
+  /// Updates bedtime auto-timer toggle.
+  Future<void> toggleBedtimeAutoTimer(bool value) async {
+    state = state.copyWith(bedtimeAutoTimer: value);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(PrefKeys.bedtimeAutoTimer, value);
+    } catch (_) {}
+  }
+
+  /// Updates bedtime start time in minutes after midnight.
+  Future<void> setBedtimeStartMinutes(int minutes) async {
+    state = state.copyWith(bedtimeStartMinutes: minutes);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(PrefKeys.bedtimeStartMinutes, minutes);
+    } catch (_) {}
+  }
+
+  /// Updates bedtime auto-timer duration in minutes.
+  Future<void> setBedtimeDurationMinutes(int minutes) async {
+    state = state.copyWith(bedtimeDurationMinutes: minutes);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(PrefKeys.bedtimeDurationMinutes, minutes);
     } catch (_) {}
   }
 }

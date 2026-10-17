@@ -241,7 +241,158 @@ class SettingsView extends ConsumerWidget {
 
           const SizedBox(height: 24.0),
 
-          // Section 3: About
+          // Section 3: Bedtime Auto-Timer
+          _buildSectionHeader('Bedtime Auto-Timer'),
+          const SizedBox(height: 8.0),
+          _buildSettingsCard(
+            children: [
+              SwitchListTile.adaptive(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 4.0,
+                ),
+                activeThumbColor: AppColors.accent,
+                activeTrackColor: AppColors.accent.withValues(alpha: 0.4),
+                inactiveThumbColor: AppColors.textSecondary,
+                inactiveTrackColor: AppColors.outline,
+                secondary: const Icon(
+                  Icons.bedtime_outlined,
+                  color: AppColors.accent,
+                ),
+                title: const Text(
+                  'Auto-Start Sleep Timer',
+                  style: AppTextStyles.songTitle,
+                ),
+                subtitle: const Padding(
+                  padding: EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    'Automatically start timer when playing music during your bedtime hours.',
+                    style: AppTextStyles.caption,
+                  ),
+                ),
+                value: settings.bedtimeAutoTimer,
+                onChanged: (val) => viewModel.toggleBedtimeAutoTimer(val),
+              ),
+              if (settings.bedtimeAutoTimer) ...[
+                const Divider(color: AppColors.outline, height: 1.0, indent: 56.0),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 4.0,
+                  ),
+                  leading: const Icon(
+                    Icons.access_time_rounded,
+                    color: AppColors.accent,
+                  ),
+                  title: const Text(
+                    'Bedtime Starts At',
+                    style: AppTextStyles.songTitle,
+                  ),
+                  subtitle: const Padding(
+                    padding: EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      'Timer triggers when music begins between this time and 5:00 AM.',
+                      style: AppTextStyles.caption,
+                    ),
+                  ),
+                  trailing: InkWell(
+                    borderRadius: BorderRadius.circular(10.0),
+                    onTap: () async {
+                      final currentHour = settings.bedtimeStartMinutes ~/ 60;
+                      final currentMinute = settings.bedtimeStartMinutes % 60;
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay(
+                          hour: currentHour,
+                          minute: currentMinute,
+                        ),
+                      );
+                      if (picked != null) {
+                        viewModel.setBedtimeStartMinutes(
+                          picked.hour * 60 + picked.minute,
+                        );
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 6.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.softAccent(0.12),
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(
+                          color: AppColors.accent.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        settings.formattedBedtimeStart,
+                        style: const TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.accent,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const Divider(color: AppColors.outline, height: 1.0, indent: 56.0),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 4.0,
+                  ),
+                  leading: const Icon(
+                    Icons.timelapse_rounded,
+                    color: AppColors.accent,
+                  ),
+                  title: const Text(
+                    'Auto-Timer Duration',
+                    style: AppTextStyles.songTitle,
+                  ),
+                  subtitle: const Padding(
+                    padding: EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      'Default duration set when bedtime auto-timer triggers.',
+                      style: AppTextStyles.caption,
+                    ),
+                  ),
+                  trailing: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: settings.bedtimeDurationMinutes,
+                      dropdownColor: AppColors.surface,
+                      style: const TextStyle(
+                        fontFamily: AppTextStyles.fontFamily,
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.accent,
+                      ),
+                      icon: const Icon(
+                        Icons.arrow_drop_down,
+                        color: AppColors.accent,
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 15, child: Text('15 min')),
+                        DropdownMenuItem(value: 30, child: Text('30 min')),
+                        DropdownMenuItem(value: 45, child: Text('45 min')),
+                        DropdownMenuItem(value: 60, child: Text('60 min')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          viewModel.setBedtimeDurationMinutes(val);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+
+          const SizedBox(height: 24.0),
+
+          // Section 4: About
           _buildSectionHeader('About'),
           const SizedBox(height: 8.0),
           _buildSettingsCard(

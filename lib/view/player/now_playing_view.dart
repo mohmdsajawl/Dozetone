@@ -74,6 +74,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
       }
     });
 
+
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final maxByHeight = (screenHeight - 340.0).clamp(160.0, 360.0);
