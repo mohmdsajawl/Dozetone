@@ -44,6 +44,8 @@ class FakePermissionService implements PermissionService {
       PermissionStatus.granted;
   @override
   Future<bool> openSettings() async => true;
+  @override
+  Future<bool> ensureNotificationPermission() async => true;
 }
 
 class FakePlaylistRepository implements PlaylistRepository {

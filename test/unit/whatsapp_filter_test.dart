@@ -41,6 +41,9 @@ class FakePermissionService implements PermissionService {
 
   @override
   Future<bool> openSettings() async => true;
+
+  @override
+  Future<bool> ensureNotificationPermission() async => true;
 }
 
 void main() {

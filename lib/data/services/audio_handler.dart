@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart' hide PlayerState;
+import 'package:path_provider/path_provider.dart';
 import '../../model/player_state.dart';
 import '../../model/song.dart';
+import 'media_library_service.dart';
 
 /// Riverpod provider for accessing the singleton DozetoneAudioHandler.
 ///
@@ -22,6 +25,7 @@ final audioHandlerProvider = Provider<DozetoneAudioHandler>((ref) {
 class DozetoneAudioHandler extends BaseAudioHandler
     with SeekHandler, QueueHandler {
   final AudioPlayer _player = AudioPlayer();
+  final MediaLibraryService _mediaLibraryService = MediaLibraryService();
 
   List<Song> _rawQueue = <Song>[];
   List<Song> _activeQueue = <Song>[];
@@ -65,6 +69,30 @@ class DozetoneAudioHandler extends BaseAudioHandler
   DozetoneAudioHandler() {
     _initAudioSession();
     _listenToPlayerEvents();
+  }
+
+  /// Resolves album art image to a local file URI cached in the temporary directory.
+  /// Android's system notification and lock screen require a valid image file/content URI.
+  Future<Uri?> _resolveArtworkUri(Song song) async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final artFile = File('${tempDir.path}/artwork_${song.id}.jpg');
+      if (await artFile.exists()) {
+        return Uri.file(artFile.path);
+      }
+      final bytes = await _mediaLibraryService.queryArtwork(
+        song.id,
+        song.albumId,
+        dataUri: song.dataUri,
+      );
+      if (bytes != null && bytes.isNotEmpty) {
+        await artFile.writeAsBytes(bytes, flush: true);
+        return Uri.file(artFile.path);
+      }
+    } catch (e) {
+      debugPrint('Error caching artwork for notification: $e');
+    }
+    return null;
   }
 
   Future<void> _initAudioSession() async {
@@ -138,8 +166,10 @@ class DozetoneAudioHandler extends BaseAudioHandler
       _emitCurrentState();
     });
 
-    // 3. Handle track completion
+    // 3. Handle playback state transitions and track completion
     _player.playerStateStream.listen((state) {
+      _broadcastPlaybackState();
+      _emitCurrentState();
       if (state.processingState == ProcessingState.completed) {
         _handleTrackCompletion();
       }
@@ -284,6 +314,16 @@ class DozetoneAudioHandler extends BaseAudioHandler
       artUri: null,
     );
     mediaItem.add(item);
+
+    // Resolve artwork asynchronously and update notification MediaItem without blocking playback
+    unawaited(_resolveArtworkUri(song).then((artUri) {
+      if (artUri != null &&
+          _currentIndex >= 0 &&
+          _currentIndex < _activeQueue.length &&
+          _activeQueue[_currentIndex].id == song.id) {
+        mediaItem.add(item.copyWith(artUri: artUri));
+      }
+    }));
 
     try {
       await _player.setFilePath(song.dataUri);
@@ -465,9 +505,18 @@ class DozetoneAudioHandler extends BaseAudioHandler
       artist: song.artist,
       album: song.album,
       duration: Duration(milliseconds: song.durationMs),
-      artUri: song.dataUri.isNotEmpty ? Uri.file(song.dataUri) : null,
+      artUri: null,
     );
     mediaItem.add(item);
+
+    unawaited(_resolveArtworkUri(song).then((artUri) {
+      if (artUri != null &&
+          _currentIndex >= 0 &&
+          _currentIndex < _activeQueue.length &&
+          _activeQueue[_currentIndex].id == song.id) {
+        mediaItem.add(item.copyWith(artUri: artUri));
+      }
+    }));
 
     // Immediately emit restored state so UI (MiniPlayer) renders without waiting for file I/O
     final restoredState = PlayerState(
@@ -640,7 +689,7 @@ class DozetoneAudioHandler extends BaseAudioHandler
           artist: current.artist,
           album: current.album,
           duration: Duration(milliseconds: current.durationMs),
-          artUri: null,
+          artUri: mediaItem.value?.artUri,
         ));
       }
       _emitCurrentState();

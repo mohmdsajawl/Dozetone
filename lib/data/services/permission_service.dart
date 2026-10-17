@@ -81,4 +81,14 @@ class PermissionService {
   Future<bool> openSettings() async {
     return openAppSettings();
   }
+
+  /// Checks and requests Android 13+ (API 33+) POST_NOTIFICATIONS permission
+  /// so media playback controls appear in the notification drawer and lock screen.
+  Future<bool> ensureNotificationPermission() async {
+    if (!Platform.isAndroid) return true;
+    final status = await Permission.notification.status;
+    if (status.isGranted) return true;
+    final result = await Permission.notification.request();
+    return result.isGranted;
+  }
 }

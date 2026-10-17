@@ -49,6 +49,9 @@ dependencies:
   # Key-value persistent storage for user settings and playback state
   shared_preferences: ^2.5.3
 
+  # Access to temporary and application cache directories for album artwork files
+  path_provider: ^2.1.5
+
   # Vector drawable (SVG) rendering for crisp icons and vector logos
   flutter_svg: ^2.0.17
 

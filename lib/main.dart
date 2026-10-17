@@ -38,9 +38,9 @@ Future<void> main() async {
       androidNotificationChannelId: 'com.velcruxlab.dozetone.channel.audio',
       androidNotificationChannelName: 'Dozetone Playback',
       androidNotificationChannelDescription: 'Active playback controls and timer status',
-      androidNotificationIcon: 'mipmap/ic_launcher',
+      androidNotificationIcon: 'drawable/ic_notification',
       androidShowNotificationBadge: true,
-      androidStopForegroundOnPause: true,
+      androidStopForegroundOnPause: false,
     ),
   );
 

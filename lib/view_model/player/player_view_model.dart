@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/player_repository.dart';
+import '../../data/services/permission_service.dart';
 import '../../model/player_state.dart';
 import '../../model/song.dart';
 import '../library/library_state.dart';
@@ -27,10 +28,14 @@ final playerViewModelProvider =
 /// Follows strict MVVM rules: pure Dart logic with no BuildContext or widget imports.
 class PlayerViewModel extends StateNotifier<PlayerState> {
   final PlayerRepository _repository;
+  final PermissionService _permissionService;
   StreamSubscription<PlayerState>? _subscription;
   DateTime _lastPersistTime = DateTime.fromMillisecondsSinceEpoch(0);
 
-  PlayerViewModel(this._repository) : super(const PlayerState()) {
+  PlayerViewModel(
+    this._repository, [
+    this._permissionService = const PermissionService(),
+  ]) : super(const PlayerState()) {
     _listenToPlaybackState();
   }
 
@@ -70,6 +75,7 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
 
   /// Starts playback for a song within the active queue.
   Future<void> playSong(Song song, List<Song> queue) async {
+    unawaited(_permissionService.ensureNotificationPermission());
     // If the song is already current and actively playing, do not restart it
     if (state.currentSong?.id == song.id && state.isPlaying) {
       return;
@@ -90,6 +96,7 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
 
   /// Resumes playback.
   Future<void> play() async {
+    unawaited(_permissionService.ensureNotificationPermission());
     await _repository.play();
     _persistImmediately();
   }

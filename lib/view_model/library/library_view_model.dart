@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../data/repositories/song_repository.dart';
@@ -35,6 +36,7 @@ class LibraryViewModel extends StateNotifier<LibraryState> {
       return;
     }
 
+    unawaited(_permissionService.ensureNotificationPermission());
     await scanSongs();
   }
 
@@ -43,6 +45,7 @@ class LibraryViewModel extends StateNotifier<LibraryState> {
     final status = await _permissionService.requestAudioPermission();
 
     if (status.isGranted || status.isLimited) {
+      unawaited(_permissionService.ensureNotificationPermission());
       await scanSongs();
     } else {
       final isPermanentlyDenied = await _permissionService.isPermanentlyDenied();
