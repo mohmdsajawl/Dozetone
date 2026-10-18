@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart' hide PlayerState;
 import 'package:path_provider/path_provider.dart';
@@ -89,6 +90,24 @@ class DozetoneAudioHandler extends BaseAudioHandler
         await artFile.writeAsBytes(bytes, flush: true);
         return Uri.file(artFile.path);
       }
+
+      // Fallback: Use Dozetone branded high-res album art cover when track has no embedded artwork.
+      // This ensures Android's Material You engine renders a vibrant themed player card
+      // with album art thumbnail and lock screen background.
+      final fallbackFile = File('${tempDir.path}/default_cover.png');
+      if (await fallbackFile.exists()) {
+        return Uri.file(fallbackFile.path);
+      }
+      final assetByteData =
+          await rootBundle.load('assets/images/dozetone_app_icon.png');
+      await fallbackFile.writeAsBytes(
+        assetByteData.buffer.asUint8List(
+          assetByteData.offsetInBytes,
+          assetByteData.lengthInBytes,
+        ),
+        flush: true,
+      );
+      return Uri.file(fallbackFile.path);
     } catch (e) {
       debugPrint('Error caching artwork for notification: $e');
     }
@@ -194,7 +213,6 @@ class DozetoneAudioHandler extends BaseAudioHandler
           MediaControl.skipToPrevious,
           if (playing) MediaControl.pause else MediaControl.play,
           MediaControl.skipToNext,
-          MediaControl.stop,
         ],
         systemActions: const <MediaAction>{
           MediaAction.seek,
@@ -359,8 +377,21 @@ class DozetoneAudioHandler extends BaseAudioHandler
   Future<void> stop() async {
     _playOnInterruptionEnded = false;
     await _player.stop();
+    mediaItem.add(null);
+    playbackState.add(
+      playbackState.value.copyWith(
+        processingState: AudioProcessingState.idle,
+        playing: false,
+      ),
+    );
     _broadcastPlaybackState();
     _emitCurrentState();
+  }
+
+  @override
+  Future<void> onTaskRemoved() async {
+    await stop();
+    await super.onTaskRemoved();
   }
 
   @override
