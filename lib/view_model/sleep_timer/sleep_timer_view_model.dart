@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_durations.dart';
 import '../../core/constants/pref_keys.dart';
+import '../../core/constants/sleep_timer_constants.dart';
+import '../../core/utils/sleep_volume_curve.dart';
 import '../../data/repositories/player_repository.dart';
 import '../../model/player_state.dart';
 import '../../model/sleep_timer_state.dart';
@@ -49,6 +52,22 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
 
   int _fadeSeconds = 30;
   bool _shakeToExtendEnabled = true;
+  bool _slowVolumeDecline = true;
+  double _appliedVolumeFactor = 1.0;
+  DateTime? _lastVolumeDebugPrintTime;
+
+  /// Whether slow volume decline is currently enabled for time-based timers.
+  bool get slowVolumeDecline => _slowVolumeDecline;
+
+  /// Updates the slow volume decline setting and applies it immediately.
+  void setSlowVolumeDecline(bool enabled) {
+    _slowVolumeDecline = enabled;
+  }
+
+  /// Updates the audio fade-out duration in seconds immediately.
+  void setFadeSeconds(int seconds) {
+    _fadeSeconds = seconds;
+  }
 
   DateTime? _lastShakePeakTime;
   int _shakePeakCount = 0;
@@ -80,8 +99,10 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
       final lastChoice = prefs.getString(PrefKeys.lastTimerChoice);
       final fade = prefs.getInt(PrefKeys.fadeSeconds) ?? 30;
       final shakeEnabled = prefs.getBool(PrefKeys.shakeToExtend) ?? true;
+      final slowDecline = prefs.getBool(PrefKeys.slowVolumeDecline) ?? true;
       _fadeSeconds = fade;
       _shakeToExtendEnabled = shakeEnabled;
+      _slowVolumeDecline = slowDecline;
 
       state = state.copyWith(
         shakeToExtendEnabled: shakeEnabled,
@@ -121,12 +142,16 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _playerRepository.setPauseOnTrackEnd(false);
     _playerRepository.setLoopForSleepTimer(true);
 
+
     final now = DateTime.now();
     final endTime = now.add(duration);
 
     if (choiceLabel != null) {
       _saveLastUsedChoice(choiceLabel);
     }
+
+    _appliedVolumeFactor = 1.0;
+    _lastVolumeDebugPrintTime = null;
 
     // Ensure volume starts at 1.0
     await _playerRepository.setVolume(1.0);
@@ -233,18 +258,14 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
       return;
     }
 
-    if (delta > Duration.zero && state.isFadingOut) {
-      await _playerRepository.setVolume(1.0);
-    }
-
     final newTotal = (state.totalDuration ?? Duration.zero) + delta;
+    final resolvedTotal = newTotal > Duration.zero ? newTotal : remaining;
 
     state = state.copyWith(
       targetEndTime: newEndTime,
-      totalDuration: newTotal > Duration.zero ? newTotal : remaining,
+      totalDuration: resolvedTotal,
       remainingDuration: remaining,
-      isFadingOut: false,
-      volumeFactor: 1.0,
+      isFadingOut: remaining <= Duration(seconds: _fadeSeconds),
     );
   }
 
@@ -253,10 +274,6 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     if (duration <= Duration.zero) {
       await _onTimerFinished();
       return;
-    }
-
-    if (state.isFadingOut) {
-      await _playerRepository.setVolume(1.0);
     }
 
     _cancelEndOfSongSubscription();
@@ -270,13 +287,12 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
       targetEndTime: endTime,
       totalDuration: duration,
       remainingDuration: duration,
-      isFadingOut: false,
+      isFadingOut: duration <= Duration(seconds: _fadeSeconds),
       isEndOfSong: false,
       isTrackBased: false,
       totalTracks: 0,
       remainingTracks: 0,
       selectedTracks: const <Song>[],
-      volumeFactor: 1.0,
     );
 
     if (_ticker == null) {
@@ -495,6 +511,8 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _playerRepository.setPauseOnTrackEnd(false);
     _playerRepository.setLoopForSleepTimer(false);
 
+    _appliedVolumeFactor = 1.0;
+    _lastVolumeDebugPrintTime = null;
     await _playerRepository.setVolume(1.0);
 
     state = state.copyWith(
@@ -546,7 +564,12 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
 
     if (state.targetEndTime == null) return;
 
-    final now = DateTime.now();
+    await _updateTimeBasedVolume(DateTime.now());
+  }
+
+  Future<void> _updateTimeBasedVolume(DateTime now) async {
+    if (state.targetEndTime == null) return;
+
     final remaining = state.targetEndTime!.difference(now);
 
     if (remaining <= Duration.zero) {
@@ -554,32 +577,50 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
       return;
     }
 
-    final totalMs = state.totalDuration?.inMilliseconds ?? 0;
-    final remainingMs = remaining.inMilliseconds;
-    final fadeLengthMs = math.min(_fadeSeconds * 1000, totalMs);
+    final total = state.totalDuration ?? remaining;
+    final fade = Duration(seconds: _fadeSeconds);
 
-    if (remainingMs <= fadeLengthMs && fadeLengthMs > 0) {
-      // Inside gentle fade-out window
-      // Formula: factor = (remainingMs / fadeLengthMs)^2
-      final progress = (remainingMs / fadeLengthMs).clamp(0.0, 1.0);
-      final factor = math.pow(progress, 2).toDouble();
+    final targetFactor = computeTimerVolumeFactor(
+      remaining: remaining,
+      total: total,
+      fade: fade,
+      declineEnabled: _slowVolumeDecline,
+    );
 
-      await _playerRepository.setVolume(factor);
-      if (!mounted || !state.isActive) return;
-
-      state = state.copyWith(
-        remainingDuration: remaining,
-        isFadingOut: true,
-        volumeFactor: factor,
+    double nextFactor;
+    if (targetFactor > _appliedVolumeFactor) {
+      // Limit any increase to at most maxVolumeIncreasePerTick (0.1) per tick
+      nextFactor = math.min(
+        targetFactor,
+        _appliedVolumeFactor + SleepTimerConstants.maxVolumeIncreasePerTick,
       );
     } else {
-      // Normal countdown before fade-out
-      state = state.copyWith(
-        remainingDuration: remaining,
-        isFadingOut: false,
-        volumeFactor: 1.0,
-      );
+      // Decreases follow the calculated curve directly
+      nextFactor = targetFactor;
     }
+
+    _appliedVolumeFactor = nextFactor;
+    await _playerRepository.setVolume(nextFactor);
+
+    if (kDebugMode) {
+      if (_lastVolumeDebugPrintTime == null ||
+          now.difference(_lastVolumeDebugPrintTime!) >=
+              const Duration(seconds: 5)) {
+        _lastVolumeDebugPrintTime = now;
+        debugPrint(
+          'SleepTimer volume factor: ${nextFactor.toStringAsFixed(3)}',
+        );
+      }
+    }
+
+    if (!mounted || !state.isActive) return;
+
+    final isFading = remaining <= fade && fade > Duration.zero;
+    state = state.copyWith(
+      remainingDuration: remaining,
+      isFadingOut: isFading,
+      volumeFactor: nextFactor,
+    );
   }
 
   Future<void> _onTimerFinished() async {
@@ -593,6 +634,8 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     await _playerRepository.pause();
 
     // 2. Restore internal player volume multiplier so next play session is clean
+    _appliedVolumeFactor = 1.0;
+    _lastVolumeDebugPrintTime = null;
     await _playerRepository.setVolume(1.0);
 
     // 3. Deactivate timer state if still mounted

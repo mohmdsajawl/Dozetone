@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/pref_keys.dart';
 import '../library/library_view_model.dart';
+import '../sleep_timer/sleep_timer_view_model.dart';
 import 'settings_state.dart';
 
 /// Provider exposing SettingsViewModel and its state.
@@ -63,6 +64,9 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(PrefKeys.slowVolumeDecline, value);
     } catch (_) {}
+
+    // Immediately update active or next sleep timer
+    _ref.read(sleepTimerProvider.notifier).setSlowVolumeDecline(value);
   }
 
   /// Updates audio fade duration in seconds.
@@ -72,6 +76,9 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(PrefKeys.fadeSeconds, seconds);
     } catch (_) {}
+
+    // Immediately update active or next sleep timer
+    _ref.read(sleepTimerProvider.notifier).setFadeSeconds(seconds);
   }
 
   /// Updates bedtime auto-timer toggle.

@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:dozetone/core/constants/pref_keys.dart';
+import 'package:dozetone/core/constants/sleep_timer_constants.dart';
+import 'package:dozetone/core/utils/sleep_volume_curve.dart';
 import 'package:dozetone/data/repositories/player_repository.dart';
 import 'package:dozetone/model/player_state.dart';
 import 'package:dozetone/model/sleep_timer_state.dart';
@@ -401,7 +403,8 @@ void main() {
       // Should add 5 minutes and reset fading out
       expect(shakeViewModel.state.isFadingOut, false);
       expect(shakeViewModel.state.remainingDuration.inSeconds, greaterThanOrEqualTo(290));
-      expect(shakeRepo.lastVolume, 1.0);
+      // Volume starts ramping up smoothly without jumping immediately to 1.0
+      expect(shakeRepo.lastVolume, lessThanOrEqualTo(1.0));
     });
 
     test('does not add 5 minutes if shakeToExtend is disabled', () async {
@@ -662,6 +665,213 @@ void main() {
 
       expect(vm.state.remainingDuration.inMinutes, 45);
       expect(vm.state.totalDuration, const Duration(minutes: 45));
+    });
+  });
+
+  group('computeTimerVolumeFactor pure function tests', () {
+    test('decline off before fade = 1.0', () {
+      final factor = computeTimerVolumeFactor(
+        remaining: const Duration(seconds: 80),
+        total: const Duration(seconds: 100),
+        fade: const Duration(seconds: 20),
+        declineEnabled: false,
+      );
+      expect(factor, closeTo(1.0, 1e-6));
+    });
+
+    test('decline on at start = 1.0', () {
+      final factor = computeTimerVolumeFactor(
+        remaining: const Duration(seconds: 100),
+        total: const Duration(seconds: 100),
+        fade: const Duration(seconds: 20),
+        declineEnabled: true,
+      );
+      expect(factor, closeTo(1.0, 1e-6));
+    });
+
+    test('halfway through the pre-fade part = 0.8', () {
+      // Total 100s, fade 20s: preFade is 80s.
+      // Halfway through pre-fade is elapsed 40s, so remaining 60s.
+      final factor = computeTimerVolumeFactor(
+        remaining: const Duration(seconds: 60),
+        total: const Duration(seconds: 100),
+        fade: const Duration(seconds: 20),
+        declineEnabled: true,
+      );
+      expect(factor, closeTo(0.8, 1e-6));
+    });
+
+    test('exactly at fade start = 0.6', () {
+      // Exactly at fade start: remaining equals fade duration (20s).
+      final factor = computeTimerVolumeFactor(
+        remaining: const Duration(seconds: 20),
+        total: const Duration(seconds: 100),
+        fade: const Duration(seconds: 20),
+        declineEnabled: true,
+      );
+      expect(factor, closeTo(0.6, 1e-6));
+    });
+
+    test('halfway through the fade = 0.15', () {
+      // Halfway through 20s fade: remaining is 10s.
+      // Factor is 0.6 * (10 / 20)^2 = 0.6 * 0.25 = 0.15.
+      final factor = computeTimerVolumeFactor(
+        remaining: const Duration(seconds: 10),
+        total: const Duration(seconds: 100),
+        fade: const Duration(seconds: 20),
+        declineEnabled: true,
+      );
+      expect(factor, closeTo(0.15, 1e-6));
+    });
+
+    test('total shorter than fade', () {
+      // When total <= fade, no pre-fade part exists; normal fade starts at 1.0.
+      final startFactor = computeTimerVolumeFactor(
+        remaining: const Duration(seconds: 15),
+        total: const Duration(seconds: 15),
+        fade: const Duration(seconds: 30),
+        declineEnabled: true,
+      );
+      expect(startFactor, closeTo(1.0, 1e-6));
+
+      final halfFactor = computeTimerVolumeFactor(
+        remaining: const Duration(milliseconds: 7500),
+        total: const Duration(seconds: 15),
+        fade: const Duration(seconds: 30),
+        declineEnabled: true,
+      );
+      expect(halfFactor, closeTo(0.25, 1e-6));
+    });
+
+    test('total equal to fade', () {
+      // When total == fade, normal quadratic fade starts at 1.0.
+      final startFactor = computeTimerVolumeFactor(
+        remaining: const Duration(seconds: 30),
+        total: const Duration(seconds: 30),
+        fade: const Duration(seconds: 30),
+        declineEnabled: true,
+      );
+      expect(startFactor, closeTo(1.0, 1e-6));
+
+      final halfFactor = computeTimerVolumeFactor(
+        remaining: const Duration(seconds: 15),
+        total: const Duration(seconds: 30),
+        fade: const Duration(seconds: 30),
+        declineEnabled: true,
+      );
+      expect(halfFactor, closeTo(0.25, 1e-6));
+    });
+
+    test('remaining zero = 0.0', () {
+      final factor = computeTimerVolumeFactor(
+        remaining: Duration.zero,
+        total: const Duration(seconds: 100),
+        fade: const Duration(seconds: 20),
+        declineEnabled: true,
+      );
+      expect(factor, closeTo(0.0, 1e-6));
+    });
+  });
+
+  group('Slow volume decline ViewModel integration', () {
+    test('setVolume values follow the curve', () async {
+      SharedPreferences.setMockInitialValues({
+        PrefKeys.slowVolumeDecline: true,
+        PrefKeys.fadeSeconds: 1,
+      });
+      final repo = FakePlayerRepository();
+      final vm = SleepTimerViewModel(repo);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      // Start a 2-second timer (pre-fade = 1s, fade = 1s)
+      await vm.startTimer(const Duration(seconds: 2));
+      expect(repo.lastVolume, 1.0);
+
+      // Wait about 550 ms (halfway through 1-second pre-fade)
+      await Future<void>.delayed(const Duration(milliseconds: 550));
+      expect(vm.state.isFadingOut, false);
+      expect(vm.state.volumeFactor, lessThan(1.0));
+      expect(vm.state.volumeFactor, greaterThan(0.6));
+      expect(repo.lastVolume, closeTo(vm.state.volumeFactor, 1e-3));
+
+      // Wait another 650 ms (now inside 1-second fade window)
+      await Future<void>.delayed(const Duration(milliseconds: 650));
+      expect(vm.state.isFadingOut, true);
+      expect(vm.state.volumeFactor, lessThanOrEqualTo(0.6));
+      expect(repo.lastVolume, lessThanOrEqualTo(0.6));
+
+      vm.dispose();
+      repo.dispose();
+    });
+
+    test('adding 5 minutes never raises volume by more than 0.1 per tick', () async {
+      SharedPreferences.setMockInitialValues({
+        PrefKeys.slowVolumeDecline: true,
+        PrefKeys.fadeSeconds: 1,
+      });
+      final repo = FakePlayerRepository();
+      final vm = SleepTimerViewModel(repo);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      // Start 2-second timer and wait until volume is low inside the fade window
+      await vm.startTimer(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(milliseconds: 1600));
+
+      final volumeBeforeAdd = repo.lastVolume ?? 0.0;
+      expect(volumeBeforeAdd, lessThan(0.4));
+
+      final historyIndexBeforeAdd = repo.volumeHistory.length;
+
+      // Add 5 minutes to trigger volume recalculation
+      await vm.add5Minutes();
+
+      // Wait for 3 ticks (about 800 ms) while volume ramps back up
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+
+      // Verify that every recorded step increased by at most 0.1
+      double previousVolume = volumeBeforeAdd;
+      for (int i = historyIndexBeforeAdd; i < repo.volumeHistory.length; i++) {
+        final current = repo.volumeHistory[i];
+        final increase = current - previousVolume;
+        expect(
+          increase,
+          lessThanOrEqualTo(SleepTimerConstants.maxVolumeIncreasePerTick + 1e-4),
+          reason: 'Volume jump at step $i was $increase, exceeding 0.1',
+        );
+        previousVolume = current;
+      }
+
+      vm.dispose();
+      repo.dispose();
+    });
+
+    test('cancel and finish restore 1.0', () async {
+      SharedPreferences.setMockInitialValues({
+        PrefKeys.slowVolumeDecline: true,
+        PrefKeys.fadeSeconds: 1,
+      });
+      final repo = FakePlayerRepository();
+      final vm = SleepTimerViewModel(repo);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      // 1. Cancel restore check
+      await vm.startTimer(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(milliseconds: 550));
+      expect(repo.lastVolume, lessThan(1.0));
+
+      await vm.cancelTimer();
+      expect(vm.state.isActive, false);
+      expect(repo.lastVolume, 1.0);
+
+      // 2. Finish restore check
+      await vm.startTimer(const Duration(milliseconds: 500));
+      await Future<void>.delayed(const Duration(milliseconds: 1000));
+      expect(vm.state.isActive, false);
+      expect(repo.pauseCalled, true);
+      expect(repo.lastVolume, 1.0);
+
+      vm.dispose();
+      repo.dispose();
     });
   });
 }
