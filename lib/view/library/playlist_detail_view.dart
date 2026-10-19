@@ -407,7 +407,7 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
                                   style: const TextStyle(
                                     fontFamily: AppTextStyles.fontFamily,
                                     fontSize: 18.0,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                     color: AppColors.textPrimary,
                                   ),
                                   maxLines: 1,
@@ -635,7 +635,7 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
                                 'Add Songs',
                                 style: TextStyle(
                                   fontFamily: AppTextStyles.fontFamily,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                               onPressed: () => PlaylistAddSongsSheet.show(

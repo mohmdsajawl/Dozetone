@@ -230,7 +230,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                                 style: const TextStyle(
                                   fontFamily: AppTextStyles.fontFamily,
                                   fontSize: 18.0,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                   color: AppColors.textPrimary,
                                 ),
                               ),
@@ -303,7 +303,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                                 'Playlists'.toUpperCase(),
                                 style: AppTextStyles.caption.copyWith(
                                   color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                   letterSpacing: 1.0,
                                 ),
                               ),

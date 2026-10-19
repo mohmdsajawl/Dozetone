@@ -195,7 +195,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                   l10n.nowPlayingTitle.toUpperCase(),
                                   style: AppTextStyles.caption.copyWith(
                                     color: AppColors.textPrimary,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                     letterSpacing: 1.2,
                                     fontSize: 11.0,
                                   ),
@@ -414,7 +414,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                   style: const TextStyle(
                                     fontFamily: AppTextStyles.fontFamily,
                                     fontSize: 18.0,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                     color: AppColors.textPrimary,
                                     letterSpacing: -0.2,
                                   ),

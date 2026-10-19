@@ -690,7 +690,7 @@ class LibraryView extends ConsumerWidget {
               'Delete',
               style: TextStyle(
                 color: AppColors.error,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),

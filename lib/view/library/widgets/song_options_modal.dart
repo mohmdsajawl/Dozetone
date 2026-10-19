@@ -391,7 +391,7 @@ class SongOptionsModal extends ConsumerWidget {
               l10n.delete,
               style: const TextStyle(
                 color: AppColors.error,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -621,7 +621,7 @@ class _RenameSongDialogState extends ConsumerState<_RenameSongDialog> {
                   l10n.renameSong,
                   style: const TextStyle(
                     color: AppColors.accent,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
         ),

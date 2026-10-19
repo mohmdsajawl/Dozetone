@@ -138,7 +138,7 @@ class LibraryTabPills extends ConsumerWidget {
                           style: TextStyle(
                             fontFamily: AppTextStyles.fontFamily,
                             fontSize: 10.0,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: isSelected
                                 ? AppColors.accent
                                 : AppColors.textSecondary,

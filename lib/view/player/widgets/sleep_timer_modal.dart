@@ -321,7 +321,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                   style: TextStyle(
                     fontFamily: AppTextStyles.fontFamily,
                     fontSize: isTrack ? 32.0 : 44.0,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                     letterSpacing: -0.5,
                   ),
@@ -356,7 +356,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                           l10n.fadingOut,
                           style: AppTextStyles.caption.copyWith(
                             color: AppColors.accent,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -623,7 +623,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                           '${(_activeSliderMinutes ?? timerState.remainingDuration.inMinutes).round()} min',
                           style: AppTextStyles.body.copyWith(
                             color: AppColors.accent,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -1230,7 +1230,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                               style: AppTextStyles.caption.copyWith(
                                 color: accentHighlight,
                                 fontSize: 10.0,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -1280,7 +1280,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                       '$_customMinutes min',
                       style: AppTextStyles.body.copyWith(
                         color: AppColors.accent,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         fontSize: 16.0,
                       ),
                     ),
@@ -1539,7 +1539,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                         textAlign: TextAlign.center,
                         style: AppTextStyles.body.copyWith(
                           color: AppColors.accent,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           fontSize: 15.0,
                         ),
                       ),
@@ -1655,7 +1655,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                         'Select >',
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.onAccent,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

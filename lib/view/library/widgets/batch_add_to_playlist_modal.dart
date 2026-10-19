@@ -251,7 +251,7 @@ class BatchAddToPlaylistModal extends ConsumerWidget {
             },
             child: const Text(
               'Create & Add',
-              style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
+              style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600),
             ),
           ),
         ],

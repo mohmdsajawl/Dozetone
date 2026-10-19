@@ -161,7 +161,7 @@ class _PlaylistAddSongsSheetState extends ConsumerState<PlaylistAddSongsSheet> {
                           style: TextStyle(
                             fontFamily: AppTextStyles.fontFamily,
                             fontSize: 18.0,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: AppColors.textPrimary,
                           ),
                         ),
@@ -419,7 +419,7 @@ class _PlaylistAddSongsSheetState extends ConsumerState<PlaylistAddSongsSheet> {
                     style: const TextStyle(
                       fontFamily: AppTextStyles.fontFamily,
                       fontSize: 15.0,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),

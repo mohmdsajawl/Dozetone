@@ -259,7 +259,7 @@ class LibraryActionBar extends ConsumerWidget {
                           style: TextStyle(
                             fontFamily: AppTextStyles.fontFamily,
                             fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: isEnabled
                                 ? AppColors.onAccent
                                 : AppColors.textSecondary,

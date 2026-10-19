@@ -58,7 +58,7 @@ class MultiSelectActionBar extends StatelessWidget implements PreferredSizeWidge
               child: Text(
                 '$selectedCount selected',
                 style: AppTextStyles.screenTitle.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   fontSize: 18.0,
                 ),
               ),

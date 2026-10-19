@@ -167,7 +167,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
                       '${queue.length}',
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.accent,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -390,7 +390,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
                                 style: AppTextStyles.caption.copyWith(
                                   color: AppColors.accent,
                                   fontSize: 10.0,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w600,
                                   letterSpacing: 0.8,
                                 ),
                               ),

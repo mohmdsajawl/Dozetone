@@ -29,6 +29,13 @@ abstract final class AppTheme {
       scaffoldBackgroundColor: AppColors.background,
       fontFamily: AppTextStyles.fontFamily,
 
+      // Explicit text theme so every Material widget (dialogs, time pickers,
+      // snackbars, bottom sheets, Settings) inherits Poppins without relying
+      // solely on the fontFamily fallback.
+      textTheme: Typography.material2021().white.apply(
+        fontFamily: AppTextStyles.fontFamily,
+      ),
+
       // App bar theme
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.background,
