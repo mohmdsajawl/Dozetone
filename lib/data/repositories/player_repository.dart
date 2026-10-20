@@ -26,6 +26,9 @@ abstract class PlayerRepository {
   /// Sets whether the sleep timer extension action (+5 min) is displayed on media notification.
   void setTimerActionVisible(bool visible);
 
+  /// Sets the sleep timer notification status prefix displayed before the artist name.
+  void setTimerNotificationText(String? text);
+
   /// Sets whether playback should automatically pause at the end of the current track
   /// rather than advancing to the next song or repeating.
   void setPauseOnTrackEnd(bool pause);
@@ -127,6 +130,10 @@ class PlayerRepositoryImpl implements PlayerRepository {
   @override
   void setTimerActionVisible(bool visible) =>
       _audioHandler.setTimerActionVisible(visible);
+
+  @override
+  void setTimerNotificationText(String? text) =>
+      _audioHandler.setTimerNotificationText(text);
 
   @override
   void setPauseOnTrackEnd(bool pause) => _audioHandler.setPauseOnTrackEnd(pause);

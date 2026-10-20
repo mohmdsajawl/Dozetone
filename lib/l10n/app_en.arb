@@ -491,5 +491,35 @@
   "notificationAddFiveMinutes": "+5 min",
   "@notificationAddFiveMinutes": {
     "description": "Notification media control button label to extend sleep timer by 5 minutes"
+  },
+  "notificationTimerMinutes": "Sleep in {minutes} min",
+  "@notificationTimerMinutes": {
+    "description": "Timer status in notification when more than 1 minute remains",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationTimerUnderMinute": "Sleep in under 1 min",
+  "@notificationTimerUnderMinute": {
+    "description": "Timer status in notification when under 60 seconds remain"
+  },
+  "notificationTimerFading": "Fading out",
+  "@notificationTimerFading": {
+    "description": "Timer status in notification during volume fade-out"
+  },
+  "notificationTimerEndOfSong": "Sleep after this song",
+  "@notificationTimerEndOfSong": {
+    "description": "Timer status in notification for end-of-current-song timer"
+  },
+  "notificationTimerTracks": "{count, plural, =1{Sleep after 1 song} other{Sleep after {count} songs}}",
+  "@notificationTimerTracks": {
+    "description": "Timer status in notification for track-based sleep timer",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

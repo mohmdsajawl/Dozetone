@@ -44,6 +44,17 @@ class FakePlayerRepository implements PlayerRepository {
     timerActionVisible = visible;
   }
 
+  String? timerNotificationText;
+  int timerNotificationTextCallCount = 0;
+  List<String?> timerNotificationTextHistory = [];
+
+  @override
+  void setTimerNotificationText(String? text) {
+    timerNotificationText = text;
+    timerNotificationTextCallCount++;
+    timerNotificationTextHistory.add(text);
+  }
+
   void emitTimerNotificationAction(TimerNotificationAction action) {
     _timerNotificationActionController.add(action);
   }
@@ -1009,6 +1020,52 @@ void main() {
         expect(vm.state.isActive, isFalse);
         expect(vm.state.targetEndTime, isNull);
         expect(vm.state.totalDuration, isNull);
+
+        vm.dispose();
+        repo.dispose();
+      });
+    });
+
+    group('Notification timer status text', () {
+      test(
+          'the text is sent only when it changes (several ticks produce one call)',
+          () async {
+        final repo = FakePlayerRepository();
+        final vm = SleepTimerViewModel(repo);
+
+        await vm.startTimer(const Duration(minutes: 15));
+        expect(repo.timerNotificationText, 'Sleep in 15 min');
+        expect(repo.timerNotificationTextCallCount, 1);
+
+        // Wait for several ticks in the same minute (250ms per tick)
+        await Future<void>.delayed(const Duration(milliseconds: 600));
+
+        // Still in the 15 min window, so no duplicate call is made
+        expect(repo.timerNotificationText, 'Sleep in 15 min');
+        expect(repo.timerNotificationTextCallCount, 1);
+
+        vm.dispose();
+        repo.dispose();
+      });
+
+      test('null text is sent on cancel and on finish', () async {
+        final repo = FakePlayerRepository();
+        final vm = SleepTimerViewModel(repo);
+
+        // 1. Cancel sends null
+        await vm.startTimer(const Duration(minutes: 10));
+        expect(repo.timerNotificationText, 'Sleep in 10 min');
+
+        await vm.cancelTimer();
+        expect(repo.timerNotificationText, isNull);
+
+        // 2. Finish sends null
+        await vm.startTimer(const Duration(milliseconds: 50));
+        expect(repo.timerNotificationText, 'Sleep in under 1 min');
+
+        await Future<void>.delayed(const Duration(milliseconds: 350));
+        expect(vm.state.isActive, isFalse);
+        expect(repo.timerNotificationText, isNull);
 
         vm.dispose();
         repo.dispose();

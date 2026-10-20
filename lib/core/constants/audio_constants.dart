@@ -5,4 +5,7 @@ abstract final class AudioConstants {
 
   /// Custom action identifier for extending active sleep timer by 5 minutes from media notification.
   static const String addFiveMinutesActionName = 'add_five_minutes';
+
+  /// Separator between the sleep timer status prefix and original track artist in media notification.
+  static const String notificationStatusSeparator = ' \u2022 ';
 }

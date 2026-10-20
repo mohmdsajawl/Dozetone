@@ -5,11 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/widgets.dart' show Locale;
 import '../../core/constants/app_durations.dart';
 import '../../core/constants/pref_keys.dart';
 import '../../core/constants/sleep_timer_constants.dart';
 import '../../core/utils/sleep_volume_curve.dart';
+import '../../core/utils/timer_notification_text.dart';
 import '../../data/repositories/player_repository.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../model/player_state.dart';
 import '../../model/sleep_timer_state.dart';
 import '../../model/song.dart';
@@ -75,6 +78,8 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
   DateTime? _lastShakePeakTime;
   int _shakePeakCount = 0;
   DateTime? _lastShakeTriggerTime;
+  String? _lastNotificationText;
+  RemoveListener? _removeNotificationListener;
 
   SleepTimerViewModel(
     this._playerRepository, {
@@ -83,6 +88,21 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _loadInitialPreferences();
     _listenToPlaybackForBedtime();
     _listenToTimerNotificationActions();
+    _removeNotificationListener = addListener(_syncNotification);
+  }
+
+  /// Single point of synchronization for media notification action and status text.
+  void _syncNotification(SleepTimerState s) {
+    _playerRepository.setTimerActionVisible(s.isActive);
+
+    final text = buildTimerNotificationText(
+      state: s,
+      l10n: lookupAppLocalizations(const Locale('en')),
+    );
+    if (_lastNotificationText != text) {
+      _lastNotificationText = text;
+      _playerRepository.setTimerNotificationText(text);
+    }
   }
 
   void _listenToPlaybackForBedtime() {
@@ -158,7 +178,6 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _cancelEndOfSongSubscription();
     _playerRepository.setPauseOnTrackEnd(false);
     _playerRepository.setLoopForSleepTimer(true);
-    _playerRepository.setTimerActionVisible(true);
 
     final now = DateTime.now();
     final endTime = now.add(duration);
@@ -194,10 +213,43 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
 
   /// Starts an "End of current track" timer that pauses when current track ends.
   Future<void> startEndOfSongTimer({String? choiceLabel}) async {
-    await startTracksTimer(
-      trackCount: 1,
-      choiceLabel: choiceLabel ?? 'End of current track',
+    _stopTicker();
+    _cancelEndOfSongSubscription();
+
+    _playerRepository.setPauseOnTrackEnd(true);
+    _playerRepository.setLoopForSleepTimer(true);
+
+    if (choiceLabel != null) {
+      _saveLastUsedChoice(choiceLabel);
+    }
+
+    await _playerRepository.setVolume(1.0);
+
+    state = state.copyWith(
+      isActive: true,
+      targetEndTime: null,
+      totalDuration: null,
+      remainingDuration: Duration.zero,
+      isFadingOut: false,
+      isEndOfSong: true,
+      isTrackBased: false,
+      totalTracks: 0,
+      remainingTracks: 0,
+      selectedTracks: const <Song>[],
+      volumeFactor: 1.0,
+      lastUsedChoice: choiceLabel ?? 'End of current track',
     );
+
+    _trackCompletedSubscription =
+        _playerRepository.trackCompletedStream.listen((_) {
+      _onTrackCompleted();
+    });
+
+    _playerStateSubscription =
+        _playerRepository.playerStateStream.listen(_handlePlayerStateForEndOfSong);
+
+    _startTicker();
+    _startShakeListening();
   }
 
   /// Starts a track-based timer that pauses playback after [trackCount] tracks finish.
@@ -216,7 +268,6 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     final isSingleTrack = trackCount == 1;
     _playerRepository.setPauseOnTrackEnd(isSingleTrack);
     _playerRepository.setLoopForSleepTimer(true);
-    _playerRepository.setTimerActionVisible(true);
 
     if (choiceLabel != null) {
       _saveLastUsedChoice(choiceLabel);
@@ -296,7 +347,6 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
 
     _cancelEndOfSongSubscription();
     _playerRepository.setPauseOnTrackEnd(false);
-    _playerRepository.setTimerActionVisible(true);
 
     final now = DateTime.now();
     final endTime = now.add(duration);
@@ -529,7 +579,6 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _cancelEndOfSongSubscription();
     _playerRepository.setPauseOnTrackEnd(false);
     _playerRepository.setLoopForSleepTimer(false);
-    _playerRepository.setTimerActionVisible(false);
 
     _appliedVolumeFactor = 1.0;
     _lastVolumeDebugPrintTime = null;
@@ -652,7 +701,6 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _cancelEndOfSongSubscription();
     _playerRepository.setPauseOnTrackEnd(false);
     _playerRepository.setLoopForSleepTimer(false);
-    _playerRepository.setTimerActionVisible(false);
 
     // 1. Pause playback
     await _playerRepository.pause();
@@ -842,8 +890,10 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
 
   @override
   void dispose() {
-    _timerNotificationActionSubscription?.cancel();
+    _removeNotificationListener?.call();
     _playerRepository.setTimerActionVisible(false);
+    _playerRepository.setTimerNotificationText(null);
+    _timerNotificationActionSubscription?.cancel();
     _bedtimePlaybackSubscription?.cancel();
     _bedtimeAutoStartController.close();
     _stopTicker();

@@ -45,6 +45,9 @@ class FakePlayerRepository implements PlayerRepository {
   void setTimerActionVisible(bool visible) {}
 
   @override
+  void setTimerNotificationText(String? text) {}
+
+  @override
   void setPauseOnTrackEnd(bool pause) {}
 
   @override

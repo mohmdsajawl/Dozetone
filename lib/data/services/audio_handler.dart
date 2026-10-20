@@ -89,6 +89,33 @@ class DozetoneAudioHandler extends BaseAudioHandler
     _broadcastPlaybackState();
   }
 
+  String? _timerNotificationText;
+  String? _currentOriginalArtist;
+
+  /// Formats the notification artist line, prepending the timer status prefix when active.
+  String _formatNotificationArtist(String originalArtist) {
+    if (_timerNotificationText == null || _timerNotificationText!.isEmpty) {
+      return originalArtist;
+    }
+    return '$_timerNotificationText${AudioConstants.notificationStatusSeparator}$originalArtist';
+  }
+
+  /// Sets the sleep timer notification status prefix and updates the active MediaItem artist line.
+  void setTimerNotificationText(String? text) {
+    _timerNotificationText = text;
+    final currentItem = mediaItem.value;
+    final song = (_currentIndex >= 0 && _currentIndex < _activeQueue.length)
+        ? _activeQueue[_currentIndex]
+        : null;
+    final originalArtist = _currentOriginalArtist ?? song?.artist;
+    if (currentItem != null && originalArtist != null) {
+      final updatedArtist = _formatNotificationArtist(originalArtist);
+      if (currentItem.artist != updatedArtist) {
+        mediaItem.add(currentItem.copyWith(artist: updatedArtist));
+      }
+    }
+  }
+
   DozetoneAudioHandler() {
     _initAudioSession();
     _listenToPlayerEvents();
@@ -354,12 +381,13 @@ class DozetoneAudioHandler extends BaseAudioHandler
 
     _currentIndex = index;
     final song = _activeQueue[_currentIndex];
+    _currentOriginalArtist = song.artist;
 
     // Update system MediaItem for notification
     final item = MediaItem(
       id: song.id.toString(),
       title: song.title,
-      artist: song.artist,
+      artist: _formatNotificationArtist(song.artist),
       album: song.album,
       duration: Duration(milliseconds: song.durationMs),
       artUri: null,
@@ -577,10 +605,11 @@ class DozetoneAudioHandler extends BaseAudioHandler
       _currentIndex = 0;
     }
 
+    _currentOriginalArtist = song.artist;
     final item = MediaItem(
       id: song.id.toString(),
       title: song.title,
-      artist: song.artist,
+      artist: _formatNotificationArtist(song.artist),
       album: song.album,
       duration: Duration(milliseconds: song.durationMs),
       artUri: null,
@@ -761,10 +790,11 @@ class DozetoneAudioHandler extends BaseAudioHandler
           _currentIndex < _activeQueue.length &&
           _activeQueue[_currentIndex].id == songId) {
         final current = _activeQueue[_currentIndex];
+        _currentOriginalArtist = current.artist;
         mediaItem.add(MediaItem(
           id: current.id.toString(),
           title: current.title,
-          artist: current.artist,
+          artist: _formatNotificationArtist(current.artist),
           album: current.album,
           duration: Duration(milliseconds: current.durationMs),
           artUri: mediaItem.value?.artUri,

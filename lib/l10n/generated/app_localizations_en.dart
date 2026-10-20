@@ -356,4 +356,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationAddFiveMinutes => '+5 min';
+
+  @override
+  String notificationTimerMinutes(int minutes) {
+    return 'Sleep in $minutes min';
+  }
+
+  @override
+  String get notificationTimerUnderMinute => 'Sleep in under 1 min';
+
+  @override
+  String get notificationTimerFading => 'Fading out';
+
+  @override
+  String get notificationTimerEndOfSong => 'Sleep after this song';
+
+  @override
+  String notificationTimerTracks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sleep after $count songs',
+      one: 'Sleep after 1 song',
+    );
+    return '$_temp0';
+  }
 }

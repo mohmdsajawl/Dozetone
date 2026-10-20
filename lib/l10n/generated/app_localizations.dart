@@ -687,6 +687,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'+5 min'**
   String get notificationAddFiveMinutes;
+
+  /// Timer status in notification when more than 1 minute remains
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep in {minutes} min'**
+  String notificationTimerMinutes(int minutes);
+
+  /// Timer status in notification when under 60 seconds remain
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep in under 1 min'**
+  String get notificationTimerUnderMinute;
+
+  /// Timer status in notification during volume fade-out
+  ///
+  /// In en, this message translates to:
+  /// **'Fading out'**
+  String get notificationTimerFading;
+
+  /// Timer status in notification for end-of-current-song timer
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep after this song'**
+  String get notificationTimerEndOfSong;
+
+  /// Timer status in notification for track-based sleep timer
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Sleep after 1 song} other{Sleep after {count} songs}}'**
+  String notificationTimerTracks(int count);
 }
 
 class _AppLocalizationsDelegate

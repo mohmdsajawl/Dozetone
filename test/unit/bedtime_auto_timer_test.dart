@@ -30,6 +30,9 @@ class FakePlayerRepository implements PlayerRepository {
   void setTimerActionVisible(bool visible) {}
 
   @override
+  void setTimerNotificationText(String? text) {}
+
+  @override
   Future<void> setVolume(double volume) async {
     currentVolume = volume;
   }

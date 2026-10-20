@@ -131,6 +131,9 @@ class FakePlayerRepo implements PlayerRepository {
   void setTimerActionVisible(bool visible) {}
 
   @override
+  void setTimerNotificationText(String? text) {}
+
+  @override
   void addToQueue(Song song) {
     activeQueue.add(song);
   }
