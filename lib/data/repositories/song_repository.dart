@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/pref_keys.dart';
+import '../../core/utils/app_logger.dart';
 import '../../model/song.dart';
 import '../services/media_library_service.dart';
 
@@ -35,7 +36,14 @@ class SongRepositoryImpl implements SongRepository {
     try {
       final prefs = await SharedPreferences.getInstance();
       excludeWhatsapp = prefs.getBool(PrefKeys.excludeWhatsappAudio) ?? true;
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.w(
+        'Failed to read excludeWhatsapp preference, defaulting to true',
+        tag: 'SongRepository',
+        error: e,
+        stackTrace: st,
+      );
+    }
 
     final songs = await _mediaLibraryService.queryDeviceSongs(
       excludeWhatsapp: excludeWhatsapp,
@@ -59,7 +67,14 @@ class SongRepositoryImpl implements SongRepository {
           );
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.w(
+        'Failed to read or apply customSongTitles',
+        tag: 'SongRepository',
+        error: e,
+        stackTrace: st,
+      );
+    }
 
     return songs;
   }
@@ -81,7 +96,14 @@ class SongRepositoryImpl implements SongRepository {
             );
           }
         }
-      } catch (_) {}
+      } catch (e, st) {
+        AppLogger.w(
+          'Failed to cleanup custom title for deleted song ${song.id}',
+          tag: 'SongRepository',
+          error: e,
+          stackTrace: st,
+        );
+      }
     }
     return deleted;
   }
@@ -101,12 +123,26 @@ class SongRepositoryImpl implements SongRepository {
 
       titlesMap[song.id.toString()] = trimmed;
       await prefs.setString(PrefKeys.customSongTitles, jsonEncode(titlesMap));
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to persist custom title for song ${song.id}',
+        tag: 'SongRepository',
+        error: e,
+        stackTrace: st,
+      );
+    }
 
     // 2. Best-effort native MediaStore & physical file rename
     try {
       await _mediaLibraryService.renameSong(song.id, song.dataUri, trimmed);
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.w(
+        'Native MediaStore rename failed for song ${song.id}',
+        tag: 'SongRepository',
+        error: e,
+        stackTrace: st,
+      );
+    }
 
     return true;
   }

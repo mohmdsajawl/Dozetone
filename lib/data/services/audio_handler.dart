@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart' hide PlayerState;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import '../../core/constants/audio_constants.dart';
+import '../../core/utils/app_logger.dart';
 import '../../core/utils/volume_mixer.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../model/player_state.dart';
@@ -157,8 +157,13 @@ class DozetoneAudioHandler extends BaseAudioHandler
         flush: true,
       );
       return Uri.file(fallbackFile.path);
-    } catch (e) {
-      debugPrint('Error caching artwork for notification: $e');
+    } catch (e, st) {
+      AppLogger.w(
+        'Error caching artwork for notification',
+        tag: 'DozetoneAudioHandler',
+        error: e,
+        stackTrace: st,
+      );
     }
     return null;
   }
@@ -219,8 +224,13 @@ class DozetoneAudioHandler extends BaseAudioHandler
           }
         }
       });
-    } catch (e) {
-      debugPrint('Error configuring AudioSession: $e');
+    } catch (e, st) {
+      AppLogger.e(
+        'Error configuring AudioSession',
+        tag: 'DozetoneAudioHandler',
+        error: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -407,8 +417,13 @@ class DozetoneAudioHandler extends BaseAudioHandler
     try {
       await _player.setFilePath(song.dataUri);
       unawaited(_player.play());
-    } catch (e) {
-      debugPrint('Playback error for ${song.title}: $e');
+    } catch (e, st) {
+      AppLogger.e(
+        'Playback error for ${song.title}',
+        tag: 'DozetoneAudioHandler',
+        error: e,
+        stackTrace: st,
+      );
       // Skip to next if broken file per requirements
       if (_currentIndex + 1 < _activeQueue.length) {
         skipToNext();
@@ -642,7 +657,13 @@ class DozetoneAudioHandler extends BaseAudioHandler
     try {
       await _player.setFilePath(song.dataUri);
       await _player.seek(position);
-    } catch (_) {
+    } catch (e, st) {
+      AppLogger.w(
+        'Failed to restore audio player file path for ${song.title}',
+        tag: 'DozetoneAudioHandler',
+        error: e,
+        stackTrace: st,
+      );
     }
 
     _broadcastPlaybackState();

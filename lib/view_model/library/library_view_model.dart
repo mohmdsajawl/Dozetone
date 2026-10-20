@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../core/utils/app_logger.dart';
 import '../../data/repositories/song_repository.dart';
 import '../../data/services/permission_service.dart';
 import '../../model/song.dart';
@@ -70,7 +71,13 @@ class LibraryViewModel extends StateNotifier<LibraryState> {
       } else {
         state = LibraryLoaded(songs);
       }
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to load music library',
+        tag: 'LibraryViewModel',
+        error: e,
+        stackTrace: st,
+      );
       state = LibraryError(e.toString());
     }
   }

@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart' show Locale;
 import '../../core/constants/app_durations.dart';
 import '../../core/constants/pref_keys.dart';
 import '../../core/constants/sleep_timer_constants.dart';
+import '../../core/utils/app_logger.dart';
 import '../../core/utils/sleep_volume_curve.dart';
 import '../../core/utils/timer_notification_text.dart';
 import '../../data/repositories/player_repository.dart';
@@ -148,8 +149,13 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
       if (lastChoice != null && lastChoice.isNotEmpty) {
         state = state.copyWith(lastUsedChoice: lastChoice);
       }
-    } catch (_) {
-      // SharedPreferences failure fallback to defaults
+    } catch (e, st) {
+      AppLogger.w(
+        'Failed to load persisted sleep timer preferences, using defaults',
+        tag: 'SleepTimerViewModel',
+        error: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -161,7 +167,14 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(PrefKeys.shakeToExtend, enabled);
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to persist shakeToExtend preference',
+        tag: 'SleepTimerViewModel',
+        error: e,
+        stackTrace: st,
+      );
+    }
 
     if (!enabled) {
       _stopShakeListening();
@@ -736,16 +749,31 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
             accelerometerStreamOverride ?? userAccelerometerEventStream();
         _accelerometerSubscription = stream.listen(
           _onAccelerometerEvent,
-          onError: (_) {
+          onError: (dynamic error) {
+            AppLogger.w(
+              'Accelerometer stream emitted error',
+              tag: 'SleepTimerViewModel',
+              error: error,
+            );
             _stopShakeListening();
           },
           cancelOnError: false,
         );
-      } catch (_) {
+      } catch (e, st) {
+        AppLogger.w(
+          'Failed to initialize accelerometer stream',
+          tag: 'SleepTimerViewModel',
+          error: e,
+          stackTrace: st,
+        );
         _stopShakeListening();
       }
     }, (error, stack) {
-      // Gracefully handle missing platform channels (e.g. unit tests or platforms without sensors)
+      AppLogger.d(
+        'Missing platform sensor channel (expected in unit tests or unsupported hardware)',
+        tag: 'SleepTimerViewModel',
+        error: error,
+      );
       _stopShakeListening();
     });
   }
@@ -807,7 +835,13 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
   Future<void> _onShakeDetected() async {
     try {
       HapticFeedback.mediumImpact();
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.d(
+        'HapticFeedback not supported or failed',
+        tag: 'SleepTimerViewModel',
+        error: e,
+      );
+    }
     await add5Minutes();
   }
 
@@ -815,7 +849,14 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(PrefKeys.lastTimerChoice, choice);
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.w(
+        'Failed to persist lastTimerChoice',
+        tag: 'SleepTimerViewModel',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 
   /// Checks whether [now] falls within the configured bedtime window.
@@ -883,7 +924,13 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
       // Notify UI
       _bedtimeAutoStartController.add(duration);
       return true;
-    } catch (_) {
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to trigger bedtime auto-timer',
+        tag: 'SleepTimerViewModel',
+        error: e,
+        stackTrace: st,
+      );
       return false;
     }
   }

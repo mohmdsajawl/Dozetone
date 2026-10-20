@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/pref_keys.dart';
+import '../../core/utils/app_logger.dart';
 import '../library/library_view_model.dart';
 import '../sleep_timer/sleep_timer_view_model.dart';
 import 'settings_state.dart';
@@ -33,7 +34,14 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
         bedtimeDurationMinutes:
             prefs.getInt(PrefKeys.bedtimeDurationMinutes) ?? 30,
       );
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to load settings from SharedPreferences, using defaults',
+        tag: 'SettingsViewModel',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 
   /// Updates WhatsApp / voice notes exclusion filter and rescans the library.
@@ -42,7 +50,14 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(PrefKeys.excludeWhatsappAudio, value);
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to persist excludeWhatsapp setting',
+        tag: 'SettingsViewModel',
+        error: e,
+        stackTrace: st,
+      );
+    }
 
     // Rescan library immediately so changes appear right away
     await _ref.read(libraryViewModelProvider.notifier).rescan();
@@ -54,7 +69,14 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(PrefKeys.shakeToExtend, value);
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to persist shakeToExtend setting',
+        tag: 'SettingsViewModel',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 
   /// Updates slow volume decline setting.
@@ -63,7 +85,14 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(PrefKeys.slowVolumeDecline, value);
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to persist slowVolumeDecline setting',
+        tag: 'SettingsViewModel',
+        error: e,
+        stackTrace: st,
+      );
+    }
 
     // Immediately update active or next sleep timer
     _ref.read(sleepTimerProvider.notifier).setSlowVolumeDecline(value);
@@ -75,7 +104,14 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(PrefKeys.fadeSeconds, seconds);
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to persist fadeSeconds setting',
+        tag: 'SettingsViewModel',
+        error: e,
+        stackTrace: st,
+      );
+    }
 
     // Immediately update active or next sleep timer
     _ref.read(sleepTimerProvider.notifier).setFadeSeconds(seconds);
@@ -87,7 +123,14 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(PrefKeys.bedtimeAutoTimer, value);
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to persist bedtimeAutoTimer setting',
+        tag: 'SettingsViewModel',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 
   /// Updates bedtime start time in minutes after midnight.
@@ -96,7 +139,14 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(PrefKeys.bedtimeStartMinutes, minutes);
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to persist bedtimeStartMinutes setting',
+        tag: 'SettingsViewModel',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 
   /// Updates bedtime auto-timer duration in minutes.
@@ -105,6 +155,13 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(PrefKeys.bedtimeDurationMinutes, minutes);
-    } catch (_) {}
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to persist bedtimeDurationMinutes setting',
+        tag: 'SettingsViewModel',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 }

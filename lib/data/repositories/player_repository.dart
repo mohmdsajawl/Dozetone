@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/pref_keys.dart';
+import '../../core/utils/app_logger.dart';
 import '../../model/player_state.dart';
 import '../../model/song.dart';
 import '../../model/timer_notification_action.dart';
@@ -229,7 +230,13 @@ class PlayerRepositoryImpl implements PlayerRepository {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(PrefKeys.lastSongId, songId);
       await prefs.setInt(PrefKeys.lastPositionMs, positionMs);
-    } catch (_) {
+    } catch (e, st) {
+      AppLogger.w(
+        'Failed to save last playback session',
+        tag: 'PlayerRepository',
+        error: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -240,7 +247,13 @@ class PlayerRepositoryImpl implements PlayerRepository {
       final songId = prefs.getInt(PrefKeys.lastSongId);
       final positionMs = prefs.getInt(PrefKeys.lastPositionMs);
       return (songId: songId, positionMs: positionMs);
-    } catch (_) {
+    } catch (e, st) {
+      AppLogger.w(
+        'Failed to read last playback session',
+        tag: 'PlayerRepository',
+        error: e,
+        stackTrace: st,
+      );
       return (songId: null, positionMs: null);
     }
   }

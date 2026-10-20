@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/utils/app_logger.dart';
 import '../../model/song.dart';
 
 /// Provider for MediaLibraryService.
@@ -139,7 +140,12 @@ class MediaLibraryService {
         'dataUri': dataUri ?? '',
       });
       return bytes;
-    } catch (_) {
+    } catch (e) {
+      AppLogger.d(
+        'Failed to query artwork for song $songId (may have no embedded art)',
+        tag: 'MediaLibraryService',
+        error: e,
+      );
       return null;
     }
   }
@@ -153,7 +159,13 @@ class MediaLibraryService {
         'dataUri': dataUri,
       });
       return success ?? false;
-    } catch (_) {
+    } catch (e, st) {
+      AppLogger.e(
+        'Platform deleteSong channel call failed for song $songId',
+        tag: 'MediaLibraryService',
+        error: e,
+        stackTrace: st,
+      );
       return false;
     }
   }
@@ -168,7 +180,13 @@ class MediaLibraryService {
         'newTitle': newTitle,
       });
       return success ?? false;
-    } catch (_) {
+    } catch (e, st) {
+      AppLogger.e(
+        'Platform renameSong channel call failed for song $songId',
+        tag: 'MediaLibraryService',
+        error: e,
+        stackTrace: st,
+      );
       return false;
     }
   }

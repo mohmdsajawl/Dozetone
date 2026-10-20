@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/pref_keys.dart';
+import '../../core/utils/app_logger.dart';
 
 /// Provider for accessing PlaylistRepository singleton.
 final playlistRepositoryProvider = Provider<PlaylistRepository>((ref) {
@@ -110,7 +111,13 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
       }
 
       return result;
-    } catch (_) {
+    } catch (e, st) {
+      AppLogger.w(
+        'Failed to parse customPlaylists from storage, resetting to default playlists',
+        tag: 'PlaylistRepository',
+        error: e,
+        stackTrace: st,
+      );
       final fallback = <String, List<int>>{
         for (final name in _defaultPlaylists) name: <int>[],
       };
