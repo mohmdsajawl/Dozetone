@@ -534,7 +534,7 @@ class _SleepTracksPickerModalState
                               color: isSelected
                                   ? Color.lerp(
                                       AppColors.accent,
-                                      Colors.white,
+                                      AppColors.white,
                                       0.25,
                                     )
                                   : AppColors.textPrimary,

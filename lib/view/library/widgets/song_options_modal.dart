@@ -237,7 +237,7 @@ class SongOptionsModal extends ConsumerWidget {
                 ListTile(
                   leading: const Icon(
                     Icons.favorite_rounded,
-                    color: Colors.redAccent,
+                    color: AppColors.favorite,
                     size: 24.0,
                   ),
                   title: Text(
@@ -255,7 +255,7 @@ class SongOptionsModal extends ConsumerWidget {
                     isFavorite
                         ? Icons.favorite_rounded
                         : Icons.favorite_border_rounded,
-                    color: isFavorite ? Colors.redAccent : AppColors.accent,
+                    color: isFavorite ? AppColors.favorite : AppColors.accent,
                     size: 24.0,
                   ),
                   title: Text(

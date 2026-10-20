@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../data/services/media_library_service.dart';
 
 /// In-memory cache for loaded artwork bitmaps.
@@ -45,14 +46,7 @@ class _SongArtworkState extends ConsumerState<SongArtwork> {
   Uint8List? _bytes;
   bool _loaded = false;
 
-  static const List<List<Color>> _placeholderGradients = [
-    [Color(0xFF0E7490), Color(0xFF0F172A)], // Cyan to Dark Navy
-    [Color(0xFF4338CA), Color(0xFF0F172A)], // Indigo to Dark Navy
-    [Color(0xFF7C3AED), Color(0xFF18181B)], // Purple to Dark Void
-    [Color(0xFF059669), Color(0xFF0F172A)], // Emerald to Dark Navy
-    [Color(0xFFD97706), Color(0xFF1C1917)], // Amber to Charcoal
-    [Color(0xFFE11D48), Color(0xFF0F172A)], // Rose to Dark Navy
-  ];
+  static List<List<Color>> get _placeholderGradients => AppColors.artworkGradients;
 
   @override
   void initState() {
@@ -135,7 +129,7 @@ class _SongArtworkState extends ConsumerState<SongArtwork> {
         child: Icon(
           Icons.music_note_rounded,
           size: widget.size * 0.48,
-          color: Colors.white.withValues(alpha: 0.6),
+          color: AppColors.white.withValues(alpha: 0.6),
         ),
       ),
     );

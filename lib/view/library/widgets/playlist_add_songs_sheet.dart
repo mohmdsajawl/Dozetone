@@ -115,7 +115,7 @@ class _PlaylistAddSongsSheetState extends ConsumerState<PlaylistAddSongsSheet> {
         borderRadius: AppDimensions.borderRadiusBottomSheet,
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: Colors.black54,
+            color: AppColors.barrier,
             blurRadius: 24.0,
             offset: Offset(0, -4),
           ),
@@ -287,10 +287,10 @@ class _PlaylistAddSongsSheetState extends ConsumerState<PlaylistAddSongsSheet> {
                             padding: const EdgeInsets.symmetric(
                               horizontal: AppDimensions.space16,
                             ),
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               border: Border(
                                 bottom: BorderSide(
-                                  color: Color(0x15FFFFFF),
+                                  color: AppColors.softWhite(0.08),
                                   width: 0.5,
                                 ),
                               ),

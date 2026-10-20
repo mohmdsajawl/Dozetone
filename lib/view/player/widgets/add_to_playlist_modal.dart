@@ -178,7 +178,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
           borderRadius: AppDimensions.borderRadiusBottomSheet,
           boxShadow: <BoxShadow>[
             BoxShadow(
-              color: Colors.black54,
+              color: AppColors.barrier,
               blurRadius: 28.0,
               offset: Offset(0, -6),
             ),
@@ -272,14 +272,14 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                           icon: isFavorite
                               ? Icons.favorite_rounded
                               : Icons.favorite_border_rounded,
-                          iconColor: isFavorite ? Colors.redAccent : AppColors.accent,
+                          iconColor: isFavorite ? AppColors.favorite : AppColors.accent,
                           title: 'Favorites',
                           subtitle: isFavorite
                               ? 'Already in Favorites (tap to remove)'
                               : 'Save to favorite tracks',
                           trailing: Icon(
                             isFavorite ? Icons.check_circle_rounded : Icons.add_rounded,
-                            color: isFavorite ? Colors.redAccent : AppColors.accent,
+                            color: isFavorite ? AppColors.favorite : AppColors.accent,
                             size: 24.0,
                           ),
                           onTap: _toggleFavorite,

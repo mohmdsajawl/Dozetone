@@ -112,7 +112,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
         borderRadius: AppDimensions.borderRadiusBottomSheet,
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: Colors.black54,
+            color: AppColors.barrier,
             blurRadius: 30.0,
             offset: Offset(0, -6),
           ),
@@ -253,7 +253,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
                         return Material(
                           elevation: elevation,
                           color: AppColors.surface,
-                          shadowColor: Colors.black.withValues(alpha: 0.7),
+                          shadowColor: AppColors.black.withValues(alpha: 0.7),
                           borderRadius: AppDimensions.borderRadiusCard,
                           child: Container(
                             decoration: BoxDecoration(

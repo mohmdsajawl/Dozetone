@@ -359,7 +359,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                           decoration: BoxDecoration(
                             borderRadius: AppDimensions.borderRadiusArtworkLarge,
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.08),
+                              color: AppColors.softWhite(0.08),
                               width: 1.0,
                             ),
                             boxShadow: <BoxShadow>[
@@ -372,7 +372,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                 spreadRadius: playerState.isPlaying ? 4.0 : 0.0,
                               ),
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.55),
+                                color: AppColors.black.withValues(alpha: 0.55),
                                 blurRadius: 28.0,
                                 offset: const Offset(0, 12),
                               ),
@@ -441,11 +441,11 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: isFavorite
-                                  ? Colors.redAccent.withValues(alpha: 0.12)
+                                  ? AppColors.favorite.withValues(alpha: 0.12)
                                   : AppColors.surface.withValues(alpha: 0.5),
                               border: Border.all(
                                 color: isFavorite
-                                    ? Colors.redAccent.withValues(alpha: 0.3)
+                                    ? AppColors.favorite.withValues(alpha: 0.3)
                                     : AppColors.outline.withValues(alpha: 0.5),
                               ),
                             ),
@@ -461,7 +461,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                       : Icons.favorite_border_rounded,
                                   key: ValueKey<bool>(isFavorite),
                                   color: isFavorite
-                                      ? Colors.redAccent
+                                      ? AppColors.favorite
                                       : AppColors.textSecondary,
                                   size: 24.0,
                                 ),
@@ -485,7 +485,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                                   ? Icons.favorite_rounded
                                                   : Icons.favorite_border_rounded,
                                               color: nowFav
-                                                  ? Colors.redAccent
+                                                  ? AppColors.favorite
                                                   : AppColors.accent,
                                               size: 20.0,
                                             ),
@@ -637,7 +637,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                   colors: <Color>[
                                     Color.lerp(
                                       AppColors.accent,
-                                      Colors.white,
+                                      AppColors.white,
                                       0.2,
                                     )!,
                                     AppColors.accent,

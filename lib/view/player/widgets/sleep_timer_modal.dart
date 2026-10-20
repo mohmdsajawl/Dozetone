@@ -1163,7 +1163,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
               final preset = presets[index];
               final isLastUsed = timerState.lastUsedChoice == preset.label;
               final accentHighlight =
-                  Color.lerp(AppColors.accent, Colors.white, 0.25)!;
+                  Color.lerp(AppColors.accent, AppColors.white, 0.25)!;
 
               return Material(
                 color: Colors.transparent,
@@ -1626,7 +1626,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                               fontWeight: FontWeight.w600,
                               color: Color.lerp(
                                 AppColors.accent,
-                                Colors.white,
+                                AppColors.white,
                                 0.2,
                               ),
                               fontSize: 14.0,

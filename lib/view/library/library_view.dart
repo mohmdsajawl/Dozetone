@@ -66,7 +66,7 @@ class LibraryView extends ConsumerWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF131A2D),
+            AppColors.backgroundDark,
             AppColors.background,
           ],
           stops: [0.0, 0.35],
@@ -631,7 +631,7 @@ class LibraryView extends ConsumerWidget {
           children: <Widget>[
             const Icon(
               Icons.favorite_rounded,
-              color: Color(0xFFFF5252),
+              color: AppColors.favorite,
               size: 20.0,
             ),
             const SizedBox(width: AppDimensions.space12),

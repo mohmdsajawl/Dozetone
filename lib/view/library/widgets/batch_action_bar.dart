@@ -44,7 +44,7 @@ class BatchActionBar extends StatelessWidget {
         ),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
+            color: AppColors.black.withValues(alpha: 0.35),
             offset: const Offset(0, -3),
             blurRadius: 10.0,
           ),
@@ -72,7 +72,7 @@ class BatchActionBar extends StatelessWidget {
           _buildActionButton(
             icon: Icons.favorite_rounded,
             label: 'Favorite',
-            iconColor: const Color(0xFFFF5252),
+            iconColor: AppColors.favorite,
             onTap: onFavoriteTap,
           ),
           _buildActionButton(

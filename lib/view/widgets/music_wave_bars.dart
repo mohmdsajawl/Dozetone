@@ -236,7 +236,7 @@ class _SoundwaveVisualizerState extends State<SoundwaveVisualizer>
                   gradient: widget.isPlaying
                       ? LinearGradient(
                           colors: <Color>[
-                            Color.lerp(AppColors.accent, Colors.white, 0.25)!,
+                            Color.lerp(AppColors.accent, AppColors.white, 0.25)!,
                             active,
                           ],
                           begin: Alignment.topCenter,
@@ -296,7 +296,7 @@ class MusicArtworkOverlay extends StatelessWidget {
             width: size,
             height: size,
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.70),
+              color: AppColors.black.withValues(alpha: 0.70),
               borderRadius: borderRadius,
             ),
             child: const Center(

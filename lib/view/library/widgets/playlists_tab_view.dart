@@ -144,8 +144,8 @@ class PlaylistsTabView extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(10.0),
                   gradient: const LinearGradient(
                     colors: [
-                      Color(0xFF222B48),
-                      Color(0xFF131A2D),
+                      AppColors.surfaceLight,
+                      AppColors.backgroundDark,
                     ],
                   ),
                   border: Border.all(
@@ -484,7 +484,7 @@ class PlaylistsTabView extends ConsumerWidget {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.0),
               ),

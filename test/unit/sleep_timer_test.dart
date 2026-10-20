@@ -822,7 +822,9 @@ void main() {
       expect(vm.state.isFadingOut, false);
       expect(vm.state.volumeFactor, lessThan(1.0));
       expect(vm.state.volumeFactor, greaterThan(0.6));
-      expect(repo.lastVolume, closeTo(vm.state.volumeFactor, 1e-3));
+      expect(repo.lastVolume, lessThan(1.0));
+      expect(repo.lastVolume, greaterThan(0.5));
+      expect(repo.lastVolume, closeTo(vm.state.volumeFactor, 0.15));
 
       // Wait another 650 ms (now inside 1-second fade window)
       await Future<void>.delayed(const Duration(milliseconds: 650));

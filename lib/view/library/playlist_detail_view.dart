@@ -163,7 +163,7 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.0),
               ),
@@ -249,7 +249,7 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF131A2D),
+            AppColors.backgroundDark,
             AppColors.background,
           ],
           stops: [0.0, 0.35],
@@ -381,8 +381,8 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
                               borderRadius: BorderRadius.circular(12.0),
                               gradient: const LinearGradient(
                                 colors: [
-                                  Color(0xFF222B48),
-                                  Color(0xFF131A2D),
+                                  AppColors.surfaceLight,
+                                  AppColors.backgroundDark,
                                 ],
                               ),
                               border: Border.all(
