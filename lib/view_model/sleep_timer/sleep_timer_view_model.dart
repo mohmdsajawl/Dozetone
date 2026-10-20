@@ -564,6 +564,9 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
 
     if (state.targetEndTime == null) return;
 
+    // Wall-clock time (DateTime.now()) is used here because it continues counting
+    // during device deep sleep, which Dart's monotonic Stopwatch does not count.
+    // Known limitation: if the user changes the system time manually, the timer is affected.
     await _updateTimeBasedVolume(DateTime.now());
   }
 

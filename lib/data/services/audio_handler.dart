@@ -7,6 +7,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart' hide PlayerState;
 import 'package:path_provider/path_provider.dart';
+import '../../core/utils/volume_mixer.dart';
 import '../../model/player_state.dart';
 import '../../model/song.dart';
 import 'media_library_service.dart';
@@ -27,6 +28,7 @@ class DozetoneAudioHandler extends BaseAudioHandler
     with SeekHandler, QueueHandler {
   final AudioPlayer _player = AudioPlayer();
   final MediaLibraryService _mediaLibraryService = MediaLibraryService();
+  final VolumeMixer _volumeMixer = VolumeMixer();
 
   List<Song> _rawQueue = <Song>[];
   List<Song> _activeQueue = <Song>[];
@@ -125,11 +127,12 @@ class DozetoneAudioHandler extends BaseAudioHandler
       });
 
       // Interruption handling (phone calls, alarms, other media apps)
-      session.interruptionEventStream.listen((event) {
+      session.interruptionEventStream.listen((event) async {
         if (event.begin) {
           switch (event.type) {
             case AudioInterruptionType.duck:
-              _player.setVolume(0.5);
+              _volumeMixer.setDucked(true);
+              await _applyVolume();
               break;
             case AudioInterruptionType.pause:
             case AudioInterruptionType.unknown:
@@ -148,7 +151,8 @@ class DozetoneAudioHandler extends BaseAudioHandler
         } else {
           switch (event.type) {
             case AudioInterruptionType.duck:
-              _player.setVolume(1.0);
+              _volumeMixer.setDucked(false);
+              await _applyVolume();
               break;
             case AudioInterruptionType.pause:
               if (_playOnInterruptionEnded) {
@@ -471,9 +475,15 @@ class DozetoneAudioHandler extends BaseAudioHandler
     _emitCurrentState();
   }
 
+  /// Applies effective combined volume from VolumeMixer to the underlying player.
+  Future<void> _applyVolume() async {
+    await _player.setVolume(_volumeMixer.effective);
+  }
+
   /// Sets player volume factor (0.0 to 1.0) for sleep timer fade-out.
   Future<void> setVolume(double volume) async {
-    await _player.setVolume(volume.clamp(0.0, 1.0));
+    _volumeMixer.setTimerFactor(volume);
+    await _applyVolume();
   }
 
   /// Inserts [song] into the queue to play immediately after the current song.
