@@ -13,6 +13,7 @@ import '../../data/repositories/player_repository.dart';
 import '../../model/player_state.dart';
 import '../../model/sleep_timer_state.dart';
 import '../../model/song.dart';
+import '../../model/timer_notification_action.dart';
 
 /// Provider exposing the singleton application-level SleepTimerViewModel.
 ///
@@ -41,6 +42,8 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
   StreamSubscription<PlayerState>? _bedtimePlaybackSubscription;
   StreamSubscription<void>? _trackCompletedSubscription;
   StreamSubscription<UserAccelerometerEvent>? _accelerometerSubscription;
+  StreamSubscription<TimerNotificationAction>?
+      _timerNotificationActionSubscription;
   Song? _trackedSongForEndOfSong;
   PlayerState? _lastPlayerState;
 
@@ -79,6 +82,7 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
   }) : super(const SleepTimerState()) {
     _loadInitialPreferences();
     _listenToPlaybackForBedtime();
+    _listenToTimerNotificationActions();
   }
 
   void _listenToPlaybackForBedtime() {
@@ -88,6 +92,19 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
       _lastPlayerState = playerState;
       if (!wasPlaying && playerState.isPlaying) {
         checkAndTriggerBedtimeAutoTimer();
+      }
+    });
+  }
+
+  /// Subscribes to notification custom actions (e.g. +5 min button tapped).
+  void _listenToTimerNotificationActions() {
+    _timerNotificationActionSubscription =
+        _playerRepository.timerNotificationActions.listen((action) {
+      if (action == TimerNotificationAction.addFiveMinutes) {
+        // Tapping +5 min on notification triggers the exact same logic as in-app button
+        if (state.isActive) {
+          add5Minutes();
+        }
       }
     });
   }
@@ -141,7 +158,7 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _cancelEndOfSongSubscription();
     _playerRepository.setPauseOnTrackEnd(false);
     _playerRepository.setLoopForSleepTimer(true);
-
+    _playerRepository.setTimerActionVisible(true);
 
     final now = DateTime.now();
     final endTime = now.add(duration);
@@ -199,6 +216,7 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     final isSingleTrack = trackCount == 1;
     _playerRepository.setPauseOnTrackEnd(isSingleTrack);
     _playerRepository.setLoopForSleepTimer(true);
+    _playerRepository.setTimerActionVisible(true);
 
     if (choiceLabel != null) {
       _saveLastUsedChoice(choiceLabel);
@@ -278,6 +296,7 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
 
     _cancelEndOfSongSubscription();
     _playerRepository.setPauseOnTrackEnd(false);
+    _playerRepository.setTimerActionVisible(true);
 
     final now = DateTime.now();
     final endTime = now.add(duration);
@@ -510,6 +529,7 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _cancelEndOfSongSubscription();
     _playerRepository.setPauseOnTrackEnd(false);
     _playerRepository.setLoopForSleepTimer(false);
+    _playerRepository.setTimerActionVisible(false);
 
     _appliedVolumeFactor = 1.0;
     _lastVolumeDebugPrintTime = null;
@@ -632,6 +652,7 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
     _cancelEndOfSongSubscription();
     _playerRepository.setPauseOnTrackEnd(false);
     _playerRepository.setLoopForSleepTimer(false);
+    _playerRepository.setTimerActionVisible(false);
 
     // 1. Pause playback
     await _playerRepository.pause();
@@ -821,6 +842,8 @@ class SleepTimerViewModel extends StateNotifier<SleepTimerState> {
 
   @override
   void dispose() {
+    _timerNotificationActionSubscription?.cancel();
+    _playerRepository.setTimerActionVisible(false);
     _bedtimePlaybackSubscription?.cancel();
     _bedtimeAutoStartController.close();
     _stopTicker();

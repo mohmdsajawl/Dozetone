@@ -10,6 +10,7 @@ import 'package:dozetone/data/repositories/player_repository.dart';
 import 'package:dozetone/model/player_state.dart';
 import 'package:dozetone/model/sleep_timer_state.dart';
 import 'package:dozetone/model/song.dart';
+import 'package:dozetone/model/timer_notification_action.dart';
 import 'package:dozetone/view_model/sleep_timer/sleep_timer_view_model.dart';
 
 class FakePlayerRepository implements PlayerRepository {
@@ -17,10 +18,14 @@ class FakePlayerRepository implements PlayerRepository {
       StreamController<PlayerState>.broadcast();
   final StreamController<void> _trackCompletedController =
       StreamController<void>.broadcast();
+  final StreamController<TimerNotificationAction>
+      _timerNotificationActionController =
+      StreamController<TimerNotificationAction>.broadcast();
 
   bool pauseCalled = false;
   bool pauseOnTrackEnd = false;
   bool loopForSleepTimer = false;
+  bool timerActionVisible = false;
   double? lastVolume;
   List<double> volumeHistory = [];
 
@@ -29,6 +34,19 @@ class FakePlayerRepository implements PlayerRepository {
 
   @override
   Stream<void> get trackCompletedStream => _trackCompletedController.stream;
+
+  @override
+  Stream<TimerNotificationAction> get timerNotificationActions =>
+      _timerNotificationActionController.stream;
+
+  @override
+  void setTimerActionVisible(bool visible) {
+    timerActionVisible = visible;
+  }
+
+  void emitTimerNotificationAction(TimerNotificationAction action) {
+    _timerNotificationActionController.add(action);
+  }
 
   @override
   void setPauseOnTrackEnd(bool pause) {
@@ -130,6 +148,7 @@ class FakePlayerRepository implements PlayerRepository {
   void dispose() {
     _controller.close();
     _trackCompletedController.close();
+    _timerNotificationActionController.close();
   }
 }
 
@@ -872,6 +891,128 @@ void main() {
 
       vm.dispose();
       repo.dispose();
+    });
+
+    group('Notification +5 min action and visibility', () {
+      test('starting a timer calls setTimerActionVisible(true)', () async {
+        final repo = FakePlayerRepository();
+        final vm = SleepTimerViewModel(repo);
+
+        // Time-based timer
+        await vm.startTimer(const Duration(minutes: 15));
+        expect(repo.timerActionVisible, isTrue);
+
+        // Reset visibility to false
+        repo.setTimerActionVisible(false);
+        expect(repo.timerActionVisible, isFalse);
+
+        // End of current track timer
+        await vm.startEndOfSongTimer();
+        expect(repo.timerActionVisible, isTrue);
+
+        // Reset visibility to false
+        repo.setTimerActionVisible(false);
+        expect(repo.timerActionVisible, isFalse);
+
+        // Track-based timer
+        await vm.startTracksTimer(trackCount: 3);
+        expect(repo.timerActionVisible, isTrue);
+
+        vm.dispose();
+        repo.dispose();
+      });
+
+      test(
+          'cancel, finish, end of song finished and track based finished each call setTimerActionVisible(false)',
+          () async {
+        final repo = FakePlayerRepository();
+        final vm = SleepTimerViewModel(repo);
+
+        // 1. Cancel calls setTimerActionVisible(false)
+        await vm.startTimer(const Duration(minutes: 15));
+        expect(repo.timerActionVisible, isTrue);
+        await vm.cancelTimer();
+        expect(repo.timerActionVisible, isFalse);
+
+        // 2. Finish calls setTimerActionVisible(false)
+        await vm.startTimer(const Duration(milliseconds: 50));
+        expect(repo.timerActionVisible, isTrue);
+        // Wait for countdown ticker to finish
+        await Future<void>.delayed(const Duration(milliseconds: 350));
+        expect(vm.state.isActive, isFalse);
+        expect(repo.timerActionVisible, isFalse);
+
+        // 3. End of song finished calls setTimerActionVisible(false)
+        await vm.startEndOfSongTimer();
+        expect(repo.timerActionVisible, isTrue);
+        repo.emitTrackCompleted();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(vm.state.isActive, isFalse);
+        expect(repo.timerActionVisible, isFalse);
+
+        // 4. Track based finished calls setTimerActionVisible(false)
+        await vm.startTracksTimer(trackCount: 2);
+        expect(repo.timerActionVisible, isTrue);
+        // First track finishes: 1 remaining, still active
+        repo.emitTrackCompleted();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(vm.state.isActive, isTrue);
+        expect(repo.timerActionVisible, isTrue);
+        // Second track finishes: completes timer
+        repo.emitTrackCompleted();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(vm.state.isActive, isFalse);
+        expect(repo.timerActionVisible, isFalse);
+
+        vm.dispose();
+        repo.dispose();
+      });
+
+      test(
+          'an addFiveMinutes event while active increases the end time and total by exactly 5 minutes',
+          () async {
+        final repo = FakePlayerRepository();
+        final vm = SleepTimerViewModel(repo);
+
+        await vm.startTimer(const Duration(minutes: 15));
+        expect(vm.state.isActive, isTrue);
+        final initialEndTime = vm.state.targetEndTime!;
+        final initialTotal = vm.state.totalDuration!;
+
+        repo.emitTimerNotificationAction(
+            TimerNotificationAction.addFiveMinutes);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        final expectedEndTime =
+            initialEndTime.add(const Duration(minutes: 5));
+        final expectedTotal = initialTotal + const Duration(minutes: 5);
+
+        expect(vm.state.targetEndTime, expectedEndTime);
+        expect(vm.state.totalDuration, expectedTotal);
+
+        vm.dispose();
+        repo.dispose();
+      });
+
+      test('an addFiveMinutes event while inactive changes nothing', () async {
+        final repo = FakePlayerRepository();
+        final vm = SleepTimerViewModel(repo);
+
+        expect(vm.state.isActive, isFalse);
+        expect(vm.state.targetEndTime, isNull);
+        expect(vm.state.totalDuration, isNull);
+
+        repo.emitTimerNotificationAction(
+            TimerNotificationAction.addFiveMinutes);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        expect(vm.state.isActive, isFalse);
+        expect(vm.state.targetEndTime, isNull);
+        expect(vm.state.totalDuration, isNull);
+
+        vm.dispose();
+        repo.dispose();
+      });
     });
   });
 }

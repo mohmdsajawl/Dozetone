@@ -5,6 +5,7 @@ import 'package:dozetone/core/constants/pref_keys.dart';
 import 'package:dozetone/data/repositories/player_repository.dart';
 import 'package:dozetone/model/player_state.dart';
 import 'package:dozetone/model/song.dart';
+import 'package:dozetone/model/timer_notification_action.dart';
 import 'package:dozetone/view_model/settings/settings_state.dart';
 import 'package:dozetone/view_model/settings/settings_view_model.dart';
 import 'package:dozetone/view_model/sleep_timer/sleep_timer_view_model.dart';
@@ -20,6 +21,13 @@ class FakePlayerRepository implements PlayerRepository {
 
   @override
   Stream<void> get trackCompletedStream => const Stream.empty();
+
+  @override
+  Stream<TimerNotificationAction> get timerNotificationActions =>
+      const Stream.empty();
+
+  @override
+  void setTimerActionVisible(bool visible) {}
 
   @override
   Future<void> setVolume(double volume) async {

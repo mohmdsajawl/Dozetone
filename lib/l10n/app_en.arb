@@ -487,5 +487,9 @@
   "emptyUpNextPrompt": "Use \"Add to...\" on tracks to queue next",
   "@emptyUpNextPrompt": {
     "description": "Prompt explaining how to queue tracks"
+  },
+  "notificationAddFiveMinutes": "+5 min",
+  "@notificationAddFiveMinutes": {
+    "description": "Notification media control button label to extend sleep timer by 5 minutes"
   }
 }

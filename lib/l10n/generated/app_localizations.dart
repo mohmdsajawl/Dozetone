@@ -681,6 +681,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use \"Add to...\" on tracks to queue next'**
   String get emptyUpNextPrompt;
+
+  /// Notification media control button label to extend sleep timer by 5 minutes
+  ///
+  /// In en, this message translates to:
+  /// **'+5 min'**
+  String get notificationAddFiveMinutes;
 }
 
 class _AppLocalizationsDelegate

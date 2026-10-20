@@ -7,9 +7,13 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart' hide PlayerState;
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/widgets.dart' show Locale;
+import '../../core/constants/audio_constants.dart';
 import '../../core/utils/volume_mixer.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../model/player_state.dart';
 import '../../model/song.dart';
+import '../../model/timer_notification_action.dart';
 import 'media_library_service.dart';
 
 /// Riverpod provider for accessing the singleton DozetoneAudioHandler.
@@ -68,6 +72,22 @@ class DozetoneAudioHandler extends BaseAudioHandler
 
   /// Broadcast stream firing whenever a track finishes playback.
   Stream<void> get trackCompletedStream => _trackCompletedController.stream;
+
+  bool _timerActionVisible = false;
+  final StreamController<TimerNotificationAction>
+      _timerNotificationActionController =
+      StreamController<TimerNotificationAction>.broadcast();
+
+  /// Broadcast stream emitting notification custom action triggers for sleep timer.
+  Stream<TimerNotificationAction> get timerNotificationActions =>
+      _timerNotificationActionController.stream;
+
+  /// Sets whether the sleep timer notification action (+5 min) should be visible
+  /// in the media notification and re-broadcasts playback state.
+  void setTimerActionVisible(bool visible) {
+    _timerActionVisible = visible;
+    _broadcastPlaybackState();
+  }
 
   DozetoneAudioHandler() {
     _initAudioSession();
@@ -211,13 +231,22 @@ class DozetoneAudioHandler extends BaseAudioHandler
       ProcessingState.completed => AudioProcessingState.completed,
     };
 
+    final controls = <MediaControl>[
+      MediaControl.skipToPrevious,
+      if (playing) MediaControl.pause else MediaControl.play,
+      MediaControl.skipToNext,
+      if (_timerActionVisible)
+        MediaControl.custom(
+          androidIcon: 'drawable/ic_notification_more_time',
+          label: lookupAppLocalizations(const Locale('en'))
+              .notificationAddFiveMinutes,
+          name: AudioConstants.addFiveMinutesActionName,
+        ),
+    ];
+
     playbackState.add(
       PlaybackState(
-        controls: <MediaControl>[
-          MediaControl.skipToPrevious,
-          if (playing) MediaControl.pause else MediaControl.play,
-          MediaControl.skipToNext,
-        ],
+        controls: controls,
         systemActions: const <MediaAction>{
           MediaAction.seek,
           MediaAction.seekForward,
@@ -396,6 +425,14 @@ class DozetoneAudioHandler extends BaseAudioHandler
   Future<void> onTaskRemoved() async {
     await stop();
     await super.onTaskRemoved();
+  }
+
+  @override
+  Future<dynamic> customAction(String name, [Map<String, dynamic>? extras]) async {
+    if (name == AudioConstants.addFiveMinutesActionName) {
+      _timerNotificationActionController.add(TimerNotificationAction.addFiveMinutes);
+    }
+    return super.customAction(name, extras);
   }
 
   @override
@@ -741,6 +778,7 @@ class DozetoneAudioHandler extends BaseAudioHandler
   Future<void> dispose() async {
     await _playerStateController.close();
     await _trackCompletedController.close();
+    await _timerNotificationActionController.close();
     await _player.dispose();
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dozetone/data/repositories/player_repository.dart';
 import 'package:dozetone/model/player_state.dart';
 import 'package:dozetone/model/song.dart';
+import 'package:dozetone/model/timer_notification_action.dart';
 import 'package:dozetone/view_model/player/player_view_model.dart';
 
 class FakePlayerRepository implements PlayerRepository {
@@ -35,6 +36,13 @@ class FakePlayerRepository implements PlayerRepository {
 
   @override
   Stream<void> get trackCompletedStream => _trackCompletedController.stream;
+
+  @override
+  Stream<TimerNotificationAction> get timerNotificationActions =>
+      const Stream.empty();
+
+  @override
+  void setTimerActionVisible(bool visible) {}
 
   @override
   void setPauseOnTrackEnd(bool pause) {}

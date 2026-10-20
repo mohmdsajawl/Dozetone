@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/pref_keys.dart';
 import '../../model/player_state.dart';
 import '../../model/song.dart';
+import '../../model/timer_notification_action.dart';
 import '../services/audio_handler.dart';
 
 /// Provider for accessing PlayerRepository instance.
@@ -18,6 +19,12 @@ abstract class PlayerRepository {
 
   /// Stream firing when a track reaches completion.
   Stream<void> get trackCompletedStream;
+
+  /// Stream emitting sleep timer action events triggered from system media notification.
+  Stream<TimerNotificationAction> get timerNotificationActions;
+
+  /// Sets whether the sleep timer extension action (+5 min) is displayed on media notification.
+  void setTimerActionVisible(bool visible);
 
   /// Sets whether playback should automatically pause at the end of the current track
   /// rather than advancing to the next song or repeating.
@@ -112,6 +119,14 @@ class PlayerRepositoryImpl implements PlayerRepository {
 
   @override
   Stream<void> get trackCompletedStream => _audioHandler.trackCompletedStream;
+
+  @override
+  Stream<TimerNotificationAction> get timerNotificationActions =>
+      _audioHandler.timerNotificationActions;
+
+  @override
+  void setTimerActionVisible(bool visible) =>
+      _audioHandler.setTimerActionVisible(visible);
 
   @override
   void setPauseOnTrackEnd(bool pause) => _audioHandler.setPauseOnTrackEnd(pause);

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dozetone/model/song.dart';
 import 'package:dozetone/model/player_state.dart';
+import 'package:dozetone/model/timer_notification_action.dart';
 import 'package:dozetone/view_model/library/multi_select_provider.dart';
 import 'package:dozetone/view_model/library/library_view_model.dart';
 import 'package:dozetone/view_model/library/library_state.dart';
@@ -121,6 +122,13 @@ class FakePlayerRepo implements PlayerRepository {
   Stream<PlayerState> get playerStateStream => _controller.stream;
   @override
   Stream<void> get trackCompletedStream => _trackCompletedController.stream;
+
+  @override
+  Stream<TimerNotificationAction> get timerNotificationActions =>
+      const Stream.empty();
+
+  @override
+  void setTimerActionVisible(bool visible) {}
 
   @override
   void addToQueue(Song song) {

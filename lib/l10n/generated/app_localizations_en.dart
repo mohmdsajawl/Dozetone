@@ -353,4 +353,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emptyUpNextPrompt => 'Use \"Add to...\" on tracks to queue next';
+
+  @override
+  String get notificationAddFiveMinutes => '+5 min';
 }
