@@ -188,7 +188,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
                       onPressed: () {
                         viewModel.clearUpNext();
                         _showFeedback(
-                          'Cleared upcoming tracks',
+                          l10n.clearedUpcomingTracks,
                           Icons.clear_all_rounded,
                         );
                       },
@@ -213,7 +213,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
                     icon: const Icon(Icons.close_rounded, size: 22.0),
                     color: AppColors.textSecondary,
                     visualDensity: VisualDensity.compact,
-                    tooltip: 'Close',
+                    tooltip: l10n.close,
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -284,6 +284,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
                       index: index,
                       isCurrentTrack: isCurrentTrack,
                       isPlaying: playerState.isPlaying,
+                      l10n: l10n,
                       onTap: () async {
                         if (isCurrentTrack) {
                           viewModel.togglePlayPause();
@@ -294,7 +295,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
                       onRemove: () async {
                         await viewModel.removeFromQueue(index);
                         _showFeedback(
-                          'Removed from queue',
+                          l10n.removedFromQueue,
                           Icons.remove_circle_outline_rounded,
                         );
                       },
@@ -322,6 +323,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
     required bool isPlaying,
     required VoidCallback onTap,
     required VoidCallback onRemove,
+    required AppLocalizations l10n,
   }) {
     // ReorderableDelayedDragStartListener enables long-press dragging from anywhere on the card
     return ReorderableDelayedDragStartListener(
@@ -386,7 +388,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
                               ),
                               const SizedBox(width: AppDimensions.space4),
                               Text(
-                                'NOW PLAYING',
+                                l10n.nowPlayingHeader.toUpperCase(),
                                 style: AppTextStyles.caption.copyWith(
                                   color: AppColors.accent,
                                   fontSize: 10.0,
@@ -444,7 +446,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
                         color: AppColors.accent,
                         size: 28.0,
                       ),
-                      tooltip: isPlaying ? 'Pause' : 'Play',
+                      tooltip: isPlaying ? l10n.pause : l10n.play,
                       onPressed: onTap,
                     ),
 
@@ -455,7 +457,7 @@ class _PlaybackQueueModalState extends ConsumerState<PlaybackQueueModal> {
                       size: 18.0,
                       color: AppColors.textSecondary,
                     ),
-                    tooltip: 'Remove from queue',
+                    tooltip: l10n.removeFromQueue,
                     visualDensity: VisualDensity.compact,
                     onPressed: onRemove,
                   ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../view_model/settings/settings_view_model.dart';
 
 /// Settings screen for Dozetone.
@@ -15,6 +16,7 @@ class SettingsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final settings = ref.watch(settingsViewModelProvider);
     final viewModel = ref.read(settingsViewModelProvider.notifier);
 
@@ -24,7 +26,7 @@ class SettingsView extends ConsumerWidget {
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: false,
-        title: const Text('Settings', style: AppTextStyles.screenTitle),
+        title: Text(l10n.settingsTitle, style: AppTextStyles.screenTitle),
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
       body: ListView(
@@ -34,7 +36,7 @@ class SettingsView extends ConsumerWidget {
         ),
         children: [
           // Section 1: Library & Audio Filtering
-          _buildSectionHeader('Library & Filtering'),
+          _buildSectionHeader(l10n.libraryAndFiltering),
           const SizedBox(height: 8.0),
           _buildSettingsCard(
             children: [
@@ -51,14 +53,14 @@ class SettingsView extends ConsumerWidget {
                   Icons.voice_over_off_outlined,
                   color: AppColors.accent,
                 ),
-                title: const Text(
-                  'Ignore WhatsApp & Voice Notes',
+                title: Text(
+                  l10n.ignoreWhatsappTitle,
                   style: AppTextStyles.songTitle,
                 ),
-                subtitle: const Padding(
-                  padding: EdgeInsets.only(top: 4.0),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
                   child: Text(
-                    'Hide WhatsApp audio clips, voice notes, and sound recordings from your music library.',
+                    l10n.ignoreWhatsappSubtitle,
                     style: AppTextStyles.caption,
                   ),
                 ),
@@ -69,8 +71,8 @@ class SettingsView extends ConsumerWidget {
                     SnackBar(
                       content: Text(
                         val
-                            ? 'WhatsApp audios hidden from library'
-                            : 'WhatsApp audios visible in library',
+                            ? l10n.whatsappHiddenSnackbar
+                            : l10n.whatsappVisibleSnackbar,
                         style: AppTextStyles.body,
                       ),
                       backgroundColor: AppColors.surface,
@@ -89,14 +91,14 @@ class SettingsView extends ConsumerWidget {
                   Icons.timer_outlined,
                   color: AppColors.textSecondary,
                 ),
-                title: const Text(
-                  'Minimum Track Duration',
+                title: Text(
+                  l10n.minimumTrackDurationTitle,
                   style: AppTextStyles.songTitle,
                 ),
-                subtitle: const Padding(
-                  padding: EdgeInsets.only(top: 4.0),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
                   child: Text(
-                    'Audio clips shorter than 30s (ringtones and alert sounds) are automatically hidden.',
+                    l10n.minimumTrackDurationSubtitle,
                     style: AppTextStyles.caption,
                   ),
                 ),
@@ -129,7 +131,7 @@ class SettingsView extends ConsumerWidget {
           const SizedBox(height: 24.0),
 
           // Section 2: Sleep Timer Preferences
-          _buildSectionHeader('Sleep Timer'),
+          _buildSectionHeader(l10n.sleepTimer),
           const SizedBox(height: 8.0),
           _buildSettingsCard(
             children: [
@@ -142,14 +144,14 @@ class SettingsView extends ConsumerWidget {
                   Icons.volume_down_outlined,
                   color: AppColors.accent,
                 ),
-                title: const Text(
-                  'Gentle Fade-Out Duration',
+                title: Text(
+                  l10n.gentleFadeOutDurationTitle,
                   style: AppTextStyles.songTitle,
                 ),
-                subtitle: const Padding(
-                  padding: EdgeInsets.only(top: 4.0),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
                   child: Text(
-                    'Duration to smoothly lower volume down to zero before music ends.',
+                    l10n.gentleFadeOutDurationSubtitle,
                     style: AppTextStyles.caption,
                   ),
                 ),
@@ -194,14 +196,14 @@ class SettingsView extends ConsumerWidget {
                   Icons.vibration_outlined,
                   color: AppColors.accent,
                 ),
-                title: const Text(
-                  'Shake to Extend',
+                title: Text(
+                  l10n.shakeToExtendTitle,
                   style: AppTextStyles.songTitle,
                 ),
-                subtitle: const Padding(
-                  padding: EdgeInsets.only(top: 4.0),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
                   child: Text(
-                    'Gently shake your device during fade-out to add extra time without unlocking.',
+                    l10n.shakeToExtendSubtitle,
                     style: AppTextStyles.caption,
                   ),
                 ),
@@ -222,14 +224,14 @@ class SettingsView extends ConsumerWidget {
                   Icons.trending_down_outlined,
                   color: AppColors.accent,
                 ),
-                title: const Text(
-                  'Slow Volume Decline',
+                title: Text(
+                  l10n.slowVolumeDeclineTitle,
                   style: AppTextStyles.songTitle,
                 ),
-                subtitle: const Padding(
-                  padding: EdgeInsets.only(top: 4.0),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
                   child: Text(
-                    'Gradually ease volume down over the duration of your timer.',
+                    l10n.slowVolumeDeclineSubtitle,
                     style: AppTextStyles.caption,
                   ),
                 ),
@@ -242,7 +244,7 @@ class SettingsView extends ConsumerWidget {
           const SizedBox(height: 24.0),
 
           // Section 3: Bedtime Auto-Timer
-          _buildSectionHeader('Bedtime Auto-Timer'),
+          _buildSectionHeader(l10n.bedtimeAutoTimerSection),
           const SizedBox(height: 8.0),
           _buildSettingsCard(
             children: [
@@ -259,14 +261,14 @@ class SettingsView extends ConsumerWidget {
                   Icons.bedtime_outlined,
                   color: AppColors.accent,
                 ),
-                title: const Text(
-                  'Auto-Start Sleep Timer',
+                title: Text(
+                  l10n.autoStartSleepTimerTitle,
                   style: AppTextStyles.songTitle,
                 ),
-                subtitle: const Padding(
-                  padding: EdgeInsets.only(top: 4.0),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
                   child: Text(
-                    'Automatically start timer when playing music during your bedtime hours.',
+                    l10n.autoStartSleepTimerSubtitle,
                     style: AppTextStyles.caption,
                   ),
                 ),
@@ -284,14 +286,14 @@ class SettingsView extends ConsumerWidget {
                     Icons.access_time_rounded,
                     color: AppColors.accent,
                   ),
-                  title: const Text(
-                    'Bedtime Starts At',
+                  title: Text(
+                    l10n.bedtimeStartsAtTitle,
                     style: AppTextStyles.songTitle,
                   ),
-                  subtitle: const Padding(
-                    padding: EdgeInsets.only(top: 4.0),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
                     child: Text(
-                      'Timer triggers when music begins between this time and 5:00 AM.',
+                      l10n.bedtimeStartsAtSubtitle,
                       style: AppTextStyles.caption,
                     ),
                   ),
@@ -347,14 +349,14 @@ class SettingsView extends ConsumerWidget {
                     Icons.timelapse_rounded,
                     color: AppColors.accent,
                   ),
-                  title: const Text(
-                    'Auto-Timer Duration',
+                  title: Text(
+                    l10n.autoTimerDurationTitle,
                     style: AppTextStyles.songTitle,
                   ),
-                  subtitle: const Padding(
-                    padding: EdgeInsets.only(top: 4.0),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
                     child: Text(
-                      'Default duration set when bedtime auto-timer triggers.',
+                      l10n.autoTimerDurationSubtitle,
                       style: AppTextStyles.caption,
                     ),
                   ),
@@ -372,11 +374,23 @@ class SettingsView extends ConsumerWidget {
                         Icons.arrow_drop_down,
                         color: AppColors.accent,
                       ),
-                      items: const [
-                        DropdownMenuItem(value: 15, child: Text('15 min')),
-                        DropdownMenuItem(value: 30, child: Text('30 min')),
-                        DropdownMenuItem(value: 45, child: Text('45 min')),
-                        DropdownMenuItem(value: 60, child: Text('60 min')),
+                      items: [
+                        DropdownMenuItem(
+                          value: 15,
+                          child: Text(l10n.customMinutesLabel(15)),
+                        ),
+                        DropdownMenuItem(
+                          value: 30,
+                          child: Text(l10n.customMinutesLabel(30)),
+                        ),
+                        DropdownMenuItem(
+                          value: 45,
+                          child: Text(l10n.customMinutesLabel(45)),
+                        ),
+                        DropdownMenuItem(
+                          value: 60,
+                          child: Text(l10n.customMinutesLabel(60)),
+                        ),
                       ],
                       onChanged: (val) {
                         if (val != null) {
@@ -393,7 +407,7 @@ class SettingsView extends ConsumerWidget {
           const SizedBox(height: 24.0),
 
           // Section 4: About
-          _buildSectionHeader('About'),
+          _buildSectionHeader(l10n.aboutSection),
           const SizedBox(height: 8.0),
           _buildSettingsCard(
             children: [
@@ -419,8 +433,8 @@ class SettingsView extends ConsumerWidget {
                   'Dozetone',
                   style: AppTextStyles.songTitle,
                 ),
-                subtitle: const Text(
-                  'Sleep with music, wake up recharged.\nVersion 1.0.0',
+                subtitle: Text(
+                  l10n.appTaglineVersion('1.0.0'),
                   style: AppTextStyles.caption,
                 ),
               ),

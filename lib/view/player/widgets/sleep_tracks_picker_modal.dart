@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../../../model/song.dart';
 import '../../../view_model/library/library_state.dart';
 import '../../../view_model/library/library_view_model.dart';
@@ -90,6 +91,7 @@ class _SleepTracksPickerModalState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final playerState = ref.watch(playerViewModelProvider);
     final libraryState = ref.watch(libraryViewModelProvider);
 
@@ -163,14 +165,14 @@ class _SleepTracksPickerModalState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          'Select Sleep Tracks',
+                          l10n.selectSleepTracks,
                           style: AppTextStyles.screenTitle.copyWith(
                             fontSize: 18.0,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         Text(
-                          'Music will turn off once these tracks finish',
+                          l10n.musicWillTurnOffTracksFinish,
                           style: AppTextStyles.caption.copyWith(
                             color: AppColors.textSecondary,
                             fontSize: 12.0,
@@ -193,7 +195,7 @@ class _SleepTracksPickerModalState
                         ),
                       ),
                       child: Text(
-                        '${_selectedSongs.length} selected',
+                        l10n.selectedCount(_selectedSongs.length),
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.accent,
                           fontWeight: FontWeight.w600,
@@ -227,7 +229,7 @@ class _SleepTracksPickerModalState
                   ),
                   cursorColor: AppColors.accent,
                   decoration: InputDecoration(
-                    hintText: 'Search songs or artists...',
+                    hintText: l10n.searchSongsOrArtists,
                     hintStyle: AppTextStyles.body.copyWith(
                       color: AppColors.textSecondary.withValues(alpha: 0.7),
                       fontSize: 13.0,
@@ -303,7 +305,7 @@ class _SleepTracksPickerModalState
                         children: <Widget>[
                           const Icon(Icons.playlist_play_rounded, size: 16.0),
                           const SizedBox(width: AppDimensions.space6),
-                          Text('Upcoming Queue (${queueTracks.length})'),
+                          Text(l10n.upcomingQueueCount(queueTracks.length)),
                         ],
                       ),
                     ),
@@ -313,7 +315,7 @@ class _SleepTracksPickerModalState
                         children: <Widget>[
                           const Icon(Icons.library_music_rounded, size: 16.0),
                           const SizedBox(width: AppDimensions.space6),
-                          Text('All Songs (${allLibrarySongs.length})'),
+                          Text(l10n.allSongsCount(allLibrarySongs.length)),
                         ],
                       ),
                     ),
@@ -331,14 +333,14 @@ class _SleepTracksPickerModalState
                   _buildSongListView(
                     filteredQueue,
                     emptyMessage: queueTracks.isEmpty
-                        ? 'No upcoming songs in active queue.'
-                        : 'No matching songs found in queue.',
+                        ? l10n.noUpcomingSongsInQueue
+                        : l10n.noMatchingSongsInQueue,
                   ),
                   _buildSongListView(
                     filteredLibrary,
                     emptyMessage: allLibrarySongs.isEmpty
-                        ? 'No songs found in local library.'
-                        : 'No matching songs found in library.',
+                        ? l10n.noSongsFoundInLibrary
+                        : l10n.noMatchingSongsInLibrary,
                   ),
                 ],
               ),
@@ -365,9 +367,9 @@ class _SleepTracksPickerModalState
                       onPressed: () {
                         setState(() => _selectedSongs.clear());
                       },
-                      child: const Text(
-                        'Clear',
-                        style: TextStyle(
+                      child: Text(
+                        l10n.clearQueue,
+                        style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
@@ -385,8 +387,8 @@ class _SleepTracksPickerModalState
                       icon: const Icon(Icons.check_rounded, size: 18.0),
                       label: Text(
                         _selectedSongs.isEmpty
-                            ? 'Select Songs'
-                            : 'Set Timer (${_selectedSongs.length} ${_selectedSongs.length == 1 ? "Track" : "Tracks"})',
+                            ? l10n.selectSongsAction
+                            : l10n.setTimerTracksCount(_selectedSongs.length),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accent,

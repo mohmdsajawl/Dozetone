@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../model/song.dart';
 import '../../../view_model/playlist/favorites_provider.dart';
 
@@ -107,6 +108,7 @@ class _PlaylistAddSongsSheetState extends ConsumerState<PlaylistAddSongsSheet> {
   @override
   Widget build(BuildContext context) {
     final availableSongs = _filteredSongs;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.82,
@@ -156,9 +158,9 @@ class _PlaylistAddSongsSheetState extends ConsumerState<PlaylistAddSongsSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        const Text(
-                          'Add Tracks',
-                          style: TextStyle(
+                        Text(
+                          l10n.addTracks,
+                          style: const TextStyle(
                             fontFamily: AppTextStyles.fontFamily,
                             fontSize: 18.0,
                             fontWeight: FontWeight.w600,
@@ -166,7 +168,7 @@ class _PlaylistAddSongsSheetState extends ConsumerState<PlaylistAddSongsSheet> {
                           ),
                         ),
                         Text(
-                          'Select songs for "${widget.playlistName}"',
+                          l10n.selectSongsForPlaylist(widget.playlistName),
                           style: AppTextStyles.caption,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -201,7 +203,7 @@ class _PlaylistAddSongsSheetState extends ConsumerState<PlaylistAddSongsSheet> {
                 },
                 style: AppTextStyles.body,
                 decoration: InputDecoration(
-                  hintText: 'Search songs by title or artist...',
+                  hintText: l10n.searchPlaceholder,
                   hintStyle: AppTextStyles.bodySecondary,
                   prefixIcon: const Icon(
                     Icons.search_rounded,
@@ -255,8 +257,8 @@ class _PlaylistAddSongsSheetState extends ConsumerState<PlaylistAddSongsSheet> {
                   ? Center(
                       child: Text(
                         _searchQuery.isEmpty
-                            ? 'No library songs available'
-                            : 'No songs matching "$_searchQuery"',
+                            ? l10n.noLibrarySongsAvailable
+                            : l10n.noSearchResults(_searchQuery),
                         style: AppTextStyles.bodySecondary,
                       ),
                     )
@@ -414,8 +416,8 @@ class _PlaylistAddSongsSheetState extends ConsumerState<PlaylistAddSongsSheet> {
                       _selectedSongIds.isEmpty ? null : _onAddSelected,
                   child: Text(
                     _selectedSongIds.isEmpty
-                        ? 'Select Tracks to Add'
-                        : 'Add ${_selectedSongIds.length} Track${_selectedSongIds.length == 1 ? '' : 's'}',
+                        ? l10n.selectTracksToAdd
+                        : l10n.addTracksCount(_selectedSongIds.length),
                     style: const TextStyle(
                       fontFamily: AppTextStyles.fontFamily,
                       fontSize: 15.0,

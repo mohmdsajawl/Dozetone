@@ -5,6 +5,7 @@ import '../../../app/router/route_names.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../widgets/marquee_text.dart';
 import '../../widgets/music_wave_bars.dart';
 import 'add_to_playlist_modal.dart';
@@ -23,6 +24,7 @@ class MiniPlayer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final playerState = ref.watch(playerViewModelProvider);
     final song = playerState.currentSong;
+    final l10n = AppLocalizations.of(context)!;
 
     if (song == null) {
       return const SizedBox.shrink();
@@ -120,7 +122,7 @@ class MiniPlayer extends ConsumerWidget {
                           ),
                           visualDensity: VisualDensity.compact,
                           padding: const EdgeInsets.all(AppDimensions.space6),
-                          tooltip: 'Queue',
+                          tooltip: l10n.queueTitle,
                           onPressed: () => PlaybackQueueModal.show(context: context),
                         ),
 
@@ -133,7 +135,7 @@ class MiniPlayer extends ConsumerWidget {
                           ),
                           visualDensity: VisualDensity.compact,
                           padding: const EdgeInsets.all(AppDimensions.space6),
-                          tooltip: 'Add to playlist or favorites',
+                          tooltip: l10n.addToPlaylistOrFavorites,
                           onPressed: () => AddToPlaylistModal.show(
                             context: context,
                             song: song,

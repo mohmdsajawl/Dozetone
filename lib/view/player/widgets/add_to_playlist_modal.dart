@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../model/song.dart';
 import '../../../view_model/playlist/favorites_provider.dart';
 
@@ -75,9 +76,10 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
         .toggleFavorite(widget.song.id);
 
     if (mounted) {
+      final l10n = AppLocalizations.of(context)!;
       Navigator.pop(context);
       _showFeedback(
-        nowFav ? 'Added to Favorites' : 'Removed from Favorites',
+        nowFav ? l10n.addedToFavorites : l10n.removedFromFavorites(widget.song.title),
         nowFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
       );
     }
@@ -88,14 +90,16 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
         .read(playlistsProvider.notifier)
         .addSongToPlaylist(playlistName, widget.song.id);
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     Navigator.pop(context);
     _showFeedback(
-      added ? 'Added to $playlistName' : 'Already in $playlistName',
+      added ? l10n.addedToPlaylistSuccess(playlistName) : l10n.alreadyInPlaylist(playlistName),
       Icons.playlist_add_check_rounded,
     );
   }
 
   Future<void> _showCreatePlaylistDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
 
     final name = await showDialog<String>(
@@ -105,8 +109,8 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
         shape: const RoundedRectangleBorder(
           borderRadius: AppDimensions.borderRadiusCard,
         ),
-        title: const Text(
-          'New Playlist',
+        title: Text(
+          l10n.newPlaylist,
           style: AppTextStyles.screenTitle,
         ),
         content: TextField(
@@ -114,7 +118,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
           autofocus: true,
           style: AppTextStyles.body,
           decoration: InputDecoration(
-            hintText: 'Playlist name',
+            hintText: l10n.enterPlaylistName,
             hintStyle: AppTextStyles.bodySecondary,
             filled: true,
             fillColor: AppColors.background,
@@ -131,7 +135,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Cancel', style: AppTextStyles.caption),
+            child: Text(l10n.cancel, style: AppTextStyles.caption),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -142,7 +146,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
               ),
             ),
             onPressed: () => Navigator.pop(dialogCtx, controller.text.trim()),
-            child: const Text('Create'),
+            child: Text(l10n.create),
           ),
         ],
       ),
@@ -154,9 +158,10 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
           .read(playlistsProvider.notifier)
           .addSongToPlaylist(name, widget.song.id);
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       Navigator.pop(context);
       _showFeedback(
-        'Created playlist "$name" and added track',
+        l10n.createdPlaylistAndAddedTrack(name),
         Icons.check_circle_rounded,
       );
     }
@@ -167,6 +172,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
     final favorites = ref.watch(favoritesProvider);
     final playlists = ref.watch(playlistsProvider);
     final isFavorite = favorites.contains(widget.song.id);
+    final l10n = AppLocalizations.of(context)!;
 
     final maxHeight = MediaQuery.of(context).size.height * 0.80;
 
@@ -226,7 +232,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text(
-                                widget.showFavorites ? 'Add to...' : 'Add to Playlist',
+                                widget.showFavorites ? l10n.addTo : l10n.addToPlaylist,
                                 style: const TextStyle(
                                   fontFamily: AppTextStyles.fontFamily,
                                   fontSize: 18.0,
@@ -273,10 +279,10 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                               ? Icons.favorite_rounded
                               : Icons.favorite_border_rounded,
                           iconColor: isFavorite ? AppColors.favorite : AppColors.accent,
-                          title: 'Favorites',
+                          title: l10n.favoritesTitle,
                           subtitle: isFavorite
-                              ? 'Already in Favorites (tap to remove)'
-                              : 'Save to favorite tracks',
+                              ? l10n.alreadyInFavoritesHint
+                              : l10n.saveToFavoritesHint,
                           trailing: Icon(
                             isFavorite ? Icons.check_circle_rounded : Icons.add_rounded,
                             color: isFavorite ? AppColors.favorite : AppColors.accent,
@@ -300,7 +306,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                               ),
                               const SizedBox(width: AppDimensions.space8),
                               Text(
-                                'Playlists'.toUpperCase(),
+                                l10n.playlistsHeader.toUpperCase(),
                                 style: AppTextStyles.caption.copyWith(
                                   color: AppColors.textSecondary,
                                   fontWeight: FontWeight.w600,
@@ -310,7 +316,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                             ],
                           ),
                           Text(
-                            '${playlists.length} available',
+                            l10n.playlistsAvailableCount(playlists.length),
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.textSecondary.withValues(alpha: 0.7),
                             ),
@@ -335,7 +341,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                           ),
                           child: Center(
                             child: Text(
-                              'No playlists yet. Create one below!',
+                              l10n.noPlaylistsCreateBelow,
                               style: AppTextStyles.caption.copyWith(
                                 color: AppColors.textSecondary,
                               ),
@@ -349,7 +355,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                             child: _buildSubOption(
                               icon: Icons.album_rounded,
                               title: entry.key,
-                              subtitle: '${entry.value.length} tracks',
+                              subtitle: l10n.tracksCount(entry.value.length),
                               onTap: () => _onAddToPlaylist(entry.key),
                             ),
                           );
@@ -373,18 +379,18 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                               color: AppColors.accent.withValues(alpha: 0.4),
                             ),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
-                              Icon(
+                              const Icon(
                                 Icons.add_rounded,
                                 color: AppColors.accent,
                                 size: 20.0,
                               ),
-                              SizedBox(width: AppDimensions.space8),
+                              const SizedBox(width: AppDimensions.space8),
                               Text(
-                                'Create New Playlist',
-                                style: TextStyle(
+                                l10n.createNewPlaylist,
+                                style: const TextStyle(
                                   fontFamily: AppTextStyles.fontFamily,
                                   fontSize: 14.0,
                                   fontWeight: FontWeight.w600,

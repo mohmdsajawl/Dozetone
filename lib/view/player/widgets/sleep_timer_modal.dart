@@ -213,8 +213,8 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                       ),
                       Text(
                         timerState.isActive
-                            ? 'Timer running • Touch to adjust'
-                            : 'Set by duration or specific tracks',
+                            ? l10n.timerRunningTouchToAdjust
+                            : l10n.setByDurationOrTracks,
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.textSecondary,
                           fontSize: 12.0,
@@ -249,7 +249,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                           ),
                           const SizedBox(width: 4.0),
                           Text(
-                            'Active',
+                            l10n.activeStatus,
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.accent,
                               fontWeight: FontWeight.w600,
@@ -316,7 +316,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
               children: <Widget>[
                 Text(
                   isTrack
-                      ? '${timerState.remainingTracks} ${timerState.remainingTracks == 1 ? "Track Remaining" : "Tracks Remaining"}'
+                      ? l10n.tracksRemainingBadge(timerState.remainingTracks)
                       : timerState.formattedRemaining,
                   style: TextStyle(
                     fontFamily: AppTextStyles.fontFamily,
@@ -366,9 +366,11 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                   Text(
                     isTrack
                         ? (timerState.remainingTracks == 1
-                            ? 'Fading out at end of this track'
-                            : 'Playback pauses after ${timerState.remainingTracks} tracks finish')
-                        : 'Music will gently fade out',
+                            ? l10n.fadingOutOfTrack
+                            : l10n.playbackPausesAfterTracks(
+                                timerState.remainingTracks,
+                              ))
+                        : l10n.musicWillGentlyFadeOut,
                     style: AppTextStyles.caption.copyWith(
                       color: AppColors.textSecondary,
                       fontSize: 12.5,
@@ -584,8 +586,8 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                       const SizedBox(width: AppDimensions.space6),
                       Text(
                         _isSliderExpanded
-                            ? 'Close Slider'
-                            : 'Adjust with Slider',
+                            ? l10n.closeSlider
+                            : l10n.adjustWithSlider,
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.accent,
                           fontWeight: FontWeight.w600,
@@ -767,7 +769,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                                 ),
                                 const SizedBox(width: 2.0),
                                 Text(
-                                  'Add More',
+                                  l10n.addMore,
                                   style: AppTextStyles.caption.copyWith(
                                     color: AppColors.accent,
                                     fontWeight: FontWeight.w600,
@@ -1028,14 +1030,14 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
             ),
             indicatorSize: TabBarIndicatorSize.tab,
             dividerColor: Colors.transparent,
-            tabs: const <Widget>[
+            tabs: <Widget>[
               Tab(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Icon(Icons.schedule_rounded, size: 16.0),
-                    SizedBox(width: AppDimensions.space6),
-                    Text('Duration'),
+                    const Icon(Icons.schedule_rounded, size: 16.0),
+                    const SizedBox(width: AppDimensions.space6),
+                    Text(l10n.tabDuration),
                   ],
                 ),
               ),
@@ -1043,9 +1045,9 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Icon(Icons.queue_music_rounded, size: 16.0),
-                    SizedBox(width: AppDimensions.space6),
-                    Text('Tracks'),
+                    const Icon(Icons.queue_music_rounded, size: 16.0),
+                    const SizedBox(width: AppDimensions.space6),
+                    Text(l10n.tabTracks),
                   ],
                 ),
               ),
@@ -1226,7 +1228,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                               borderRadius: AppDimensions.borderRadiusPill,
                             ),
                             child: Text(
-                              'Last',
+                              l10n.lastBadge,
                               style: AppTextStyles.caption.copyWith(
                                 color: accentHighlight,
                                 fontSize: 10.0,
@@ -1268,7 +1270,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                         ),
                         const SizedBox(width: AppDimensions.space8),
                         Text(
-                          'Custom Duration',
+                          l10n.customDuration,
                           style: AppTextStyles.body.copyWith(
                             fontWeight: FontWeight.w600,
                             fontSize: 13.5,
@@ -1277,7 +1279,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                       ],
                     ),
                     Text(
-                      '$_customMinutes min',
+                      l10n.customMinutesLabel(_customMinutes),
                       style: AppTextStyles.body.copyWith(
                         color: AppColors.accent,
                         fontWeight: FontWeight.w600,
@@ -1317,7 +1319,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                       onPressed: () {
                         _startPresetTimer(
                           duration: Duration(minutes: _customMinutes),
-                          label: '$_customMinutes minutes',
+                          label: l10n.customMinutesLabelFull(_customMinutes),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -1332,7 +1334,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                         ),
                         elevation: 0,
                       ),
-                      child: const Text('Start Timer'),
+                      child: Text(l10n.startTimerButton),
                     ),
                   ],
                 ),
@@ -1431,8 +1433,8 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                           ),
                           Text(
                             currentSong != null
-                                ? 'Pauses when "${currentSong.title}" finishes'
-                                : 'Pauses automatically when track finishes',
+                                ? l10n.pausesWhenTrackFinishes(currentSong.title)
+                                : l10n.pausesWhenCurrentFinishes,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppTextStyles.caption.copyWith(
@@ -1477,7 +1479,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                     ),
                     const SizedBox(width: AppDimensions.space8),
                     Text(
-                      'Track Count Timer',
+                      l10n.trackCountTimer,
                       style: AppTextStyles.body.copyWith(
                         fontWeight: FontWeight.w600,
                         fontSize: 13.5,
@@ -1494,7 +1496,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                         borderRadius: AppDimensions.borderRadiusPill,
                       ),
                       child: Text(
-                        'Count-based',
+                        l10n.countBased,
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.accent,
                           fontSize: 10.5,
@@ -1535,7 +1537,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                         ),
                       ),
                       child: Text(
-                        '$_tracksCount ${_tracksCount == 1 ? "Track" : "Tracks"}',
+                        l10n.tracksCount(_tracksCount),
                         textAlign: TextAlign.center,
                         style: AppTextStyles.body.copyWith(
                           color: AppColors.accent,
@@ -1567,7 +1569,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                       ),
                       elevation: 0,
                     ),
-                    child: Text('Start $_tracksCount-Track Sleep Timer'),
+                    child: Text(l10n.startTracksSleepTimer(_tracksCount)),
                   ),
                 ),
               ],
@@ -1621,7 +1623,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text(
-                            'Pick Specific Songs',
+                            l10n.pickSpecificSongs,
                             style: AppTextStyles.body.copyWith(
                               fontWeight: FontWeight.w600,
                               color: Color.lerp(
@@ -1633,7 +1635,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                             ),
                           ),
                           Text(
-                            'Select exact songs from Queue or Library',
+                            l10n.selectExactSongsPrompt,
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.textSecondary,
                               fontSize: 11.5,
@@ -1652,7 +1654,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: Text(
-                        'Select >',
+                        l10n.selectArrow,
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.onAccent,
                           fontWeight: FontWeight.w600,

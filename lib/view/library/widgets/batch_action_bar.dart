@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 /// Docked bottom action bar rendered during multi-select mode in place of MiniPlayer.
 ///
@@ -29,6 +30,7 @@ class BatchActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       padding: EdgeInsets.only(
@@ -55,29 +57,29 @@ class BatchActionBar extends StatelessWidget {
         children: <Widget>[
           _buildActionButton(
             icon: Icons.queue_music_rounded,
-            label: 'Queue',
+            label: l10n.queueTitle,
             onTap: onQueueTap,
           ),
           _buildActionButton(
             icon: Icons.playlist_add_rounded,
-            label: 'Playlist',
+            label: l10n.playlistAction,
             onTap: onPlaylistTap,
           ),
           _buildActionButton(
             icon: Icons.bedtime_rounded,
-            label: 'Timer',
+            label: l10n.timerAction,
             iconColor: AppColors.accent,
             onTap: onSleepTimerTap,
           ),
           _buildActionButton(
             icon: Icons.favorite_rounded,
-            label: 'Favorite',
+            label: l10n.favoriteAction,
             iconColor: AppColors.favorite,
             onTap: onFavoriteTap,
           ),
           _buildActionButton(
             icon: Icons.delete_outline_rounded,
-            label: 'Delete',
+            label: l10n.delete,
             iconColor: AppColors.error,
             onTap: onDeleteTap,
           ),

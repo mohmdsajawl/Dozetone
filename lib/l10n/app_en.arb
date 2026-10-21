@@ -4,7 +4,6 @@
   "@appTitle": {
     "description": "Application display name"
   },
-
   "libraryTitle": "Library",
   "@libraryTitle": {
     "description": "Library view header title"
@@ -175,7 +174,6 @@
   "@unknownArtist": {
     "description": "Fallback when audio track has no artist"
   },
-
   "nowPlayingTitle": "Now playing",
   "@nowPlayingTitle": {
     "description": "Top bar title on the player screen"
@@ -184,7 +182,6 @@
   "@sleepTimer": {
     "description": "Sleep timer button and header label"
   },
-
   "timerPreset5Min": "5 minutes",
   "@timerPreset5Min": {
     "description": "5 minutes preset"
@@ -242,7 +239,6 @@
   "@fadingOut": {
     "description": "Status text while audio volume fade-out is active"
   },
-
   "settingsTitle": "Settings",
   "@settingsTitle": {
     "description": "Settings view title"
@@ -305,7 +301,6 @@
   "@cancel": {
     "description": "Generic cancel button"
   },
-
   "aboutSection": "About",
   "@aboutSection": {
     "description": "Settings section header for about info"
@@ -327,7 +322,6 @@
   "@openSourceLicenses": {
     "description": "Button to view third party open source licenses"
   },
-
   "createNewPlaylist": "Create New Playlist",
   "@createNewPlaylist": {
     "description": "Title and button for creating a new playlist"
@@ -516,6 +510,571 @@
   "notificationTimerTracks": "{count, plural, =1{Sleep after 1 song} other{Sleep after {count} songs}}",
   "@notificationTimerTracks": {
     "description": "Timer status in notification for track-based sleep timer",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteSongsDialogTitle": "{count, plural, =1{Delete 1 Track?} other{Delete {count} Tracks?}}",
+  "@deleteSongsDialogTitle": {
+    "description": "Title for dialog confirming deletion of multiple tracks",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteSongsDialogMessage": "{count, plural, =1{Are you sure you want to permanently delete 1 track from your device storage? This cannot be undone.} other{Are you sure you want to permanently delete {count} tracks from your device storage? This cannot be undone.}}",
+  "@deleteSongsDialogMessage": {
+    "description": "Confirmation message for batch deletion of songs",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "permanentlyDeletedTracks": "{count, plural, =1{Permanently deleted 1 track} other{Permanently deleted {count} tracks}}",
+  "@permanentlyDeletedTracks": {
+    "description": "Snackbar message when tracks are permanently deleted",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "enterNewPlaylistName": "Enter new playlist name",
+  "@enterNewPlaylistName": {
+    "description": "Hint text for renaming a playlist"
+  },
+  "deletePlaylistTitle": "Delete Playlist?",
+  "@deletePlaylistTitle": {
+    "description": "Dialog title when confirming playlist deletion"
+  },
+  "playingNext": "Playing next: {title}",
+  "@playingNext": {
+    "description": "Feedback when a song is set to play next",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playingPlaylist": "Playing playlist \"{name}\"",
+  "@playingPlaylist": {
+    "description": "Feedback when a playlist is started",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addTracks": "Add Tracks",
+  "@addTracks": {
+    "description": "Button or tooltip to add tracks to a playlist"
+  },
+  "tapBelowToAddSongs": "Tap below to add songs from your library",
+  "@tapBelowToAddSongs": {
+    "description": "Empty playlist hint prompt"
+  },
+  "playlistAction": "Playlist",
+  "@playlistAction": {
+    "description": "Action bar label for playlist operations"
+  },
+  "timerAction": "Timer",
+  "@timerAction": {
+    "description": "Action bar label for timer operations"
+  },
+  "favoriteAction": "Favorite",
+  "@favoriteAction": {
+    "description": "Action bar label for favorite operations"
+  },
+  "createPlaylistWithSelected": "Create a new playlist with selected tracks",
+  "@createPlaylistWithSelected": {
+    "description": "Subtitle when creating playlist with preselected tracks"
+  },
+  "noPlaylistsTapAbove": "No playlists yet. Tap above to create one.",
+  "@noPlaylistsTapAbove": {
+    "description": "Empty playlists state in batch modal"
+  },
+  "createAndAdd": "Create & Add",
+  "@createAndAdd": {
+    "description": "Button label to create playlist and add selected tracks"
+  },
+  "selectedCount": "{count} selected",
+  "@selectedCount": {
+    "description": "Count of selected items in multi-selection mode",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selectAll": "Select All",
+  "@selectAll": {
+    "description": "Action button to select all songs"
+  },
+  "deselectAll": "Deselect All",
+  "@deselectAll": {
+    "description": "Action button to deselect all songs"
+  },
+  "selectSongsForPlaylist": "Select songs for \"{name}\"",
+  "@selectSongsForPlaylist": {
+    "description": "Header subtitle when selecting songs for a playlist",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noLibrarySongsAvailable": "No library songs available",
+  "@noLibrarySongsAvailable": {
+    "description": "Message when local library is empty"
+  },
+  "selectTracksToAdd": "Select Tracks to Add",
+  "@selectTracksToAdd": {
+    "description": "Button text when no tracks have been selected yet"
+  },
+  "addTracksCount": "{count, plural, =1{Add 1 Track} other{Add {count} Tracks}}",
+  "@addTracksCount": {
+    "description": "Button text showing how many tracks will be added",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addedToFavorites": "Added to Favorites",
+  "@addedToFavorites": {
+    "description": "Snackbar text when a song is marked as favorite"
+  },
+  "unknownValue": "Unknown",
+  "@unknownValue": {
+    "description": "Generic fallback for unknown metadata values"
+  },
+  "albumLabel": "Album",
+  "@albumLabel": {
+    "description": "Label for album in song details"
+  },
+  "fileSizeLabel": "File Size",
+  "@fileSizeLabel": {
+    "description": "Label for file size in song details"
+  },
+  "filePathLabel": "Path",
+  "@filePathLabel": {
+    "description": "Label for file path in song details"
+  },
+  "okAction": "OK",
+  "@okAction": {
+    "description": "Generic OK button label"
+  },
+  "dismiss": "Dismiss",
+  "@dismiss": {
+    "description": "Tooltip or button label to dismiss a screen or dialog"
+  },
+  "moreOptions": "More options",
+  "@moreOptions": {
+    "description": "Tooltip for 3-dots overflow menu"
+  },
+  "addToFavorites": "Add to Favorites",
+  "@addToFavorites": {
+    "description": "Tooltip or action to add current track to favorites"
+  },
+  "previous": "Previous",
+  "@previous": {
+    "description": "Tooltip for skip previous button"
+  },
+  "next": "Next",
+  "@next": {
+    "description": "Tooltip for skip next button"
+  },
+  "repeat": "Repeat",
+  "@repeat": {
+    "description": "Tooltip for repeat mode button"
+  },
+  "sleepTimerTracksRemaining": "{count, plural, =1{1 track remaining} other{{count} tracks remaining}}",
+  "@sleepTimerTracksRemaining": {
+    "description": "Text on now playing card showing remaining tracks in timer",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTimerRemaining": "{time} remaining",
+  "@sleepTimerRemaining": {
+    "description": "Text on now playing card showing remaining time in timer",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "gentleAudioFadeOut": "Gentle audio fade-out",
+  "@gentleAudioFadeOut": {
+    "description": "Subtitle under sleep timer button when timer is idle"
+  },
+  "setTimer": "Set timer",
+  "@setTimer": {
+    "description": "Button label to open sleep timer modal"
+  },
+  "addedToPlaylistSuccess": "Added to {name}",
+  "@addedToPlaylistSuccess": {
+    "description": "Feedback when a song is added to a playlist",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alreadyInPlaylist": "Already in {name}",
+  "@alreadyInPlaylist": {
+    "description": "Feedback when a song is already present in a playlist",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "createdPlaylistAndAddedTrack": "Created playlist \"{name}\" and added track",
+  "@createdPlaylistAndAddedTrack": {
+    "description": "Feedback when creating a playlist and inserting the track",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "favoritesTitle": "Favorites",
+  "@favoritesTitle": {
+    "description": "Title for Favorites option"
+  },
+  "alreadyInFavoritesHint": "Already in Favorites (tap to remove)",
+  "@alreadyInFavoritesHint": {
+    "description": "Subtitle when track is already in favorites"
+  },
+  "saveToFavoritesHint": "Save to favorite tracks",
+  "@saveToFavoritesHint": {
+    "description": "Subtitle when track is not yet in favorites"
+  },
+  "playlistsHeader": "Playlists",
+  "@playlistsHeader": {
+    "description": "Section header for playlists list"
+  },
+  "playlistsAvailableCount": "{count} available",
+  "@playlistsAvailableCount": {
+    "description": "Counter label showing number of playlists available",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noPlaylistsCreateBelow": "No playlists yet. Create one below!",
+  "@noPlaylistsCreateBelow": {
+    "description": "Placeholder when no playlists exist yet"
+  },
+  "addToPlaylistOrFavorites": "Add to playlist or favorites",
+  "@addToPlaylistOrFavorites": {
+    "description": "Tooltip on mini player add button"
+  },
+  "clearedUpcomingTracks": "Cleared upcoming tracks",
+  "@clearedUpcomingTracks": {
+    "description": "Feedback when queue is cleared"
+  },
+  "close": "Close",
+  "@close": {
+    "description": "Close button tooltip or label"
+  },
+  "removedFromQueue": "Removed from queue",
+  "@removedFromQueue": {
+    "description": "Feedback when a track is removed from playback queue"
+  },
+  "play": "Play",
+  "@play": {
+    "description": "Play action label"
+  },
+  "pause": "Pause",
+  "@pause": {
+    "description": "Pause action label"
+  },
+  "removeFromQueue": "Remove from queue",
+  "@removeFromQueue": {
+    "description": "Tooltip or label to remove an item from the queue"
+  },
+  "timerRunningTouchToAdjust": "Timer running • Touch to adjust",
+  "@timerRunningTouchToAdjust": {
+    "description": "Header subtitle when sleep timer is active"
+  },
+  "setByDurationOrTracks": "Set by duration or specific tracks",
+  "@setByDurationOrTracks": {
+    "description": "Header subtitle when sleep timer is inactive"
+  },
+  "activeStatus": "Active",
+  "@activeStatus": {
+    "description": "Active badge text"
+  },
+  "tracksRemainingBadge": "{count, plural, =1{1 Track Remaining} other{{count} Tracks Remaining}}",
+  "@tracksRemainingBadge": {
+    "description": "Remaining tracks counter in sleep timer modal",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fadingOutOfTrack": "Fading out at end of this track",
+  "@fadingOutOfTrack": {
+    "description": "Notice when fading out on the final track"
+  },
+  "playbackPausesAfterTracks": "{count, plural, =1{Playback pauses after 1 track finishes} other{Playback pauses after {count} tracks finish}}",
+  "@playbackPausesAfterTracks": {
+    "description": "Explanation of track-based timer ending",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "musicWillGentlyFadeOut": "Music will gently fade out",
+  "@musicWillGentlyFadeOut": {
+    "description": "Subtitle in timer modal explaining fade-out behavior"
+  },
+  "closeSlider": "Close Slider",
+  "@closeSlider": {
+    "description": "Button label to collapse slider"
+  },
+  "adjustWithSlider": "Adjust with Slider",
+  "@adjustWithSlider": {
+    "description": "Button label to expand slider"
+  },
+  "addMore": "Add More",
+  "@addMore": {
+    "description": "Button label to add more time to active timer"
+  },
+  "tabDuration": "Duration",
+  "@tabDuration": {
+    "description": "Duration tab label in sleep timer modal"
+  },
+  "tabTracks": "Tracks",
+  "@tabTracks": {
+    "description": "Tracks tab label in sleep timer modal"
+  },
+  "lastBadge": "Last",
+  "@lastBadge": {
+    "description": "Badge on last track"
+  },
+  "customDuration": "Custom Duration",
+  "@customDuration": {
+    "description": "Section title for custom duration timer"
+  },
+  "customMinutesLabel": "{minutes} min",
+  "@customMinutesLabel": {
+    "description": "Short minutes label",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "customMinutesLabelFull": "{minutes} minutes",
+  "@customMinutesLabelFull": {
+    "description": "Full minutes label",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "startTimerButton": "Start Timer",
+  "@startTimerButton": {
+    "description": "Button to start a timer"
+  },
+  "pausesWhenTrackFinishes": "Pauses when \"{title}\" finishes",
+  "@pausesWhenTrackFinishes": {
+    "description": "Status for end-of-specific-song timer",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pausesWhenCurrentFinishes": "Pauses automatically when track finishes",
+  "@pausesWhenCurrentFinishes": {
+    "description": "Status for end-of-song timer fallback"
+  },
+  "trackCountTimer": "Track Count Timer",
+  "@trackCountTimer": {
+    "description": "Card title for track-count sleep timer"
+  },
+  "countBased": "Count-based",
+  "@countBased": {
+    "description": "Badge for count-based sleep timer"
+  },
+  "startTracksSleepTimer": "{count, plural, =1{Start 1-Track Sleep Timer} other{Start {count}-Track Sleep Timer}}",
+  "@startTracksSleepTimer": {
+    "description": "Button label to start a track count sleep timer",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pickSpecificSongs": "Pick Specific Songs",
+  "@pickSpecificSongs": {
+    "description": "Card title for choosing exact songs for sleep timer"
+  },
+  "selectExactSongsPrompt": "Select exact songs from Queue or Library",
+  "@selectExactSongsPrompt": {
+    "description": "Subtitle for choosing exact songs"
+  },
+  "selectArrow": "Select >",
+  "@selectArrow": {
+    "description": "Button label with arrow to open selection"
+  },
+  "selectSleepTracks": "Select Sleep Tracks",
+  "@selectSleepTracks": {
+    "description": "Screen title for sleep tracks picker"
+  },
+  "musicWillTurnOffTracksFinish": "Music will turn off once these tracks finish",
+  "@musicWillTurnOffTracksFinish": {
+    "description": "Subtitle in sleep tracks picker"
+  },
+  "searchSongsOrArtists": "Search songs or artists...",
+  "@searchSongsOrArtists": {
+    "description": "Hint text in search field for sleep tracks"
+  },
+  "noUpcomingSongsInQueue": "No upcoming songs in active queue.",
+  "@noUpcomingSongsInQueue": {
+    "description": "Empty queue state in sleep tracks picker"
+  },
+  "noMatchingSongsInQueue": "No matching songs found in queue.",
+  "@noMatchingSongsInQueue": {
+    "description": "No match search in queue"
+  },
+  "noSongsFoundInLibrary": "No songs found in local library.",
+  "@noSongsFoundInLibrary": {
+    "description": "Empty local library state"
+  },
+  "noMatchingSongsInLibrary": "No matching songs found in library.",
+  "@noMatchingSongsInLibrary": {
+    "description": "No match search in library"
+  },
+  "selectSongsAction": "Select Songs",
+  "@selectSongsAction": {
+    "description": "Button text when 0 songs selected in picker"
+  },
+  "setTimerTracksCount": "{count, plural, =1{Set Timer (1 Track)} other{Set Timer ({count} Tracks)}}",
+  "@setTimerTracksCount": {
+    "description": "Button text showing number of selected sleep tracks",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryAndFiltering": "Library & Filtering",
+  "@libraryAndFiltering": {
+    "description": "Settings section header for library & audio filtering"
+  },
+  "ignoreWhatsappTitle": "Ignore WhatsApp & Voice Notes",
+  "@ignoreWhatsappTitle": {
+    "description": "Settings tile title for WhatsApp filtering"
+  },
+  "ignoreWhatsappSubtitle": "Hide WhatsApp audio clips, voice notes, and sound recordings from your music library.",
+  "@ignoreWhatsappSubtitle": {
+    "description": "Settings tile subtitle for WhatsApp filtering"
+  },
+  "whatsappHiddenSnackbar": "WhatsApp audios hidden from library",
+  "@whatsappHiddenSnackbar": {
+    "description": "Snackbar shown when WhatsApp audio is hidden"
+  },
+  "whatsappVisibleSnackbar": "WhatsApp audios visible in library",
+  "@whatsappVisibleSnackbar": {
+    "description": "Snackbar shown when WhatsApp audio is made visible"
+  },
+  "minimumTrackDurationTitle": "Minimum Track Duration",
+  "@minimumTrackDurationTitle": {
+    "description": "Settings tile title for minimum track duration"
+  },
+  "minimumTrackDurationSubtitle": "Audio clips shorter than 30s (ringtones and alert sounds) are automatically hidden.",
+  "@minimumTrackDurationSubtitle": {
+    "description": "Settings tile subtitle for minimum track duration"
+  },
+  "gentleFadeOutDurationTitle": "Gentle Fade-Out Duration",
+  "@gentleFadeOutDurationTitle": {
+    "description": "Settings tile title for fade-out duration"
+  },
+  "gentleFadeOutDurationSubtitle": "Duration to smoothly lower volume down to zero before music ends.",
+  "@gentleFadeOutDurationSubtitle": {
+    "description": "Settings tile subtitle for fade-out duration"
+  },
+  "shakeToExtendSubtitle": "Gently shake your device during fade-out to add extra time without unlocking.",
+  "@shakeToExtendSubtitle": {
+    "description": "Settings tile subtitle for shake to extend"
+  },
+  "slowVolumeDeclineSubtitle": "Gradually ease volume down over the duration of your timer.",
+  "@slowVolumeDeclineSubtitle": {
+    "description": "Settings tile subtitle for slow volume decline"
+  },
+  "bedtimeAutoTimerSection": "Bedtime Auto-Timer",
+  "@bedtimeAutoTimerSection": {
+    "description": "Settings section header for bedtime auto-timer"
+  },
+  "autoStartSleepTimerTitle": "Auto-Start Sleep Timer",
+  "@autoStartSleepTimerTitle": {
+    "description": "Settings tile title for auto-starting sleep timer"
+  },
+  "autoStartSleepTimerSubtitle": "Automatically start timer when playing music during your bedtime hours.",
+  "@autoStartSleepTimerSubtitle": {
+    "description": "Settings tile subtitle for auto-starting sleep timer"
+  },
+  "bedtimeStartsAtTitle": "Bedtime Starts At",
+  "@bedtimeStartsAtTitle": {
+    "description": "Settings tile title for bedtime start time"
+  },
+  "bedtimeStartsAtSubtitle": "Timer triggers when music begins between this time and 5:00 AM.",
+  "@bedtimeStartsAtSubtitle": {
+    "description": "Settings tile subtitle for bedtime start time"
+  },
+  "autoTimerDurationTitle": "Auto-Timer Duration",
+  "@autoTimerDurationTitle": {
+    "description": "Settings tile title for auto-timer duration"
+  },
+  "autoTimerDurationSubtitle": "Default duration set when bedtime auto-timer triggers.",
+  "@autoTimerDurationSubtitle": {
+    "description": "Settings tile subtitle for auto-timer duration"
+  },
+  "appTaglineVersion": "Sleep with music, wake up recharged.\nVersion {version}",
+  "@appTaglineVersion": {
+    "description": "Tagline and version display in settings about card",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "addTracksToPlaylist": "{count, plural, =1{Add 1 track to playlist} other{Add {count} tracks to playlist}}",
+  "@addTracksToPlaylist": {
+    "description": "Modal title for adding tracks to playlist",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "upcomingQueueCount": "Upcoming Queue ({count})",
+  "@upcomingQueueCount": {
+    "description": "Tab title for upcoming queue with track count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "allSongsCount": "All Songs ({count})",
+  "@allSongsCount": {
+    "description": "Tab title for all songs with track count",
     "placeholders": {
       "count": {
         "type": "int"

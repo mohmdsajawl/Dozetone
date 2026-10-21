@@ -160,7 +160,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                 size: 28.0,
                               ),
                               color: AppColors.textPrimary,
-                              tooltip: 'Dismiss',
+                              tooltip: l10n.dismiss,
                               onPressed: () => context.pop(),
                             ),
                           ),
@@ -248,7 +248,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                     size: 21.0,
                                   ),
                                   color: AppColors.textPrimary,
-                                  tooltip: 'More options',
+                                  tooltip: l10n.moreOptions,
                                   onPressed: () => SongOptionsModal.show(
                                     context: context,
                                     song: song,
@@ -467,8 +467,8 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                 ),
                               ),
                               tooltip: isFavorite
-                                  ? 'Remove from Favorites'
-                                  : 'Add to Favorites',
+                                  ? l10n.removeFromFavorites
+                                  : l10n.addToFavorites,
                               onPressed: () async {
                                 final nowFav = await ref
                                     .read(favoritesProvider.notifier)
@@ -495,7 +495,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                             Expanded(
                                               child: Text(
                                                 nowFav
-                                                    ? 'Added to Favorites'
+                                                    ? l10n.addedToFavorites
                                                     : l10n.removedFromFavorites(
                                                         song.title,
                                                       ),
@@ -595,7 +595,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                               color: playerState.isShuffleEnabled
                                   ? AppColors.accent
                                   : AppColors.textSecondary,
-                              tooltip: 'Shuffle',
+                              tooltip: l10n.shuffle,
                               onPressed: viewModel.toggleShuffle,
                             ),
                             Container(
@@ -616,7 +616,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                           icon: const Icon(Icons.skip_previous_rounded),
                           iconSize: 38.0,
                           color: AppColors.textPrimary,
-                          tooltip: 'Previous',
+                          tooltip: l10n.previous,
                           onPressed: viewModel.skipPrevious,
                         ),
 
@@ -674,7 +674,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                           icon: const Icon(Icons.skip_next_rounded),
                           iconSize: 38.0,
                           color: AppColors.textPrimary,
-                          tooltip: 'Next',
+                          tooltip: l10n.next,
                           onPressed: viewModel.skipNext,
                         ),
 
@@ -696,7 +696,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                   playerState.repeatMode != PlayerRepeatMode.off
                                       ? AppColors.accent
                                       : AppColors.textSecondary,
-                              tooltip: 'Repeat',
+                              tooltip: l10n.repeat,
                               onPressed: viewModel.cycleRepeatMode,
                             ),
                             Container(
@@ -776,11 +776,11 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                                 : (sleepTimerState.isTrackBased
                                                     ? (sleepTimerState.remainingTracks <= 1
                                                         ? l10n.timerEndOfSong
-                                                        : '${sleepTimerState.remainingTracks} tracks remaining')
+                                                        : l10n.sleepTimerTracksRemaining(sleepTimerState.remainingTracks))
                                                     : (sleepTimerState.isEndOfSong
                                                         ? l10n.timerEndOfSong
-                                                        : '${sleepTimerState.formattedRemaining} remaining')))
-                                            : 'Gentle audio fade-out',
+                                                        : l10n.sleepTimerRemaining(sleepTimerState.formattedRemaining))))
+                                            : l10n.gentleAudioFadeOut,
                                         style: AppTextStyles.caption.copyWith(
                                           color: sleepTimerState.isFadingOut
                                               ? AppColors.accent
@@ -816,7 +816,7 @@ class _NowPlayingViewState extends ConsumerState<NowPlayingView> {
                                       Text(
                                         sleepTimerState.isActive
                                             ? sleepTimerState.formattedRemaining
-                                            : 'Set timer',
+                                            : l10n.setTimer,
                                         style: AppTextStyles.caption.copyWith(
                                           color: sleepTimerState.isActive
                                               ? AppColors.accent

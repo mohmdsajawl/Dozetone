@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 /// Contextual Top App Bar displayed when songs multi-select mode is active.
 ///
@@ -29,6 +30,8 @@ class MultiSelectActionBar extends StatelessWidget implements PreferredSizeWidge
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       color: Colors.transparent,
       padding: EdgeInsets.only(
@@ -45,7 +48,7 @@ class MultiSelectActionBar extends StatelessWidget implements PreferredSizeWidge
               icon: const Icon(Icons.close_rounded),
               iconSize: 24.0,
               color: AppColors.textPrimary,
-              tooltip: 'Cancel',
+              tooltip: l10n.cancel,
               onPressed: () {
                 HapticFeedback.lightImpact();
                 onCancel();
@@ -56,7 +59,7 @@ class MultiSelectActionBar extends StatelessWidget implements PreferredSizeWidge
             // Counter label
             Expanded(
               child: Text(
-                '$selectedCount selected',
+                l10n.selectedCount(selectedCount),
                 style: AppTextStyles.screenTitle.copyWith(
                   fontWeight: FontWeight.w600,
                   fontSize: 18.0,
@@ -78,7 +81,7 @@ class MultiSelectActionBar extends StatelessWidget implements PreferredSizeWidge
                 color: AppColors.accent,
               ),
               label: Text(
-                isAllSelected ? 'Deselect All' : 'Select All',
+                isAllSelected ? l10n.deselectAll : l10n.selectAll,
                 style: AppTextStyles.caption.copyWith(
                   color: AppColors.accent,
                   fontWeight: FontWeight.w600,

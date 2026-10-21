@@ -408,6 +408,7 @@ class LibraryView extends ConsumerWidget {
   ) async {
     await ref.read(favoritesProvider.notifier).toggleFavorite(song.id);
     if (!context.mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     _showFloatingSnackBar(
       context,
       ref,
@@ -422,7 +423,7 @@ class LibraryView extends ConsumerWidget {
           const SizedBox(width: AppDimensions.space12),
           Expanded(
             child: Text(
-              'Removed "${song.title}" from Favorites',
+              l10n.removedFromFavorites(song.title),
               style: AppTextStyles.body.copyWith(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w500,
@@ -662,6 +663,7 @@ class LibraryView extends ConsumerWidget {
     if (selectedSongs.isEmpty) return;
 
     final count = selectedSongs.length;
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
@@ -671,24 +673,26 @@ class LibraryView extends ConsumerWidget {
           side: const BorderSide(color: AppColors.outline),
         ),
         title: Text(
-          'Delete $count ${count == 1 ? "Track" : "Tracks"}?',
+          l10n.deleteSongsDialogTitle(count),
           style: AppTextStyles.screenTitle,
         ),
         content: Text(
-          'Are you sure you want to permanently delete $count ${count == 1 ? "track" : "tracks"} from your device storage? This cannot be undone.',
+          l10n.deleteSongsDialogMessage(count),
           style: AppTextStyles.bodySecondary,
         ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(false),
-            child: const Text('Cancel',
-                style: TextStyle(color: AppColors.textSecondary)),
+            child: Text(
+              l10n.cancel,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(
+            child: Text(
+              l10n.delete,
+              style: const TextStyle(
                 color: AppColors.error,
                 fontWeight: FontWeight.w600,
               ),
@@ -722,7 +726,7 @@ class LibraryView extends ConsumerWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: Text(
-                  'Permanently deleted $deletedCount ${deletedCount == 1 ? "track" : "tracks"}',
+                  l10n.permanentlyDeletedTracks(deletedCount),
                   style: AppTextStyles.body.copyWith(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.w500,

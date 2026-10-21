@@ -271,7 +271,7 @@ class SongOptionsModal extends ConsumerWidget {
                       _showFeedback(
                         parentContext,
                         nowFav
-                            ? 'Added to Favorites'
+                            ? l10n.addedToFavorites
                             : l10n.removedFromFavorites(song.title),
                         nowFav
                             ? Icons.favorite_rounded
@@ -404,13 +404,13 @@ class SongOptionsModal extends ConsumerWidget {
     final l10n = AppLocalizations.of(screenContext)!;
     final sizeMb = (song.sizeBytes != null && song.sizeBytes! > 0)
         ? '${(song.sizeBytes! / (1024 * 1024)).toStringAsFixed(1)} MB'
-        : 'Unknown';
+        : l10n.unknownValue;
 
     final dateAddedStr = (song.dateAdded != null && song.dateAdded! > 0)
         ? DateFormat('MMM dd, yyyy  •  hh:mm a').format(
             DateTime.fromMillisecondsSinceEpoch(song.dateAdded! * 1000),
           )
-        : 'Unknown';
+        : l10n.unknownValue;
 
     showDialog(
       context: screenContext,
@@ -423,19 +423,19 @@ class SongOptionsModal extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               _buildDetailRow(l10n.dateAdded, dateAddedStr),
-              _buildDetailRow('Artist', song.artist),
+              _buildDetailRow(l10n.sortArtist, song.artist),
               if (song.album != null && song.album!.isNotEmpty)
-                _buildDetailRow('Album', song.album!),
-              _buildDetailRow('Duration', song.formattedDuration),
-              _buildDetailRow('File Size', sizeMb),
-              _buildDetailRow('Path', song.dataUri),
+                _buildDetailRow(l10n.albumLabel, song.album!),
+              _buildDetailRow(l10n.sortDuration, song.formattedDuration),
+              _buildDetailRow(l10n.fileSizeLabel, sizeMb),
+              _buildDetailRow(l10n.filePathLabel, song.dataUri),
             ],
           ),
         ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('OK', style: TextStyle(color: AppColors.accent)),
+            child: Text(l10n.okAction, style: const TextStyle(color: AppColors.accent)),
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../model/song.dart';
 import '../../view_model/library/library_state.dart';
 import '../../view_model/library/library_view_model.dart';
@@ -69,6 +70,7 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
   }
 
   Future<void> _showRenameDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: _currentName);
 
     final newName = await showDialog<String>(
@@ -79,13 +81,13 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
           borderRadius: BorderRadius.circular(12.0),
           side: const BorderSide(color: AppColors.outline),
         ),
-        title: const Text('Rename Playlist', style: AppTextStyles.screenTitle),
+        title: Text(l10n.renamePlaylist, style: AppTextStyles.screenTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
           style: AppTextStyles.body,
           decoration: InputDecoration(
-            hintText: 'Enter new playlist name',
+            hintText: l10n.enterNewPlaylistName,
             hintStyle: AppTextStyles.bodySecondary,
             filled: true,
             fillColor: AppColors.background,
@@ -102,7 +104,7 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Cancel', style: AppTextStyles.caption),
+            child: Text(l10n.cancel, style: AppTextStyles.caption),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -113,7 +115,7 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
               ),
             ),
             onPressed: () => Navigator.pop(dialogCtx, controller.text.trim()),
-            child: const Text('Rename'),
+            child: Text(l10n.rename),
           ),
         ],
       ),
@@ -128,14 +130,15 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
         setState(() {
           _currentName = newName;
         });
-        _showFeedback('Renamed to "$newName"');
+        _showFeedback(l10n.playlistRenamed(newName));
       } else {
-        _showFeedback('Playlist "$newName" already exists', isError: true);
+        _showFeedback(l10n.playlistAlreadyExists(newName), isError: true);
       }
     }
   }
 
   Future<void> _showDeleteConfirmDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
@@ -144,21 +147,21 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
           borderRadius: BorderRadius.circular(12.0),
           side: const BorderSide(color: AppColors.outline),
         ),
-        title: const Row(
+        title: Row(
           children: <Widget>[
-            Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 22.0),
-            SizedBox(width: AppDimensions.space8),
-            Text('Delete Playlist?', style: AppTextStyles.screenTitle),
+            const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 22.0),
+            const SizedBox(width: AppDimensions.space8),
+            Text(l10n.deletePlaylistTitle, style: AppTextStyles.screenTitle),
           ],
         ),
         content: Text(
-          'Are you sure you want to delete "$_currentName"? The audio files will remain on your device.',
+          l10n.deletePlaylistConfirm(_currentName),
           style: AppTextStyles.bodySecondary,
         ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
-            child: const Text('Cancel', style: AppTextStyles.caption),
+            child: Text(l10n.cancel, style: AppTextStyles.caption),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -169,7 +172,7 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
               ),
             ),
             onPressed: () => Navigator.pop(dialogCtx, true),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -179,7 +182,7 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
       await ref.read(playlistsProvider.notifier).deletePlaylist(_currentName);
       if (mounted) {
         Navigator.pop(context);
-        _showFeedback('Deleted playlist "$_currentName"');
+        _showFeedback(l10n.playlistDeleted(_currentName));
       }
     }
   }
@@ -190,7 +193,9 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
         .removeSongFromPlaylist(_currentName, song.id);
 
     if (success) {
-      _showFeedback('Removed "${song.title}" from playlist');
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      _showFeedback(l10n.songRemovedFromPlaylist(_currentName));
     }
   }
 
@@ -204,18 +209,21 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
 
   void _onPlayNext(Song song) {
     ref.read(playerViewModelProvider.notifier).insertNext(song);
-    _showFeedback('Playing next: ${song.title}');
+    final l10n = AppLocalizations.of(context)!;
+    _showFeedback(l10n.playingNext(song.title));
   }
 
   Future<void> _onDeleteSong(Song song) async {
     final libraryViewModel = ref.read(libraryViewModelProvider.notifier);
     final deleted = await libraryViewModel.deleteSong(song);
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     if (deleted) {
       ref.read(playerViewModelProvider.notifier).removeSongFromPlayback(song.id);
       await ref.read(playlistsProvider.notifier).removeSongFromPlaylist(_currentName, song.id);
-      _showFeedback('Deleted "${song.title}"');
+      _showFeedback(l10n.songDeleted(song.title));
     } else {
-      _showFeedback('Could not delete "${song.title}"', isError: true);
+      _showFeedback(l10n.songDeleteFailed(song.title), isError: true);
     }
   }
 
@@ -242,6 +250,7 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
     final playlistSongs = allSongs.where((s) => songIds.contains(s.id)).toList();
 
     final playerState = ref.watch(playerViewModelProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       decoration: const BoxDecoration(
@@ -280,7 +289,7 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
                 color: AppColors.accent,
                 size: 26.0,
               ),
-              tooltip: 'Add Tracks',
+              tooltip: l10n.addTracks,
               onPressed: () => PlaylistAddSongsSheet.show(
                 context: context,
                 playlistName: _currentName,
@@ -313,34 +322,34 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
                 }
               },
               itemBuilder: (context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'rename',
                   child: Row(
                     children: <Widget>[
-                      Icon(Icons.edit_rounded, color: AppColors.accent, size: 20.0),
-                      SizedBox(width: AppDimensions.space12),
-                      Text('Rename Playlist', style: AppTextStyles.body),
+                      const Icon(Icons.edit_rounded, color: AppColors.accent, size: 20.0),
+                      const SizedBox(width: AppDimensions.space12),
+                      Text(l10n.renamePlaylist, style: AppTextStyles.body),
                     ],
                   ),
                 ),
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'add',
                   child: Row(
                     children: <Widget>[
-                      Icon(Icons.add_rounded, color: AppColors.accent, size: 20.0),
-                      SizedBox(width: AppDimensions.space12),
-                      Text('Add Tracks', style: AppTextStyles.body),
+                      const Icon(Icons.add_rounded, color: AppColors.accent, size: 20.0),
+                      const SizedBox(width: AppDimensions.space12),
+                      Text(l10n.addTracks, style: AppTextStyles.body),
                     ],
                   ),
                 ),
                 const PopupMenuDivider(height: 1.0),
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'delete',
                   child: Row(
                     children: <Widget>[
-                      Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 20.0),
-                      SizedBox(width: AppDimensions.space12),
-                      Text('Delete Playlist', style: TextStyle(color: AppColors.error)),
+                      const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 20.0),
+                      const SizedBox(width: AppDimensions.space12),
+                      Text(l10n.deletePlaylist, style: const TextStyle(color: AppColors.error)),
                     ],
                   ),
                 ),
@@ -465,14 +474,14 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
                               minimumSize: const Size.fromHeight(38.0),
                               padding: const EdgeInsets.symmetric(horizontal: 12.0),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
-                                Icon(Icons.play_arrow_rounded, size: 20.0),
-                                SizedBox(width: 6.0),
+                                const Icon(Icons.play_arrow_rounded, size: 20.0),
+                                const SizedBox(width: 6.0),
                                 Text(
-                                  'Play All',
-                                  style: TextStyle(
+                                  l10n.playAll,
+                                  style: const TextStyle(
                                     fontFamily: AppTextStyles.fontFamily,
                                     fontSize: 14.0,
                                     fontWeight: FontWeight.w600,
@@ -506,14 +515,14 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
                               minimumSize: const Size.fromHeight(38.0),
                               padding: const EdgeInsets.symmetric(horizontal: 12.0),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
-                                Icon(Icons.shuffle_rounded, size: 18.0),
-                                SizedBox(width: 6.0),
+                                const Icon(Icons.shuffle_rounded, size: 18.0),
+                                const SizedBox(width: 6.0),
                                 Text(
-                                  'Shuffle',
-                                  style: TextStyle(
+                                  l10n.shuffle,
+                                  style: const TextStyle(
                                     fontFamily: AppTextStyles.fontFamily,
                                     fontSize: 14.0,
                                     fontWeight: FontWeight.w600,
@@ -544,7 +553,7 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
                             border: Border.all(color: AppColors.outline),
                           ),
                           child: Text(
-                            '${playlistSongs.length} Tracks',
+                            l10n.tracksCount(playlistSongs.length),
                             style: const TextStyle(
                               fontFamily: AppTextStyles.fontFamily,
                               fontSize: 12.0,
@@ -602,9 +611,9 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
                               ),
                             ),
                             const SizedBox(height: AppDimensions.space16),
-                            const Text(
-                              'No songs in this playlist yet',
-                              style: TextStyle(
+                            Text(
+                              l10n.noSongsInPlaylist,
+                              style: const TextStyle(
                                 fontFamily: AppTextStyles.fontFamily,
                                 fontSize: 16.0,
                                 fontWeight: FontWeight.w600,
@@ -612,8 +621,8 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
                               ),
                             ),
                             const SizedBox(height: AppDimensions.space6),
-                            const Text(
-                              'Tap below to add songs from your library',
+                            Text(
+                              l10n.tapBelowToAddSongs,
                               style: AppTextStyles.caption,
                               textAlign: TextAlign.center,
                             ),
@@ -631,9 +640,9 @@ class _PlaylistDetailViewState extends ConsumerState<PlaylistDetailView> {
                                 ),
                               ),
                               icon: const Icon(Icons.add_rounded, size: 20.0),
-                              label: const Text(
-                                'Add Songs',
-                                style: TextStyle(
+                              label: Text(
+                                l10n.addSongs,
+                                style: const TextStyle(
                                   fontFamily: AppTextStyles.fontFamily,
                                   fontWeight: FontWeight.w600,
                                 ),

@@ -381,4 +381,459 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String deleteSongsDialogTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete $count Tracks?',
+      one: 'Delete 1 Track?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteSongsDialogMessage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Are you sure you want to permanently delete $count tracks from your device storage? This cannot be undone.',
+      one:
+          'Are you sure you want to permanently delete 1 track from your device storage? This cannot be undone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String permanentlyDeletedTracks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Permanently deleted $count tracks',
+      one: 'Permanently deleted 1 track',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get enterNewPlaylistName => 'Enter new playlist name';
+
+  @override
+  String get deletePlaylistTitle => 'Delete Playlist?';
+
+  @override
+  String playingNext(String title) {
+    return 'Playing next: $title';
+  }
+
+  @override
+  String playingPlaylist(String name) {
+    return 'Playing playlist \"$name\"';
+  }
+
+  @override
+  String get addTracks => 'Add Tracks';
+
+  @override
+  String get tapBelowToAddSongs => 'Tap below to add songs from your library';
+
+  @override
+  String get playlistAction => 'Playlist';
+
+  @override
+  String get timerAction => 'Timer';
+
+  @override
+  String get favoriteAction => 'Favorite';
+
+  @override
+  String get createPlaylistWithSelected =>
+      'Create a new playlist with selected tracks';
+
+  @override
+  String get noPlaylistsTapAbove =>
+      'No playlists yet. Tap above to create one.';
+
+  @override
+  String get createAndAdd => 'Create & Add';
+
+  @override
+  String selectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get selectAll => 'Select All';
+
+  @override
+  String get deselectAll => 'Deselect All';
+
+  @override
+  String selectSongsForPlaylist(String name) {
+    return 'Select songs for \"$name\"';
+  }
+
+  @override
+  String get noLibrarySongsAvailable => 'No library songs available';
+
+  @override
+  String get selectTracksToAdd => 'Select Tracks to Add';
+
+  @override
+  String addTracksCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count Tracks',
+      one: 'Add 1 Track',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addedToFavorites => 'Added to Favorites';
+
+  @override
+  String get unknownValue => 'Unknown';
+
+  @override
+  String get albumLabel => 'Album';
+
+  @override
+  String get fileSizeLabel => 'File Size';
+
+  @override
+  String get filePathLabel => 'Path';
+
+  @override
+  String get okAction => 'OK';
+
+  @override
+  String get dismiss => 'Dismiss';
+
+  @override
+  String get moreOptions => 'More options';
+
+  @override
+  String get addToFavorites => 'Add to Favorites';
+
+  @override
+  String get previous => 'Previous';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get repeat => 'Repeat';
+
+  @override
+  String sleepTimerTracksRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tracks remaining',
+      one: '1 track remaining',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sleepTimerRemaining(String time) {
+    return '$time remaining';
+  }
+
+  @override
+  String get gentleAudioFadeOut => 'Gentle audio fade-out';
+
+  @override
+  String get setTimer => 'Set timer';
+
+  @override
+  String addedToPlaylistSuccess(String name) {
+    return 'Added to $name';
+  }
+
+  @override
+  String alreadyInPlaylist(String name) {
+    return 'Already in $name';
+  }
+
+  @override
+  String createdPlaylistAndAddedTrack(String name) {
+    return 'Created playlist \"$name\" and added track';
+  }
+
+  @override
+  String get favoritesTitle => 'Favorites';
+
+  @override
+  String get alreadyInFavoritesHint => 'Already in Favorites (tap to remove)';
+
+  @override
+  String get saveToFavoritesHint => 'Save to favorite tracks';
+
+  @override
+  String get playlistsHeader => 'Playlists';
+
+  @override
+  String playlistsAvailableCount(int count) {
+    return '$count available';
+  }
+
+  @override
+  String get noPlaylistsCreateBelow => 'No playlists yet. Create one below!';
+
+  @override
+  String get addToPlaylistOrFavorites => 'Add to playlist or favorites';
+
+  @override
+  String get clearedUpcomingTracks => 'Cleared upcoming tracks';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get removedFromQueue => 'Removed from queue';
+
+  @override
+  String get play => 'Play';
+
+  @override
+  String get pause => 'Pause';
+
+  @override
+  String get removeFromQueue => 'Remove from queue';
+
+  @override
+  String get timerRunningTouchToAdjust => 'Timer running • Touch to adjust';
+
+  @override
+  String get setByDurationOrTracks => 'Set by duration or specific tracks';
+
+  @override
+  String get activeStatus => 'Active';
+
+  @override
+  String tracksRemainingBadge(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tracks Remaining',
+      one: '1 Track Remaining',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fadingOutOfTrack => 'Fading out at end of this track';
+
+  @override
+  String playbackPausesAfterTracks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Playback pauses after $count tracks finish',
+      one: 'Playback pauses after 1 track finishes',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get musicWillGentlyFadeOut => 'Music will gently fade out';
+
+  @override
+  String get closeSlider => 'Close Slider';
+
+  @override
+  String get adjustWithSlider => 'Adjust with Slider';
+
+  @override
+  String get addMore => 'Add More';
+
+  @override
+  String get tabDuration => 'Duration';
+
+  @override
+  String get tabTracks => 'Tracks';
+
+  @override
+  String get lastBadge => 'Last';
+
+  @override
+  String get customDuration => 'Custom Duration';
+
+  @override
+  String customMinutesLabel(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String customMinutesLabelFull(int minutes) {
+    return '$minutes minutes';
+  }
+
+  @override
+  String get startTimerButton => 'Start Timer';
+
+  @override
+  String pausesWhenTrackFinishes(String title) {
+    return 'Pauses when \"$title\" finishes';
+  }
+
+  @override
+  String get pausesWhenCurrentFinishes =>
+      'Pauses automatically when track finishes';
+
+  @override
+  String get trackCountTimer => 'Track Count Timer';
+
+  @override
+  String get countBased => 'Count-based';
+
+  @override
+  String startTracksSleepTimer(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Start $count-Track Sleep Timer',
+      one: 'Start 1-Track Sleep Timer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pickSpecificSongs => 'Pick Specific Songs';
+
+  @override
+  String get selectExactSongsPrompt =>
+      'Select exact songs from Queue or Library';
+
+  @override
+  String get selectArrow => 'Select >';
+
+  @override
+  String get selectSleepTracks => 'Select Sleep Tracks';
+
+  @override
+  String get musicWillTurnOffTracksFinish =>
+      'Music will turn off once these tracks finish';
+
+  @override
+  String get searchSongsOrArtists => 'Search songs or artists...';
+
+  @override
+  String get noUpcomingSongsInQueue => 'No upcoming songs in active queue.';
+
+  @override
+  String get noMatchingSongsInQueue => 'No matching songs found in queue.';
+
+  @override
+  String get noSongsFoundInLibrary => 'No songs found in local library.';
+
+  @override
+  String get noMatchingSongsInLibrary => 'No matching songs found in library.';
+
+  @override
+  String get selectSongsAction => 'Select Songs';
+
+  @override
+  String setTimerTracksCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Set Timer ($count Tracks)',
+      one: 'Set Timer (1 Track)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get libraryAndFiltering => 'Library & Filtering';
+
+  @override
+  String get ignoreWhatsappTitle => 'Ignore WhatsApp & Voice Notes';
+
+  @override
+  String get ignoreWhatsappSubtitle =>
+      'Hide WhatsApp audio clips, voice notes, and sound recordings from your music library.';
+
+  @override
+  String get whatsappHiddenSnackbar => 'WhatsApp audios hidden from library';
+
+  @override
+  String get whatsappVisibleSnackbar => 'WhatsApp audios visible in library';
+
+  @override
+  String get minimumTrackDurationTitle => 'Minimum Track Duration';
+
+  @override
+  String get minimumTrackDurationSubtitle =>
+      'Audio clips shorter than 30s (ringtones and alert sounds) are automatically hidden.';
+
+  @override
+  String get gentleFadeOutDurationTitle => 'Gentle Fade-Out Duration';
+
+  @override
+  String get gentleFadeOutDurationSubtitle =>
+      'Duration to smoothly lower volume down to zero before music ends.';
+
+  @override
+  String get shakeToExtendSubtitle =>
+      'Gently shake your device during fade-out to add extra time without unlocking.';
+
+  @override
+  String get slowVolumeDeclineSubtitle =>
+      'Gradually ease volume down over the duration of your timer.';
+
+  @override
+  String get bedtimeAutoTimerSection => 'Bedtime Auto-Timer';
+
+  @override
+  String get autoStartSleepTimerTitle => 'Auto-Start Sleep Timer';
+
+  @override
+  String get autoStartSleepTimerSubtitle =>
+      'Automatically start timer when playing music during your bedtime hours.';
+
+  @override
+  String get bedtimeStartsAtTitle => 'Bedtime Starts At';
+
+  @override
+  String get bedtimeStartsAtSubtitle =>
+      'Timer triggers when music begins between this time and 5:00 AM.';
+
+  @override
+  String get autoTimerDurationTitle => 'Auto-Timer Duration';
+
+  @override
+  String get autoTimerDurationSubtitle =>
+      'Default duration set when bedtime auto-timer triggers.';
+
+  @override
+  String appTaglineVersion(String version) {
+    return 'Sleep with music, wake up recharged.\nVersion $version';
+  }
+
+  @override
+  String addTracksToPlaylist(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count tracks to playlist',
+      one: 'Add 1 track to playlist',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String upcomingQueueCount(int count) {
+    return 'Upcoming Queue ($count)';
+  }
+
+  @override
+  String allSongsCount(int count) {
+    return 'All Songs ($count)';
+  }
 }

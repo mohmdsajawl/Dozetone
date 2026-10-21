@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../view_model/playlist/favorites_provider.dart';
 
 /// Modal bottom sheet allowing the user to batch-add selected songs to an
@@ -33,6 +34,7 @@ class BatchAddToPlaylistModal extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final playlists = ref.watch(playlistsProvider);
     final playlistNames = playlists.keys.toList();
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       constraints: BoxConstraints(
@@ -83,7 +85,7 @@ class BatchAddToPlaylistModal extends ConsumerWidget {
                   const SizedBox(width: AppDimensions.space12),
                   Expanded(
                     child: Text(
-                      'Add ${songIds.length} ${songIds.length == 1 ? "track" : "tracks"} to playlist',
+                      l10n.addTracksToPlaylist(songIds.length),
                       style: AppTextStyles.screenTitle.copyWith(fontSize: 18.0),
                     ),
                   ),
@@ -113,16 +115,16 @@ class BatchAddToPlaylistModal extends ConsumerWidget {
                   size: 24.0,
                 ),
               ),
-              title: const Text(
-                'New Playlist',
-                style: TextStyle(
+              title: Text(
+                l10n.newPlaylist,
+                style: const TextStyle(
                   color: AppColors.accent,
                   fontWeight: FontWeight.w600,
                   fontSize: 16.0,
                 ),
               ),
-              subtitle: const Text(
-                'Create a new playlist with selected tracks',
+              subtitle: Text(
+                l10n.createPlaylistWithSelected,
                 style: AppTextStyles.caption,
               ),
               onTap: () => _handleCreateNewPlaylist(context, ref),
@@ -137,7 +139,7 @@ class BatchAddToPlaylistModal extends ConsumerWidget {
                       padding: const EdgeInsets.all(AppDimensions.space32),
                       child: Center(
                         child: Text(
-                          'No playlists yet. Tap above to create one.',
+                          l10n.noPlaylistsTapAbove,
                           style: AppTextStyles.caption.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -178,7 +180,7 @@ class BatchAddToPlaylistModal extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                           subtitle: Text(
-                            '$count ${count == 1 ? "track" : "tracks"}',
+                            l10n.tracksCount(count),
                             style: AppTextStyles.caption,
                           ),
                           trailing: const Icon(
@@ -207,6 +209,7 @@ class BatchAddToPlaylistModal extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
 
     final playlistName = await showDialog<String>(
@@ -217,13 +220,13 @@ class BatchAddToPlaylistModal extends ConsumerWidget {
           borderRadius: BorderRadius.circular(AppDimensions.radiusCard),
           side: const BorderSide(color: AppColors.outline),
         ),
-        title: const Text('New Playlist', style: AppTextStyles.screenTitle),
+        title: Text(l10n.newPlaylist, style: AppTextStyles.screenTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
           style: AppTextStyles.body,
           decoration: InputDecoration(
-            hintText: 'Enter playlist name',
+            hintText: l10n.enterPlaylistName,
             hintStyle: AppTextStyles.bodySecondary,
             filled: true,
             fillColor: AppColors.background,
@@ -240,7 +243,7 @@ class BatchAddToPlaylistModal extends ConsumerWidget {
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () {
@@ -249,9 +252,9 @@ class BatchAddToPlaylistModal extends ConsumerWidget {
                 Navigator.of(dialogCtx).pop(name);
               }
             },
-            child: const Text(
-              'Create & Add',
-              style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600),
+            child: Text(
+              l10n.createAndAdd,
+              style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600),
             ),
           ),
         ],

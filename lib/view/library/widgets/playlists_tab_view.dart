@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../model/song.dart';
 import '../../../view_model/library/library_state.dart';
 import '../../../view_model/library/library_view_model.dart';
@@ -19,6 +20,7 @@ class PlaylistsTabView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final playlists = ref.watch(playlistsProvider);
     final libraryState = ref.watch(libraryViewModelProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     final allSongs = libraryState is LibraryLoaded ? libraryState.songs : <Song>[];
 
@@ -50,9 +52,9 @@ class PlaylistsTabView extends ConsumerWidget {
                 width: 1.0,
               ),
             ),
-            child: const Row(
+            child: Row(
               children: <Widget>[
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 20.0,
                   backgroundColor: AppColors.background,
                   child: Icon(
@@ -61,23 +63,23 @@ class PlaylistsTabView extends ConsumerWidget {
                     size: 24.0,
                   ),
                 ),
-                SizedBox(width: AppDimensions.space16),
+                const SizedBox(width: AppDimensions.space16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        'Create New Playlist',
-                        style: TextStyle(
+                        l10n.createNewPlaylist,
+                        style: const TextStyle(
                           fontFamily: AppTextStyles.fontFamily,
                           fontSize: 15.0,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      SizedBox(height: 2.0),
+                      const SizedBox(height: 2.0),
                       Text(
-                        'Group songs by mood, sleep, or genre',
+                        l10n.playlistSubtitle,
                         style: AppTextStyles.caption,
                       ),
                     ],
@@ -111,6 +113,7 @@ class PlaylistsTabView extends ConsumerWidget {
     required List<Song> allSongs,
   }) {
     final playlistSongs = allSongs.where((s) => songIds.contains(s.id)).toList();
+    final l10n = AppLocalizations.of(context)!;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimensions.space12),
@@ -212,7 +215,7 @@ class PlaylistsTabView extends ConsumerWidget {
                               const SizedBox(width: AppDimensions.space12),
                               Expanded(
                                 child: Text(
-                                  'Playing playlist "$name"',
+                                  l10n.playingPlaylist(name),
                                   style: AppTextStyles.body.copyWith(
                                     color: AppColors.textPrimary,
                                     fontWeight: FontWeight.w500,
@@ -247,23 +250,23 @@ class PlaylistsTabView extends ConsumerWidget {
                   }
                 },
                 itemBuilder: (context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(
+                  PopupMenuItem<String>(
                     value: 'rename',
                     child: Row(
                       children: <Widget>[
-                        Icon(Icons.edit_rounded, color: AppColors.accent, size: 18.0),
-                        SizedBox(width: AppDimensions.space12),
-                        Text('Rename', style: AppTextStyles.body),
+                        const Icon(Icons.edit_rounded, color: AppColors.accent, size: 18.0),
+                        const SizedBox(width: AppDimensions.space12),
+                        Text(l10n.rename, style: AppTextStyles.body),
                       ],
                     ),
                   ),
-                  const PopupMenuItem<String>(
+                  PopupMenuItem<String>(
                     value: 'delete',
                     child: Row(
                       children: <Widget>[
-                        Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 18.0),
-                        SizedBox(width: AppDimensions.space12),
-                        Text('Delete', style: TextStyle(color: AppColors.error)),
+                        const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 18.0),
+                        const SizedBox(width: AppDimensions.space12),
+                        Text(l10n.delete, style: const TextStyle(color: AppColors.error)),
                       ],
                     ),
                   ),
@@ -277,6 +280,7 @@ class PlaylistsTabView extends ConsumerWidget {
   }
 
   Future<void> _showCreatePlaylistDialog(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
 
     final name = await showDialog<String>(
@@ -287,13 +291,13 @@ class PlaylistsTabView extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12.0),
           side: const BorderSide(color: AppColors.outline),
         ),
-        title: const Text('New Playlist', style: AppTextStyles.screenTitle),
+        title: Text(l10n.newPlaylist, style: AppTextStyles.screenTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
           style: AppTextStyles.body,
           decoration: InputDecoration(
-            hintText: 'Enter playlist name',
+            hintText: l10n.enterPlaylistName,
             hintStyle: AppTextStyles.bodySecondary,
             filled: true,
             fillColor: AppColors.background,
@@ -310,7 +314,7 @@ class PlaylistsTabView extends ConsumerWidget {
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Cancel', style: AppTextStyles.caption),
+            child: Text(l10n.cancel, style: AppTextStyles.caption),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -321,7 +325,7 @@ class PlaylistsTabView extends ConsumerWidget {
               ),
             ),
             onPressed: () => Navigator.pop(dialogCtx, controller.text.trim()),
-            child: const Text('Create'),
+            child: Text(l10n.create),
           ),
         ],
       ),
@@ -345,8 +349,8 @@ class PlaylistsTabView extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     created
-                        ? 'Created playlist "$name"'
-                        : 'Playlist "$name" already exists',
+                        ? l10n.playlistCreated(name)
+                        : l10n.playlistAlreadyExists(name),
                     style: AppTextStyles.body.copyWith(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w500,
@@ -366,6 +370,7 @@ class PlaylistsTabView extends ConsumerWidget {
     WidgetRef ref,
     String currentName,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: currentName);
 
     final newName = await showDialog<String>(
@@ -376,13 +381,13 @@ class PlaylistsTabView extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12.0),
           side: const BorderSide(color: AppColors.outline),
         ),
-        title: const Text('Rename Playlist', style: AppTextStyles.screenTitle),
+        title: Text(l10n.renamePlaylist, style: AppTextStyles.screenTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
           style: AppTextStyles.body,
           decoration: InputDecoration(
-            hintText: 'Enter new playlist name',
+            hintText: l10n.enterNewPlaylistName,
             hintStyle: AppTextStyles.bodySecondary,
             filled: true,
             fillColor: AppColors.background,
@@ -399,7 +404,7 @@ class PlaylistsTabView extends ConsumerWidget {
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Cancel', style: AppTextStyles.caption),
+            child: Text(l10n.cancel, style: AppTextStyles.caption),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -410,7 +415,7 @@ class PlaylistsTabView extends ConsumerWidget {
               ),
             ),
             onPressed: () => Navigator.pop(dialogCtx, controller.text.trim()),
-            child: const Text('Rename'),
+            child: Text(l10n.rename),
           ),
         ],
       ),
@@ -436,8 +441,8 @@ class PlaylistsTabView extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     success
-                        ? 'Renamed to "$newName"'
-                        : 'Playlist "$newName" already exists',
+                        ? l10n.playlistRenamed(newName)
+                        : l10n.playlistAlreadyExists(newName),
                     style: AppTextStyles.body.copyWith(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w500,
@@ -457,6 +462,7 @@ class PlaylistsTabView extends ConsumerWidget {
     WidgetRef ref,
     String name,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
@@ -465,21 +471,21 @@ class PlaylistsTabView extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12.0),
           side: const BorderSide(color: AppColors.outline),
         ),
-        title: const Row(
+        title: Row(
           children: <Widget>[
-            Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 22.0),
-            SizedBox(width: AppDimensions.space8),
-            Text('Delete Playlist?', style: AppTextStyles.screenTitle),
+            const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 22.0),
+            const SizedBox(width: AppDimensions.space8),
+            Text(l10n.deletePlaylistTitle, style: AppTextStyles.screenTitle),
           ],
         ),
         content: Text(
-          'Are you sure you want to delete "$name"? The audio files will remain on your device.',
+          l10n.deletePlaylistConfirm(name),
           style: AppTextStyles.bodySecondary,
         ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
-            child: const Text('Cancel', style: AppTextStyles.caption),
+            child: Text(l10n.cancel, style: AppTextStyles.caption),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -490,7 +496,7 @@ class PlaylistsTabView extends ConsumerWidget {
               ),
             ),
             onPressed: () => Navigator.pop(dialogCtx, true),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -513,7 +519,7 @@ class PlaylistsTabView extends ConsumerWidget {
                 const SizedBox(width: AppDimensions.space12),
                 Expanded(
                   child: Text(
-                    'Deleted playlist "$name"',
+                    l10n.playlistDeleted(name),
                     style: AppTextStyles.body.copyWith(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w500,
