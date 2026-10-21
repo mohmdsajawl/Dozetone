@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,6 +34,10 @@ class FakeSongRepository implements SongRepository {
 
   @override
   Future<bool> renameSong(Song song, String newTitle) async => true;
+
+  @override
+  Future<Uint8List?> getArtwork(int songId, int? albumId, {String? dataUri}) async =>
+      null;
 }
 
 class FakePermissionService implements PermissionService {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/pref_keys.dart';
@@ -22,6 +23,9 @@ abstract class SongRepository {
 
   /// Renames a song title in MediaStore and on device storage.
   Future<bool> renameSong(Song song, String newTitle);
+
+  /// Queries artwork thumbnail bytes for the given song/album via MediaLibraryService.
+  Future<Uint8List?> getArtwork(int songId, int? albumId, {String? dataUri});
 }
 
 /// Implementation of SongRepository that talks to MediaLibraryService.
@@ -145,5 +149,14 @@ class SongRepositoryImpl implements SongRepository {
     }
 
     return true;
+  }
+
+  @override
+  Future<Uint8List?> getArtwork(int songId, int? albumId, {String? dataUri}) {
+    return _mediaLibraryService.queryArtwork(
+      songId,
+      albumId,
+      dataUri: dataUri,
+    );
   }
 }

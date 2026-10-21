@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../data/repositories/player_repository.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../../model/sleep_timer_state.dart';
 import '../../../../model/song.dart';
@@ -744,11 +743,12 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal>
                             );
                             if (picked != null && mounted) {
                               // Enqueue any new songs
-                              final repo = ref.read(playerRepositoryProvider);
+                              final playerVm =
+                                  ref.read(playerViewModelProvider.notifier);
                               for (final song in picked) {
                                 if (!timerState.selectedTracks
                                     .any((s) => s.id == song.id)) {
-                                  repo.addToQueue(song);
+                                  playerVm.addToQueue(song);
                                 }
                               }
                               await viewModel.updateSelectedTracks(picked);

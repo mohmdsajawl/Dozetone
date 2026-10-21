@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' show Locale;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/widgets.dart' show Locale;
 import '../../core/constants/app_durations.dart';
 import '../../core/constants/pref_keys.dart';
 import '../../core/constants/sleep_timer_constants.dart';

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../data/services/media_library_service.dart';
+import '../../../view_model/library/song_artwork_provider.dart';
 
 /// In-memory cache for loaded artwork bitmaps.
 /// Holds up to 300 thumbnail byte arrays to provide 60fps scrolling.
@@ -69,9 +69,8 @@ class _SongArtworkState extends ConsumerState<SongArtwork> {
       return;
     }
 
-    final mediaService = ref.read(mediaLibraryServiceProvider);
-    mediaService
-        .queryArtwork(widget.songId, widget.albumId, dataUri: widget.dataUri)
+    final queryArtwork = ref.read(songArtworkQueryProvider);
+    queryArtwork(widget.songId, widget.albumId, dataUri: widget.dataUri)
         .then((bytes) {
       if (!mounted) return;
       SongArtworkCache.put(widget.songId, bytes);

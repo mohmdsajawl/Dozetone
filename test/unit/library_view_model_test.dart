@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:dozetone/data/repositories/song_repository.dart';
@@ -32,6 +33,10 @@ class FakeSongRepository implements SongRepository {
     }
     return renameResult;
   }
+
+  @override
+  Future<Uint8List?> getArtwork(int songId, int? albumId, {String? dataUri}) async =>
+      null;
 }
 
 class FakePermissionService implements PermissionService {
